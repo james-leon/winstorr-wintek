@@ -47,7 +47,7 @@ function AdminRequests() {
 
   const updateReq = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase.from("service_requests").update({ status: status as "received" | "contacted" | "quoted" | "accepted" | "completed" | "cancelled" | "diagnosing" | "in_progress" }).eq("id", id);
+      const { error } = await supabase.from("service_requests").update({ status: status as "received" | "quoted" | "accepted" | "completed" | "cancelled" | "diagnosing" | "in_progress" }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => { toast.success("Mis à jour"); qc.invalidateQueries({ queryKey: ["admin-requests"] }); },
@@ -84,10 +84,11 @@ function AdminRequests() {
                     <Select value={r.status} onValueChange={(v) => updateReq.mutate({ id: r.id, status: v })}>
                       <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="new">Nouveau</SelectItem>
-                        <SelectItem value="contacted">Contacté</SelectItem>
+                        <SelectItem value="received">Reçu</SelectItem>
+                        <SelectItem value="diagnosing">Diagnostic</SelectItem>
                         <SelectItem value="quoted">Devisé</SelectItem>
                         <SelectItem value="accepted">Accepté</SelectItem>
+                        <SelectItem value="in_progress">En cours</SelectItem>
                         <SelectItem value="completed">Terminé</SelectItem>
                         <SelectItem value="cancelled">Annulé</SelectItem>
                       </SelectContent>
@@ -124,7 +125,6 @@ function AdminRequests() {
                       <SelectContent>
                         <SelectItem value="pending">En attente</SelectItem>
                         <SelectItem value="confirmed">Confirmé</SelectItem>
-                        <SelectItem value="attended">Présent</SelectItem>
                         <SelectItem value="cancelled">Annulé</SelectItem>
                       </SelectContent>
                     </Select>
