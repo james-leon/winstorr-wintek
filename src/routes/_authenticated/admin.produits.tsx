@@ -146,10 +146,10 @@ function ProductDialog({ row, onClose, onSaved }: { row: Row | null; onClose: ()
         stock_quantity: f.type === "physical" && f.stock_quantity ? Number(f.stock_quantity) : null,
         featured: f.featured,
         images: f.images.split("\n").map((s) => s.trim()).filter(Boolean),
-        delivery_type: f.type === "digital" && f.delivery_type ? f.delivery_type : null,
-        service_area: f.type === "service" && f.service_area ? f.service_area : null,
+        delivery_type: f.type === "digital" && f.delivery_type ? (f.delivery_type as "file_download" | "license_key" | "access_link") : null,
+        service_area: f.type === "service" && f.service_area ? (f.service_area as "on_site" | "in_shop" | "remote" | "both") : null,
         estimated_duration: f.type === "service" && f.estimated_duration ? f.estimated_duration : null,
-        delivery_mode: f.type === "training" && f.delivery_mode ? f.delivery_mode : null,
+        delivery_mode: f.type === "training" && f.delivery_mode ? (f.delivery_mode as "in_person" | "online" | "hybrid") : null,
       };
       if (isNew) {
         const { error } = await supabase.from("products").insert(payload);

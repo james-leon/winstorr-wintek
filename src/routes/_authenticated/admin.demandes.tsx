@@ -47,7 +47,7 @@ function AdminRequests() {
 
   const updateReq = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase.from("service_requests").update({ status }).eq("id", id);
+      const { error } = await supabase.from("service_requests").update({ status: status as "received" | "contacted" | "quoted" | "accepted" | "completed" | "cancelled" | "diagnosing" | "in_progress" }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => { toast.success("Mis à jour"); qc.invalidateQueries({ queryKey: ["admin-requests"] }); },
@@ -55,7 +55,7 @@ function AdminRequests() {
 
   const updateEnr = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase.from("training_enrollments").update({ status }).eq("id", id);
+      const { error } = await supabase.from("training_enrollments").update({ status: status as "pending" | "confirmed" | "cancelled" }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => { toast.success("Mis à jour"); qc.invalidateQueries({ queryKey: ["admin-enrollments"] }); },
