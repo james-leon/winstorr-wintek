@@ -1,9 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
-import { z } from "zod";
-import { zodValidator } from "@tanstack/zod-adapter";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductCard, type ProductCardData } from "@/components/product-card";
 import { Input } from "@/components/ui/input";
@@ -12,13 +10,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { PRODUCT_TYPE_LABELS, type ProductType } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-const searchSchema = z.object({
-  type: z.enum(["physical", "digital", "service", "training"]).optional(),
-  q: z.string().optional(),
-});
+type CatalogueSearch = { type?: ProductType; q?: string };
 
 export const Route = createFileRoute("/catalogue")({
-  validateSearch: zodValidator(searchSchema),
+  validateSearch: (search: Record<string, unknown>): CatalogueSearch => {
+    const t = search.type;
+    const type = typeof t === "string" && ["physical", "digital", "service", "training"].includes(t)
+      ? (t as ProductType) : undefined;
+    const q = typeof search.q === "string" && search.q.length > 0 ? search.q : undefined;
+    return { type, q };
+  },
   head: () => ({
     meta: [
       { title: "Catalogue — Winstorr" },
