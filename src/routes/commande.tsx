@@ -161,6 +161,12 @@ function CheckoutPage() {
           </ul>
           <div className="border-t border-border pt-3 space-y-1 text-sm">
             <div className="flex justify-between"><span className="text-muted-foreground">Sous-total</span><span>{formatFcfa(subtotal)}</span></div>
+            {coupon && discount > 0 && (
+              <div className="flex justify-between">
+                <span className="text-success">Réduction ({coupon.code})</span>
+                <span className="font-medium text-success">−{formatFcfa(discount)}</span>
+              </div>
+            )}
             {hasPhysical && (
               <div className="flex justify-between"><span className="text-muted-foreground">Livraison ({ville})</span><span>{formatFcfa(shipping)}</span></div>
             )}
@@ -169,6 +175,7 @@ function CheckoutPage() {
               <span className="text-lg font-bold text-accent">{formatFcfa(total)}</span>
             </div>
           </div>
+
           <Button type="submit" disabled={mut.isPending} className="mt-4 w-full bg-accent hover:bg-accent/90 text-accent-foreground">
             {mut.isPending ? "Traitement..." : "Payer maintenant"}
           </Button>
