@@ -69,11 +69,14 @@ export const updateReturnRequest = createServerFn({ method: "POST" })
     if (!isStaff) throw new Error("Réservé au personnel.");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const patch: Record<string, unknown> = { status: data.status };
-    if (data.resolutionNotes !== undefined) patch.resolution_notes = data.resolutionNotes;
-    if (data.refundAmount !== undefined) patch.refund_amount = data.refundAmount;
-
-    const { error } = await supabaseAdmin.from("return_requests").update(patch).eq("id", data.returnId);
+    const { error } = await supabaseAdmin
+      .from("return_requests")
+      .update({
+        status: data.status,
+        resolution_notes: data.resolutionNotes ?? null,
+        refund_amount: data.refundAmount ?? null,
+      })
+      .eq("id", data.returnId);
     if (error) throw new Error(error.message);
 
     if (data.status === "approved" || data.status === "rejected" || data.status === "refunded") {
