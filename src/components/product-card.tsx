@@ -1,6 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { displayPrice, PRODUCT_TYPE_LABELS, type ProductType } from "@/lib/format";
 import { TypeBadge } from "@/components/type-badge";
+import { StarRating } from "@/components/star-rating";
+import { QualityBadge } from "@/components/quality-badge";
 import { Button } from "@/components/ui/button";
 
 export type ProductCardData = {
@@ -13,6 +15,9 @@ export type ProductCardData = {
   price: number | null;
   price_type: "fixed" | "starting_at" | "quote_only";
   stock_quantity: number | null;
+  rating_average?: number | null;
+  rating_count?: number | null;
+  quality_verified?: boolean | null;
 };
 
 const CTA: Record<ProductType, string> = {
@@ -46,9 +51,15 @@ export function ProductCard({ p }: { p: ProductCardData }) {
         <div className="absolute left-3 top-3">
           <TypeBadge type={p.type} />
         </div>
+        {p.quality_verified && (
+          <div className="absolute right-3 top-3">
+            <QualityBadge />
+          </div>
+        )}
       </div>
       <div className="flex flex-1 flex-col gap-2 p-4">
         <h3 className="line-clamp-2 font-semibold leading-tight text-foreground">{p.name}</h3>
+        <StarRating rating={Number(p.rating_average ?? 0)} count={p.rating_count ?? 0} />
         {p.short_description && (
           <p className="line-clamp-2 text-sm text-muted-foreground">{p.short_description}</p>
         )}
