@@ -80,6 +80,7 @@ export type Database = {
           parent_id: string | null
           product_type: Database["public"]["Enums"]["product_type"]
           slug: string
+          status: Database["public"]["Enums"]["category_status"]
           updated_at: string
         }
         Insert: {
@@ -91,6 +92,7 @@ export type Database = {
           parent_id?: string | null
           product_type: Database["public"]["Enums"]["product_type"]
           slug: string
+          status?: Database["public"]["Enums"]["category_status"]
           updated_at?: string
         }
         Update: {
@@ -102,6 +104,7 @@ export type Database = {
           parent_id?: string | null
           product_type?: Database["public"]["Enums"]["product_type"]
           slug?: string
+          status?: Database["public"]["Enums"]["category_status"]
           updated_at?: string
         }
         Relationships: [
@@ -1165,6 +1168,7 @@ export type Database = {
         | "return_requested"
         | "other"
       app_role: "customer" | "staff" | "admin"
+      category_status: "active" | "archived"
       coupon_applies_to:
         | "all_products"
         | "specific_products"
@@ -1352,6 +1356,7 @@ export const Constants = {
         "other",
       ],
       app_role: ["customer", "staff", "admin"],
+      category_status: ["active", "archived"],
       coupon_applies_to: [
         "all_products",
         "specific_products",
