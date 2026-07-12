@@ -40,7 +40,10 @@ export const Route = createFileRoute("/api/public/cinetpay-webhook")({
             if (error) return new Response("confirm failed: " + error.message, { status: 500 });
             const { notifyOrderEvent } = await import("@/lib/notifications.server");
             await notifyOrderEvent(order.id, "payment_confirmed").catch((e) => console.error("[notify]", e));
+            const { redeemOrderCouponIfAny } = await import("@/lib/coupons.server");
+            await redeemOrderCouponIfAny(order.id).catch((e) => console.error("[redeem]", e));
             return new Response("ok", { status: 200 });
+
           }
           if (verify.status === "failed") {
             await supabaseAdmin

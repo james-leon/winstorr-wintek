@@ -241,5 +241,8 @@ export const mockConfirmPayment = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     const { notifyOrderEvent } = await import("./notifications.server");
     await notifyOrderEvent(order.id, "payment_confirmed").catch((e) => console.error("[notify]", e));
+    const { redeemOrderCouponIfAny } = await import("./coupons.server");
+    await redeemOrderCouponIfAny(order.id).catch((e) => console.error("[redeem]", e));
     return res;
   });
+
