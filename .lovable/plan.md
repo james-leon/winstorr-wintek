@@ -1,89 +1,75 @@
-# Winstorr — Module 1 Plan
 
-Foundation for Wintek's e-commerce platform: database schema for a multi-type product catalog (physical / digital / service / training), public storefront, and a basic admin panel. No payments yet.
+# Module 1 v2 — Marketplace-Ready Catalog
 
-## 1. Backend (Lovable Cloud)
+Upgrades Module 1 with a `vendors` table, `product_reviews` with denormalized ratings, quality/trust fields on products, and an Amazon-style UX (buy box, faceted filters, star ratings, trust section). No checkout yet.
 
-Enable Lovable Cloud, then ship one migration with:
+## 1. Database migration (single migration)
 
-**Enums**: `product_type`, `product_status`, `price_type`, `delivery_type`, `service_area`, `training_mode`, `training_session_status`, `service_request_status`, `training_enrollment_status`, `app_role`.
+**New:**
+- `vendors` (id, name, slug, type enum internal/external, logo_url, description, status enum active/suspended/pending_approval, commission_rate, contact_email, contact_phone, timestamps). Seed one row: **Wintek**, internal, active.
+- `product_reviews` (product_id, customer_id → profiles, rating 1-5, title, comment, verified_purchase bool, status enum published/pending/hidden, timestamps).
+- Enums: `vendor_type`, `vendor_status`, `source_type`, `review_status`.
 
-**Tables** (all with GRANTs + RLS):
-- `profiles` — auto-created via `handle_new_user` trigger on `auth.users`.
-- `user_roles` (separate from profiles) + `has_role(_user_id, _role)` SECURITY DEFINER.
-- `categories` — hierarchical (parent_id), scoped by product_type.
-- `products` — one row per product, all type-specific fields nullable. App-layer validation, not SQL CHECK.
-- `training_sessions` — FK to a training product.
-- `service_requests` — customer-submitted, staff-managed.
-- `training_enrollments` — placeholder (payment wiring in Module 2).
+**Altered `products`:**
+- Add `vendor_id uuid NOT NULL` (backfilled to Wintek vendor for existing rows, then FK + NOT NULL).
+- Add `compare_at_price`, `rating_average numeric default 0`, `rating_count int default 0`.
+- Add `quality_verified bool default false`, `warranty_duration text`, `source_type source_type`.
+- Add `requires_diagnostic bool default false` on service products.
 
-**RLS pattern**:
-- Public SELECT for `status='active'` products, categories, scheduled training_sessions.
-- Staff/admin (via `has_role`) full write on catalog tables.
-- `service_requests` and `training_enrollments`: public INSERT; SELECT/UPDATE restricted to staff/admin (customers get a confirmation UI, no self-serve lookup in M1).
-- `profiles`: self read/update; admin read all.
+**Triggers:**
+- `recompute_product_rating()` on `product_reviews` INSERT/UPDATE/DELETE — recomputes `rating_average` and `rating_count` from published reviews only.
+- Reuse existing `set_updated_at()`.
 
-**Storage**: create a public `product-images` bucket for admin uploads (products + service_request photos).
+**RLS + GRANTs (public tables get anon SELECT with policy filters):**
+- `vendors`: public read where `status='active'` (columns limited via view or client projection); admin write via `has_role`.
+- `product_reviews`: public read where `status='published'`; authenticated insert own (`customer_id = auth.uid()`); staff update/delete.
+- Products: keep existing public-read-active + staff-write policies; add vendor scoping later (comment placeholder).
 
-## 2. Design system
+## 2. Design system tweaks
 
-Update `src/styles.css` tokens (oklch equivalents):
-- `--navy` #0D2C54, `--primary` #1A6BB5, `--accent` #F58B1F (CTA), `--success` #2EC04E.
-- Map to shadcn tokens: primary=navy, secondary=blue, accent=orange, success=green. Foreground/background clean white + slate.
-- Fonts: Russo One (headings/logo) + Inter (body) via `<link>` in `__root.tsx`; `--font-display`, `--font-sans` in `@theme`.
-- Type badges: physical=blue, digital=orange, service=green, training=navy. Add a `<TypeBadge type>` component.
+`src/styles.css`: confirm tokens for navy/blue/orange/green + a new `--success` already present. Add star-rating color token (accent orange for filled stars).
 
-Update `__root.tsx` head with real Winstorr title/description/OG.
+## 3. Shared components
 
-## 3. Routes
+- `StarRating` — filled/half/empty SVG, sizes sm/md/lg, optional count label. Used in cards, buy box, reviews.
+- `QualityBadge` — small "Qualité vérifiée" chip with checkmark, tooltip-ready.
+- `VendorLine` — "Vendu par <Link>{vendor.name}</Link>".
+- Update `ProductCard` to show rating, compare_at_price strike, vendor line, quality badge.
 
-```
-src/routes/
-  __root.tsx                  (nav header + footer, providers)
-  index.tsx                   Homepage (hero, 4 type tiles, featured products)
-  catalogue.tsx               Catalog with filter sidebar + grid + search
-  produits.$slug.tsx          Product detail (branches by type)
-  _authenticated/
-    route.tsx                 (managed auth gate)
-    admin.tsx                 Admin layout (staff/admin only; non-staff → home)
-    admin.produits.tsx        Products table + create/edit dialog
-    admin.sessions.tsx        Training sessions manager
-    admin.demandes.tsx        Service requests kanban
-  auth.tsx                    Sign in / sign up (email+password, minimal)
-  sitemap[.]xml.ts
-```
+## 4. Pages
 
-Public routes with loaders use `context.queryClient.ensureQueryData` calling **public** server fns (publishable-key client, no auth). Admin routes use `requireSupabaseAuth` server fns + `has_role` checks.
+**Homepage (`/`)** — refresh:
+- Sticky header with prominent centered search bar (already exists; enhance).
+- Hero + category tiles (already present).
+- Three carousels: Populaire (top rated), Nouveautés (recent), Recommandé (mixed) — horizontal scroll, snap.
+- **"Pourquoi Winstorr" trust section** (3 columns above the fold on desktop, stacked mobile): produits authentiques / SAV Wintek / paiement MoMo & Orange Money sécurisé.
 
-## 4. Product detail per-type behavior
+**Catalog (`/catalogue`)** — expand:
+- Left sidebar filters (collapsible on mobile via Sheet): type, category (dependent), price min/max, min rating (4+, 3+, 2+).
+- Sort dropdown: pertinence, prix ↑, prix ↓, meilleures notes, plus récent.
+- Cards show star rating, compare price strike, vendor line, quality badge.
+- URL-driven state via `validateSearch`.
 
-- **Physical**: gallery, stock indicator, quantity, "Ajouter au panier" (local Zustand/Context cart — stub).
-- **Digital**: gallery, delivery-type info box, "Acheter maintenant" (stub → toast "Bientôt disponible").
-- **Service**: request form (name/phone/email/description/preferred_date/optional photo upload to storage) → insert `service_requests` → success state.
-- **Training**: session list with seats-remaining, "S'inscrire" opens dialog → insert `training_enrollments`. Full sessions disabled.
+**Product detail (`/produits/:slug`)** — Amazon-style buy box:
+- Gallery left, buy box right.
+- Buy box: name, star rating (anchor to reviews), price + strike compare_at_price, vendor line, quality/warranty banner, stock status, type-specific CTA (unchanged flow but visual refresh).
+- Below fold: description tabs, then reviews section — rating distribution bars (5→1★), review list, "Laisser un avis" form (auth-gated, else inline "Connectez-vous pour laisser un avis" link).
 
-## 5. Admin
+**Admin (`/admin/*`)** — extend:
+- `admin.produits`: add vendor filter/dropdown, quality_verified toggle, warranty_duration, source_type fields in the create/edit form.
+- `admin.avis` (new): reviews moderation — list with status, approve/hide actions.
+- Existing sessions & demandes pages remain.
 
-- `/admin/produits`: table with type + status filters, "Nouveau produit" dialog with dynamic fields per type, edit, archive.
-- `/admin/sessions`: list per training product, create/edit/cancel sessions.
-- `/admin/demandes`: kanban columns per `service_request_status`, drag-or-select to update status, add internal notes, set quoted_price.
+## Technical Details
 
-Bootstrap: first signed-up user can be promoted to admin via a one-shot server fn gated by "no admin exists yet", or via a documented SQL insert. I'll ship the "first user becomes admin" server fn for convenience.
+- One migration for schema; then update `src/integrations/supabase/types.ts` regenerates automatically.
+- Loader pattern: `ensureQueryData` + `useSuspenseQuery`, per project conventions.
+- Ratings recomputed via trigger — no client-side aggregation.
+- Vendor page `/vendeurs/:slug`: not built now; `VendorLine` renders a `Link` that 404s gracefully via root notFoundComponent.
+- Existing seeded products get `vendor_id` = Wintek in the migration itself (UPDATE before adding NOT NULL constraint).
+- Charts for rating distribution: simple flex bars, no chart lib.
+- Mobile filters: shadcn `Sheet` triggered by a "Filtres" button.
 
-## 6. Cart stub
+## Out of scope (per user)
 
-Simple `CartContext` in `src/lib/cart-context.tsx` with localStorage persistence. Header shows item count. No cart page yet (Module 2), but "Ajouter au panier" adds and toasts.
-
-## 7. Out of scope (Module 2)
-
-Payments (CinetPay), cart page/checkout, shipping addresses, email notifications, customer-facing order history.
-
-## Technical notes
-
-- Server fns live in `src/lib/*.functions.ts`; admin ones use `requireSupabaseAuth` + `has_role` check.
-- No seed data — user will add products via admin panel.
-- Validation with zod on all forms.
-- French UI copy throughout.
-- Mobile-first Tailwind, semantic tokens only (no hardcoded colors in components).
-
-Ready to build on approval.
+Payments, real cart persistence, vendor onboarding, commission logic, full-text search.
