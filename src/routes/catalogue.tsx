@@ -34,17 +34,9 @@ export const Route = createFileRoute("/catalogue")({
     const verified = search.verified === true || search.verified === "true" ? true : undefined;
     return { type, q, sort, minRating, verified };
   },
-  head: ({ search }) => {
-    const typeLabel = search.type ? PRODUCT_TYPE_LABELS[search.type as ProductType] : null;
-    const title = typeLabel
-      ? `${typeLabel} au Cameroun | Winstorr`
-      : search.q
-      ? `Recherche : ${search.q} | Winstorr`
-      : "Catalogue — Électronique, Numérique, Services & Formations | Winstorr";
-    const description = typeLabel
-      ? `${typeLabel} sur Winstorr : sélection vérifiée par Wintek, livraison au Cameroun, paiement Mobile Money.`
-      : "Parcourez tout le catalogue Winstorr : électronique, produits numériques, services techniques et formations, avec notes clients et vendeurs vérifiés.";
-    // Canonical always points at clean /catalogue (filters are UX state, not new pages)
+  head: () => {
+    const title = "Catalogue — Électronique, Numérique, Services & Formations | Winstorr";
+    const description = "Parcourez tout le catalogue Winstorr : électronique, produits numériques, services techniques et formations, avec notes clients et vendeurs vérifiés. Livraison au Cameroun, paiement Mobile Money.";
     return {
       meta: [
         { title },
@@ -59,6 +51,7 @@ export const Route = createFileRoute("/catalogue")({
   },
   component: Catalogue,
 });
+
 
 
 const TYPES: ProductType[] = ["physical", "digital", "service", "training"];
