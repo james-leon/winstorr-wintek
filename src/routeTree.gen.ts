@@ -9,6 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PanierRouteImport } from './routes/panier'
+import { Route as CommandeRouteImport } from './routes/commande'
 import { Route as CatalogueRouteImport } from './routes/catalogue'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
@@ -16,11 +18,25 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProduitsSlugRouteImport } from './routes/produits.$slug'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as CommandeOrderNumberConfirmationRouteImport } from './routes/commande.$orderNumber.confirmation'
+import { Route as ApiPublicCinetpayWebhookRouteImport } from './routes/api/public/cinetpay-webhook'
+import { Route as AuthenticatedMonCompteCommandesRouteImport } from './routes/_authenticated/mon-compte.commandes'
 import { Route as AuthenticatedAdminSessionsRouteImport } from './routes/_authenticated/admin.sessions'
 import { Route as AuthenticatedAdminProduitsRouteImport } from './routes/_authenticated/admin.produits'
 import { Route as AuthenticatedAdminDemandesRouteImport } from './routes/_authenticated/admin.demandes'
+import { Route as AuthenticatedAdminCommandesRouteImport } from './routes/_authenticated/admin.commandes'
 import { Route as AuthenticatedAdminAvisRouteImport } from './routes/_authenticated/admin.avis'
 
+const PanierRoute = PanierRouteImport.update({
+  id: '/panier',
+  path: '/panier',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommandeRoute = CommandeRouteImport.update({
+  id: '/commande',
+  path: '/commande',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CatalogueRoute = CatalogueRouteImport.update({
   id: '/catalogue',
   path: '/catalogue',
@@ -55,6 +71,24 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const CommandeOrderNumberConfirmationRoute =
+  CommandeOrderNumberConfirmationRouteImport.update({
+    id: '/$orderNumber/confirmation',
+    path: '/$orderNumber/confirmation',
+    getParentRoute: () => CommandeRoute,
+  } as any)
+const ApiPublicCinetpayWebhookRoute =
+  ApiPublicCinetpayWebhookRouteImport.update({
+    id: '/api/public/cinetpay-webhook',
+    path: '/api/public/cinetpay-webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedMonCompteCommandesRoute =
+  AuthenticatedMonCompteCommandesRouteImport.update({
+    id: '/mon-compte/commandes',
+    path: '/mon-compte/commandes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminSessionsRoute =
   AuthenticatedAdminSessionsRouteImport.update({
     id: '/sessions',
@@ -73,6 +107,12 @@ const AuthenticatedAdminDemandesRoute =
     path: '/demandes',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminCommandesRoute =
+  AuthenticatedAdminCommandesRouteImport.update({
+    id: '/commandes',
+    path: '/commandes',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminAvisRoute = AuthenticatedAdminAvisRouteImport.update({
   id: '/avis',
   path: '/avis',
@@ -83,23 +123,35 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/catalogue': typeof CatalogueRoute
+  '/commande': typeof CommandeRouteWithChildren
+  '/panier': typeof PanierRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/produits/$slug': typeof ProduitsSlugRoute
   '/admin/avis': typeof AuthenticatedAdminAvisRoute
+  '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
   '/admin/demandes': typeof AuthenticatedAdminDemandesRoute
   '/admin/produits': typeof AuthenticatedAdminProduitsRoute
   '/admin/sessions': typeof AuthenticatedAdminSessionsRoute
+  '/mon-compte/commandes': typeof AuthenticatedMonCompteCommandesRoute
+  '/api/public/cinetpay-webhook': typeof ApiPublicCinetpayWebhookRoute
+  '/commande/$orderNumber/confirmation': typeof CommandeOrderNumberConfirmationRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/catalogue': typeof CatalogueRoute
+  '/commande': typeof CommandeRouteWithChildren
+  '/panier': typeof PanierRoute
   '/produits/$slug': typeof ProduitsSlugRoute
   '/admin/avis': typeof AuthenticatedAdminAvisRoute
+  '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
   '/admin/demandes': typeof AuthenticatedAdminDemandesRoute
   '/admin/produits': typeof AuthenticatedAdminProduitsRoute
   '/admin/sessions': typeof AuthenticatedAdminSessionsRoute
+  '/mon-compte/commandes': typeof AuthenticatedMonCompteCommandesRoute
+  '/api/public/cinetpay-webhook': typeof ApiPublicCinetpayWebhookRoute
+  '/commande/$orderNumber/confirmation': typeof CommandeOrderNumberConfirmationRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRoutesById {
@@ -108,12 +160,18 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/catalogue': typeof CatalogueRoute
+  '/commande': typeof CommandeRouteWithChildren
+  '/panier': typeof PanierRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/produits/$slug': typeof ProduitsSlugRoute
   '/_authenticated/admin/avis': typeof AuthenticatedAdminAvisRoute
+  '/_authenticated/admin/commandes': typeof AuthenticatedAdminCommandesRoute
   '/_authenticated/admin/demandes': typeof AuthenticatedAdminDemandesRoute
   '/_authenticated/admin/produits': typeof AuthenticatedAdminProduitsRoute
   '/_authenticated/admin/sessions': typeof AuthenticatedAdminSessionsRoute
+  '/_authenticated/mon-compte/commandes': typeof AuthenticatedMonCompteCommandesRoute
+  '/api/public/cinetpay-webhook': typeof ApiPublicCinetpayWebhookRoute
+  '/commande/$orderNumber/confirmation': typeof CommandeOrderNumberConfirmationRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRouteTypes {
@@ -122,23 +180,35 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/catalogue'
+    | '/commande'
+    | '/panier'
     | '/admin'
     | '/produits/$slug'
     | '/admin/avis'
+    | '/admin/commandes'
     | '/admin/demandes'
     | '/admin/produits'
     | '/admin/sessions'
+    | '/mon-compte/commandes'
+    | '/api/public/cinetpay-webhook'
+    | '/commande/$orderNumber/confirmation'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/catalogue'
+    | '/commande'
+    | '/panier'
     | '/produits/$slug'
     | '/admin/avis'
+    | '/admin/commandes'
     | '/admin/demandes'
     | '/admin/produits'
     | '/admin/sessions'
+    | '/mon-compte/commandes'
+    | '/api/public/cinetpay-webhook'
+    | '/commande/$orderNumber/confirmation'
     | '/admin'
   id:
     | '__root__'
@@ -146,12 +216,18 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/catalogue'
+    | '/commande'
+    | '/panier'
     | '/_authenticated/admin'
     | '/produits/$slug'
     | '/_authenticated/admin/avis'
+    | '/_authenticated/admin/commandes'
     | '/_authenticated/admin/demandes'
     | '/_authenticated/admin/produits'
     | '/_authenticated/admin/sessions'
+    | '/_authenticated/mon-compte/commandes'
+    | '/api/public/cinetpay-webhook'
+    | '/commande/$orderNumber/confirmation'
     | '/_authenticated/admin/'
   fileRoutesById: FileRoutesById
 }
@@ -160,11 +236,28 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   CatalogueRoute: typeof CatalogueRoute
+  CommandeRoute: typeof CommandeRouteWithChildren
+  PanierRoute: typeof PanierRoute
   ProduitsSlugRoute: typeof ProduitsSlugRoute
+  ApiPublicCinetpayWebhookRoute: typeof ApiPublicCinetpayWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/panier': {
+      id: '/panier'
+      path: '/panier'
+      fullPath: '/panier'
+      preLoaderRoute: typeof PanierRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/commande': {
+      id: '/commande'
+      path: '/commande'
+      fullPath: '/commande'
+      preLoaderRoute: typeof CommandeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/catalogue': {
       id: '/catalogue'
       path: '/catalogue'
@@ -214,6 +307,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/commande/$orderNumber/confirmation': {
+      id: '/commande/$orderNumber/confirmation'
+      path: '/$orderNumber/confirmation'
+      fullPath: '/commande/$orderNumber/confirmation'
+      preLoaderRoute: typeof CommandeOrderNumberConfirmationRouteImport
+      parentRoute: typeof CommandeRoute
+    }
+    '/api/public/cinetpay-webhook': {
+      id: '/api/public/cinetpay-webhook'
+      path: '/api/public/cinetpay-webhook'
+      fullPath: '/api/public/cinetpay-webhook'
+      preLoaderRoute: typeof ApiPublicCinetpayWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/mon-compte/commandes': {
+      id: '/_authenticated/mon-compte/commandes'
+      path: '/mon-compte/commandes'
+      fullPath: '/mon-compte/commandes'
+      preLoaderRoute: typeof AuthenticatedMonCompteCommandesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/sessions': {
       id: '/_authenticated/admin/sessions'
       path: '/sessions'
@@ -235,6 +349,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminDemandesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/commandes': {
+      id: '/_authenticated/admin/commandes'
+      path: '/commandes'
+      fullPath: '/admin/commandes'
+      preLoaderRoute: typeof AuthenticatedAdminCommandesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/avis': {
       id: '/_authenticated/admin/avis'
       path: '/avis'
@@ -247,6 +368,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAvisRoute: typeof AuthenticatedAdminAvisRoute
+  AuthenticatedAdminCommandesRoute: typeof AuthenticatedAdminCommandesRoute
   AuthenticatedAdminDemandesRoute: typeof AuthenticatedAdminDemandesRoute
   AuthenticatedAdminProduitsRoute: typeof AuthenticatedAdminProduitsRoute
   AuthenticatedAdminSessionsRoute: typeof AuthenticatedAdminSessionsRoute
@@ -255,6 +377,7 @@ interface AuthenticatedAdminRouteChildren {
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAvisRoute: AuthenticatedAdminAvisRoute,
+  AuthenticatedAdminCommandesRoute: AuthenticatedAdminCommandesRoute,
   AuthenticatedAdminDemandesRoute: AuthenticatedAdminDemandesRoute,
   AuthenticatedAdminProduitsRoute: AuthenticatedAdminProduitsRoute,
   AuthenticatedAdminSessionsRoute: AuthenticatedAdminSessionsRoute,
@@ -266,21 +389,38 @@ const AuthenticatedAdminRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedMonCompteCommandesRoute: typeof AuthenticatedMonCompteCommandesRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedMonCompteCommandesRoute: AuthenticatedMonCompteCommandesRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
+interface CommandeRouteChildren {
+  CommandeOrderNumberConfirmationRoute: typeof CommandeOrderNumberConfirmationRoute
+}
+
+const CommandeRouteChildren: CommandeRouteChildren = {
+  CommandeOrderNumberConfirmationRoute: CommandeOrderNumberConfirmationRoute,
+}
+
+const CommandeRouteWithChildren = CommandeRoute._addFileChildren(
+  CommandeRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   CatalogueRoute: CatalogueRoute,
+  CommandeRoute: CommandeRouteWithChildren,
+  PanierRoute: PanierRoute,
   ProduitsSlugRoute: ProduitsSlugRoute,
+  ApiPublicCinetpayWebhookRoute: ApiPublicCinetpayWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

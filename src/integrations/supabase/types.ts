@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -54,6 +72,147 @@ export type Database = {
             columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          product_id: string | null
+          product_image: string | null
+          product_name: string
+          product_slug: string | null
+          product_type: string
+          quantity: number
+          subtotal: number
+          unit_price: number
+          vendor_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          product_id?: string | null
+          product_image?: string | null
+          product_name: string
+          product_slug?: string | null
+          product_type: string
+          quantity: number
+          subtotal: number
+          unit_price: number
+          vendor_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          product_id?: string | null
+          product_image?: string | null
+          product_name?: string
+          product_slug?: string | null
+          product_type?: string
+          quantity?: number
+          subtotal?: number
+          unit_price?: number
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          cinetpay_transaction_id: string | null
+          created_at: string
+          currency: string
+          customer_email: string | null
+          customer_id: string | null
+          customer_name: string
+          customer_phone: string
+          has_physical_items: boolean
+          id: string
+          notes: string | null
+          order_number: string
+          payment_method: Database["public"]["Enums"]["payment_method"] | null
+          payment_status: Database["public"]["Enums"]["payment_status"]
+          shipping_address: Json | null
+          shipping_fee: number
+          status: Database["public"]["Enums"]["order_status"]
+          subtotal: number
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          cinetpay_transaction_id?: string | null
+          created_at?: string
+          currency?: string
+          customer_email?: string | null
+          customer_id?: string | null
+          customer_name: string
+          customer_phone: string
+          has_physical_items?: boolean
+          id?: string
+          notes?: string | null
+          order_number?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          payment_status?: Database["public"]["Enums"]["payment_status"]
+          shipping_address?: Json | null
+          shipping_fee?: number
+          status?: Database["public"]["Enums"]["order_status"]
+          subtotal?: number
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          cinetpay_transaction_id?: string | null
+          created_at?: string
+          currency?: string
+          customer_email?: string | null
+          customer_id?: string | null
+          customer_name?: string
+          customer_phone?: string
+          has_physical_items?: boolean
+          id?: string
+          notes?: string | null
+          order_number?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          payment_status?: Database["public"]["Enums"]["payment_status"]
+          shipping_address?: Json | null
+          shipping_fee?: number
+          status?: Database["public"]["Enums"]["order_status"]
+          subtotal?: number
+          total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -478,6 +637,45 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      confirm_order_payment: {
+        Args: {
+          _method: Database["public"]["Enums"]["payment_method"]
+          _order_id: string
+          _txn_id: string
+        }
+        Returns: Json
+      }
+      generate_order_number: { Args: never; Returns: string }
+      get_order_by_number: {
+        Args: { _order_number: string }
+        Returns: {
+          created_at: string
+          currency: string
+          customer_email: string
+          customer_name: string
+          has_physical_items: boolean
+          id: string
+          order_number: string
+          payment_status: Database["public"]["Enums"]["payment_status"]
+          shipping_address: Json
+          status: Database["public"]["Enums"]["order_status"]
+          total: number
+        }[]
+      }
+      get_order_items_by_number: {
+        Args: { _order_number: string }
+        Returns: {
+          id: string
+          product_id: string
+          product_image: string
+          product_name: string
+          product_slug: string
+          product_type: string
+          quantity: number
+          subtotal: number
+          unit_price: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -490,6 +688,17 @@ export type Database = {
     Enums: {
       app_role: "customer" | "staff" | "admin"
       delivery_type: "file_download" | "license_key" | "access_link"
+      order_status:
+        | "pending_payment"
+        | "paid"
+        | "processing"
+        | "shipped"
+        | "delivered"
+        | "completed"
+        | "cancelled"
+        | "payment_failed"
+      payment_method: "mtn_momo" | "orange_money" | "card"
+      payment_status: "pending" | "paid" | "failed" | "refunded"
       price_type: "fixed" | "starting_at" | "quote_only"
       product_status: "draft" | "active" | "archived"
       product_type: "physical" | "digital" | "service" | "training"
@@ -638,6 +847,18 @@ export const Constants = {
     Enums: {
       app_role: ["customer", "staff", "admin"],
       delivery_type: ["file_download", "license_key", "access_link"],
+      order_status: [
+        "pending_payment",
+        "paid",
+        "processing",
+        "shipped",
+        "delivered",
+        "completed",
+        "cancelled",
+        "payment_failed",
+      ],
+      payment_method: ["mtn_momo", "orange_money", "card"],
+      payment_status: ["pending", "paid", "failed", "refunded"],
       price_type: ["fixed", "starting_at", "quote_only"],
       product_status: ["draft", "active", "archived"],
       product_type: ["physical", "digital", "service", "training"],
