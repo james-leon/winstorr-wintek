@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useNavigate } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
+import { AdminNotificationBell } from "@/components/admin-notification-bell";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
@@ -11,6 +12,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
 const TABS = [
   { to: "/admin/produits", label: "Produits" },
   { to: "/admin/commandes", label: "Commandes" },
+  { to: "/admin/retours", label: "Retours" },
   { to: "/admin/avis", label: "Avis" },
   { to: "/admin/sessions", label: "Sessions" },
   { to: "/admin/demandes", label: "Demandes" },
@@ -32,6 +34,7 @@ function AdminLayout() {
     <div className="mx-auto max-w-7xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between gap-4">
         <h1 className="font-display text-3xl text-foreground">Administration</h1>
+        <AdminNotificationBell />
       </div>
       <nav className="mb-6 flex gap-1 border-b border-border overflow-x-auto">
         {TABS.map((t) => {

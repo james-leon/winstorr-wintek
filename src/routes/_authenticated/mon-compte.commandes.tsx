@@ -58,7 +58,7 @@ function MyOrders() {
           {data.map((o) => (
             <Link
               key={o.id}
-              to="/commande/$orderNumber/confirmation"
+              to="/mon-compte/commandes/$orderNumber"
               params={{ orderNumber: o.order_number }}
               className="flex items-center justify-between gap-3 p-4 hover:bg-muted no-link-color"
             >
