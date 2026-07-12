@@ -12,14 +12,14 @@ type CatSel = "all" | ProductType;
 
 const CAT_OPTIONS: { value: CatSel; label: string }[] = [
   { value: "all", label: "Tout" },
-  { value: "physical", label: "Électronique" },
+  { value: "physical", label: "Produits physiques" },
   { value: "digital", label: "Numérique" },
   { value: "service", label: "Services" },
   { value: "training", label: "Formations" },
 ];
 
 const TYPE_LINKS: { type: ProductType; label: string }[] = [
-  { type: "physical", label: "Électronique" },
+  { type: "physical", label: "Produits physiques" },
   { type: "digital", label: "Numérique" },
   { type: "service", label: "Services" },
   { type: "training", label: "Formations" },
