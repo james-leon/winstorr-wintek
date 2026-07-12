@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatFcfa } from "@/lib/format";
 import { validateCouponFn } from "@/lib/coupons.functions";
+import { useCartTiers, resolveUnitPrice } from "@/lib/tiers";
+
 
 export const Route = createFileRoute("/panier")({
   head: () => ({ meta: [{ title: "Panier — Winstorr" }, { name: "description", content: "Votre panier Winstorr." }] }),
