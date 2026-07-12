@@ -264,7 +264,7 @@ function AdminAnalytics() {
                         <td className="p-2 text-right font-semibold text-accent tabular-nums">{formatFcfa(p.revenue)}</td>
                         <td className="p-2">
                           {p.rating_count > 0
-                            ? <div className="flex items-center gap-1"><StarRating value={Number(p.rating_average)} size="sm" /><span className="text-xs text-muted-foreground">({p.rating_count})</span></div>
+                            ? <div className="flex items-center gap-1"><StarRating rating={Number(p.rating_average)} size="sm" showCount={false} /><span className="text-xs text-muted-foreground">({p.rating_count})</span></div>
                             : <span className="text-xs text-muted-foreground">—</span>}
                         </td>
                       </tr>
@@ -356,7 +356,7 @@ function AdminAnalytics() {
                     <div className="flex items-center justify-between gap-2">
                       <Link to="/produits/$slug" params={{ slug: r.product_slug }} className="font-medium hover:underline">{r.product_name}</Link>
                       <div className="flex items-center gap-2">
-                        <StarRating value={r.rating} size="sm" />
+                        <StarRating rating={r.rating} size="sm" showCount={false} />
                         <span className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString("fr-FR")}</span>
                       </div>
                     </div>
