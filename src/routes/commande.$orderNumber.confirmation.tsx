@@ -103,7 +103,13 @@ function ConfirmationPage() {
           <div>
             <div className="text-muted-foreground">Total</div>
             <div className="text-lg font-bold text-accent">{formatFcfa(Number(order.total))}</div>
+            {Number(order.discount_amount ?? 0) > 0 && (
+              <div className="mt-1 text-xs text-success">
+                Économie : {formatFcfa(Number(order.discount_amount))}{order.coupon_code ? ` (${order.coupon_code})` : ""}
+              </div>
+            )}
           </div>
+
           <div>
             <div className="text-muted-foreground">Contact</div>
             <div>{order.customer_name}</div>
