@@ -188,6 +188,10 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
     if (data.notes !== undefined) patch.notes = data.notes;
     const { error } = await supabaseAdmin.from("orders").update(patch).eq("id", data.orderId);
     if (error) throw new Error(error.message);
+    if (data.status === "shipped" || data.status === "delivered") {
+      const { notifyOrderEvent } = await import("./notifications.server");
+      await notifyOrderEvent(data.orderId, data.status).catch((e) => console.error("[notify]", e));
+    }
     return { ok: true };
   });
 
@@ -211,5 +215,7 @@ export const mockConfirmPayment = createServerFn({ method: "POST" })
       _method: "mtn_momo",
     });
     if (error) throw new Error(error.message);
+    const { notifyOrderEvent } = await import("./notifications.server");
+    await notifyOrderEvent(order.id, "payment_confirmed").catch((e) => console.error("[notify]", e));
     return res;
   });

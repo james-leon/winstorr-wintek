@@ -22,10 +22,12 @@ import { Route as CommandeOrderNumberConfirmationRouteImport } from './routes/co
 import { Route as ApiPublicCinetpayWebhookRouteImport } from './routes/api/public/cinetpay-webhook'
 import { Route as AuthenticatedMonCompteCommandesRouteImport } from './routes/_authenticated/mon-compte.commandes'
 import { Route as AuthenticatedAdminSessionsRouteImport } from './routes/_authenticated/admin.sessions'
+import { Route as AuthenticatedAdminRetoursRouteImport } from './routes/_authenticated/admin.retours'
 import { Route as AuthenticatedAdminProduitsRouteImport } from './routes/_authenticated/admin.produits'
 import { Route as AuthenticatedAdminDemandesRouteImport } from './routes/_authenticated/admin.demandes'
 import { Route as AuthenticatedAdminCommandesRouteImport } from './routes/_authenticated/admin.commandes'
 import { Route as AuthenticatedAdminAvisRouteImport } from './routes/_authenticated/admin.avis'
+import { Route as AuthenticatedMonCompteCommandesOrderNumberRouteImport } from './routes/_authenticated/mon-compte.commandes.$orderNumber'
 
 const PanierRoute = PanierRouteImport.update({
   id: '/panier',
@@ -95,6 +97,12 @@ const AuthenticatedAdminSessionsRoute =
     path: '/sessions',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminRetoursRoute =
+  AuthenticatedAdminRetoursRouteImport.update({
+    id: '/retours',
+    path: '/retours',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminProduitsRoute =
   AuthenticatedAdminProduitsRouteImport.update({
     id: '/produits',
@@ -118,6 +126,12 @@ const AuthenticatedAdminAvisRoute = AuthenticatedAdminAvisRouteImport.update({
   path: '/avis',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedMonCompteCommandesOrderNumberRoute =
+  AuthenticatedMonCompteCommandesOrderNumberRouteImport.update({
+    id: '/$orderNumber',
+    path: '/$orderNumber',
+    getParentRoute: () => AuthenticatedMonCompteCommandesRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -131,11 +145,13 @@ export interface FileRoutesByFullPath {
   '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
   '/admin/demandes': typeof AuthenticatedAdminDemandesRoute
   '/admin/produits': typeof AuthenticatedAdminProduitsRoute
+  '/admin/retours': typeof AuthenticatedAdminRetoursRoute
   '/admin/sessions': typeof AuthenticatedAdminSessionsRoute
-  '/mon-compte/commandes': typeof AuthenticatedMonCompteCommandesRoute
+  '/mon-compte/commandes': typeof AuthenticatedMonCompteCommandesRouteWithChildren
   '/api/public/cinetpay-webhook': typeof ApiPublicCinetpayWebhookRoute
   '/commande/$orderNumber/confirmation': typeof CommandeOrderNumberConfirmationRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/mon-compte/commandes/$orderNumber': typeof AuthenticatedMonCompteCommandesOrderNumberRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -148,11 +164,13 @@ export interface FileRoutesByTo {
   '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
   '/admin/demandes': typeof AuthenticatedAdminDemandesRoute
   '/admin/produits': typeof AuthenticatedAdminProduitsRoute
+  '/admin/retours': typeof AuthenticatedAdminRetoursRoute
   '/admin/sessions': typeof AuthenticatedAdminSessionsRoute
-  '/mon-compte/commandes': typeof AuthenticatedMonCompteCommandesRoute
+  '/mon-compte/commandes': typeof AuthenticatedMonCompteCommandesRouteWithChildren
   '/api/public/cinetpay-webhook': typeof ApiPublicCinetpayWebhookRoute
   '/commande/$orderNumber/confirmation': typeof CommandeOrderNumberConfirmationRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/mon-compte/commandes/$orderNumber': typeof AuthenticatedMonCompteCommandesOrderNumberRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -168,11 +186,13 @@ export interface FileRoutesById {
   '/_authenticated/admin/commandes': typeof AuthenticatedAdminCommandesRoute
   '/_authenticated/admin/demandes': typeof AuthenticatedAdminDemandesRoute
   '/_authenticated/admin/produits': typeof AuthenticatedAdminProduitsRoute
+  '/_authenticated/admin/retours': typeof AuthenticatedAdminRetoursRoute
   '/_authenticated/admin/sessions': typeof AuthenticatedAdminSessionsRoute
-  '/_authenticated/mon-compte/commandes': typeof AuthenticatedMonCompteCommandesRoute
+  '/_authenticated/mon-compte/commandes': typeof AuthenticatedMonCompteCommandesRouteWithChildren
   '/api/public/cinetpay-webhook': typeof ApiPublicCinetpayWebhookRoute
   '/commande/$orderNumber/confirmation': typeof CommandeOrderNumberConfirmationRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/mon-compte/commandes/$orderNumber': typeof AuthenticatedMonCompteCommandesOrderNumberRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -188,11 +208,13 @@ export interface FileRouteTypes {
     | '/admin/commandes'
     | '/admin/demandes'
     | '/admin/produits'
+    | '/admin/retours'
     | '/admin/sessions'
     | '/mon-compte/commandes'
     | '/api/public/cinetpay-webhook'
     | '/commande/$orderNumber/confirmation'
     | '/admin/'
+    | '/mon-compte/commandes/$orderNumber'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -205,11 +227,13 @@ export interface FileRouteTypes {
     | '/admin/commandes'
     | '/admin/demandes'
     | '/admin/produits'
+    | '/admin/retours'
     | '/admin/sessions'
     | '/mon-compte/commandes'
     | '/api/public/cinetpay-webhook'
     | '/commande/$orderNumber/confirmation'
     | '/admin'
+    | '/mon-compte/commandes/$orderNumber'
   id:
     | '__root__'
     | '/'
@@ -224,11 +248,13 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/commandes'
     | '/_authenticated/admin/demandes'
     | '/_authenticated/admin/produits'
+    | '/_authenticated/admin/retours'
     | '/_authenticated/admin/sessions'
     | '/_authenticated/mon-compte/commandes'
     | '/api/public/cinetpay-webhook'
     | '/commande/$orderNumber/confirmation'
     | '/_authenticated/admin/'
+    | '/_authenticated/mon-compte/commandes/$orderNumber'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -335,6 +361,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminSessionsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/retours': {
+      id: '/_authenticated/admin/retours'
+      path: '/retours'
+      fullPath: '/admin/retours'
+      preLoaderRoute: typeof AuthenticatedAdminRetoursRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/produits': {
       id: '/_authenticated/admin/produits'
       path: '/produits'
@@ -363,6 +396,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAvisRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/mon-compte/commandes/$orderNumber': {
+      id: '/_authenticated/mon-compte/commandes/$orderNumber'
+      path: '/$orderNumber'
+      fullPath: '/mon-compte/commandes/$orderNumber'
+      preLoaderRoute: typeof AuthenticatedMonCompteCommandesOrderNumberRouteImport
+      parentRoute: typeof AuthenticatedMonCompteCommandesRoute
+    }
   }
 }
 
@@ -371,6 +411,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminCommandesRoute: typeof AuthenticatedAdminCommandesRoute
   AuthenticatedAdminDemandesRoute: typeof AuthenticatedAdminDemandesRoute
   AuthenticatedAdminProduitsRoute: typeof AuthenticatedAdminProduitsRoute
+  AuthenticatedAdminRetoursRoute: typeof AuthenticatedAdminRetoursRoute
   AuthenticatedAdminSessionsRoute: typeof AuthenticatedAdminSessionsRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
@@ -380,6 +421,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminCommandesRoute: AuthenticatedAdminCommandesRoute,
   AuthenticatedAdminDemandesRoute: AuthenticatedAdminDemandesRoute,
   AuthenticatedAdminProduitsRoute: AuthenticatedAdminProduitsRoute,
+  AuthenticatedAdminRetoursRoute: AuthenticatedAdminRetoursRoute,
   AuthenticatedAdminSessionsRoute: AuthenticatedAdminSessionsRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
@@ -387,14 +429,30 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
+interface AuthenticatedMonCompteCommandesRouteChildren {
+  AuthenticatedMonCompteCommandesOrderNumberRoute: typeof AuthenticatedMonCompteCommandesOrderNumberRoute
+}
+
+const AuthenticatedMonCompteCommandesRouteChildren: AuthenticatedMonCompteCommandesRouteChildren =
+  {
+    AuthenticatedMonCompteCommandesOrderNumberRoute:
+      AuthenticatedMonCompteCommandesOrderNumberRoute,
+  }
+
+const AuthenticatedMonCompteCommandesRouteWithChildren =
+  AuthenticatedMonCompteCommandesRoute._addFileChildren(
+    AuthenticatedMonCompteCommandesRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
-  AuthenticatedMonCompteCommandesRoute: typeof AuthenticatedMonCompteCommandesRoute
+  AuthenticatedMonCompteCommandesRoute: typeof AuthenticatedMonCompteCommandesRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
-  AuthenticatedMonCompteCommandesRoute: AuthenticatedMonCompteCommandesRoute,
+  AuthenticatedMonCompteCommandesRoute:
+    AuthenticatedMonCompteCommandesRouteWithChildren,
 }
 
 const AuthenticatedRouteRouteWithChildren =
