@@ -111,7 +111,7 @@ function AdminAnalytics() {
       const { data, error } = await supabase.rpc("admin_analytics", {
         _from: range.from.toISOString(),
         _to: range.to.toISOString(),
-        _vendor_id: vendorId === "all" ? null : vendorId,
+        _vendor_id: vendorId === "all" ? undefined : vendorId,
         _low_stock_threshold: threshold,
       });
       if (error) throw error;
