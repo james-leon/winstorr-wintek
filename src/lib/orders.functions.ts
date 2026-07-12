@@ -92,9 +92,15 @@ export const createOrder = createServerFn({ method: "POST" })
     // Attach customer_id if the caller is signed in (bearer forwarded by middleware).
     let customerId: string | null = null;
     try {
-      // Best-effort: derive user from Authorization header via a lightweight client.
-      // Skip if not authenticated — guest checkout is allowed.
-    } catch { /* noop */ }
+      const { getRequest } = await import("@tanstack/react-start/server");
+      const req = getRequest();
+      const auth = req.headers.get("authorization") || "";
+      const token = auth.toLowerCase().startsWith("bearer ") ? auth.slice(7) : "";
+      if (token) {
+        const { data: u } = await supabaseAdmin.auth.getUser(token);
+        if (u.user) customerId = u.user.id;
+      }
+    } catch { /* guest checkout */ }
 
     const { data: order, error: oErr } = await supabaseAdmin
       .from("orders")
