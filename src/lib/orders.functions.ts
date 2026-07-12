@@ -40,6 +40,28 @@ export const createOrder = createServerFn({ method: "POST" })
     if (pErr) throw new Error(pErr.message);
     if (!products || products.length !== ids.length) throw new Error("Un produit du panier n'est plus disponible.");
 
+    // Load all price tiers for these products (server-side, never trust client)
+    const { data: tierRows, error: tErr } = await supabaseAdmin
+      .from("product_price_tiers")
+      .select("product_id, min_quantity, unit_price")
+      .in("product_id", ids);
+    if (tErr) throw new Error(tErr.message);
+    const tiersByProduct = new Map<string, { min_quantity: number; unit_price: number }[]>();
+    for (const r of tierRows ?? []) {
+      const list = tiersByProduct.get(r.product_id) ?? [];
+      list.push({ min_quantity: r.min_quantity, unit_price: Number(r.unit_price) });
+      tiersByProduct.set(r.product_id, list);
+    }
+    const resolveUnit = (pid: string, basePrice: number, qty: number): number => {
+      const list = (tiersByProduct.get(pid) ?? []).slice().sort((a, b) => a.min_quantity - b.min_quantity);
+      let match: { min_quantity: number; unit_price: number } | null = null;
+      for (const t of list) {
+        if (qty >= t.min_quantity) match = t;
+        else break;
+      }
+      return match ? Number(match.unit_price) : basePrice;
+    };
+
     const byId = new Map(products.map((p) => [p.id, p]));
     let subtotal = 0;
     let hasPhysical = false;
@@ -57,7 +79,8 @@ export const createOrder = createServerFn({ method: "POST" })
         hasPhysical = true;
         if ((p.stock_quantity ?? 0) < it.quantity) throw new Error(`Stock insuffisant pour ${p.name}.`);
       }
-      const line = Number(p.price) * it.quantity;
+      const unit = p.type === "physical" ? resolveUnit(p.id, Number(p.price), it.quantity) : Number(p.price);
+      const line = unit * it.quantity;
       subtotal += line;
       const imgs = Array.isArray(p.images) ? (p.images as unknown[]) : [];
       return {
@@ -66,12 +89,13 @@ export const createOrder = createServerFn({ method: "POST" })
         product_name: p.name,
         product_slug: p.slug,
         product_image: typeof imgs[0] === "string" ? (imgs[0] as string) : null,
-        unit_price: Number(p.price),
+        unit_price: unit,
         quantity: it.quantity,
         subtotal: line,
         vendor_id: p.vendor_id,
       };
     });
+
 
     if (hasPhysical && !data.shipping_address) {
       throw new Error("Adresse de livraison requise pour les articles physiques.");
