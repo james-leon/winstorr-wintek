@@ -131,6 +131,49 @@ function Catalogue() {
         </div>
       </div>
 
+      {categories.length > 0 && (
+        <div className="border-t border-border pt-4">
+          <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Catégorie</div>
+          <div className="space-y-0.5">
+            {categories.filter((c) => !c.parent_id).map((parent) => {
+              const children = categories.filter((c) => c.parent_id === parent.id);
+              const active = search.category === parent.slug;
+              return (
+                <div key={parent.id}>
+                  <button
+                    type="button"
+                    onClick={() => setSearch((prev) => ({ ...prev, category: active ? undefined : parent.slug }))}
+                    className={cn(
+                      "w-full text-left rounded-sm px-1.5 py-1 text-xs hover:bg-muted",
+                      active && "bg-muted font-semibold text-foreground",
+                    )}
+                  >
+                    {parent.name}
+                  </button>
+                  {children.map((child) => {
+                    const cActive = search.category === child.slug;
+                    return (
+                      <button
+                        key={child.id}
+                        type="button"
+                        onClick={() => setSearch((prev) => ({ ...prev, category: cActive ? undefined : child.slug }))}
+                        className={cn(
+                          "w-full text-left rounded-sm pl-4 pr-1.5 py-1 text-xs text-muted-foreground hover:bg-muted",
+                          cActive && "bg-muted font-semibold text-foreground",
+                        )}
+                      >
+                        └ {child.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+
       <div className="border-t border-border pt-4">
         <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Qualité</div>
         <label className="flex cursor-pointer items-center gap-2 rounded-sm px-1.5 py-1 hover:bg-muted">
