@@ -577,13 +577,14 @@ function ReviewsSection({ productId, rating, count }: { productId: string; ratin
                 <div className="font-medium text-sm text-foreground">Laisser un avis</div>
                 <div>
                   <Label>Note</Label>
-                  <div className="mt-1 flex gap-1">
-                    {[1, 2, 3, 4, 5].map((n) => (
-                      <button key={n} type="button" onClick={() => setForm({ ...form, rating: n })} className="p-1">
-                        <StarRating rating={n <= form.rating ? 5 : 0} showCount={false} size="sm" className="pointer-events-none" />
-                        <span className="sr-only">{n} étoiles</span>
-                      </button>
-                    ))}
+                  <div className="mt-1 overflow-hidden rounded-sm">
+                    <StarRating
+                      rating={form.rating}
+                      onRate={(r) => setForm({ ...form, rating: r })}
+                      interactive
+                      size="xl"
+                      showCount={false}
+                    />
                   </div>
                   <div className="mt-1 text-xs text-muted-foreground">{form.rating}/5</div>
                 </div>
