@@ -966,16 +966,20 @@ export type Database = {
       get_order_by_number: {
         Args: { _order_number: string }
         Returns: {
+          coupon_code: string
           created_at: string
           currency: string
           customer_email: string
           customer_name: string
+          discount_amount: number
           has_physical_items: boolean
           id: string
           order_number: string
           payment_status: Database["public"]["Enums"]["payment_status"]
           shipping_address: Json
+          shipping_fee: number
           status: Database["public"]["Enums"]["order_status"]
+          subtotal: number
           total: number
         }[]
       }
