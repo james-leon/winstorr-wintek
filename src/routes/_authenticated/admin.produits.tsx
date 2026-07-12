@@ -18,12 +18,13 @@ export const Route = createFileRoute("/_authenticated/admin/produits")({
 });
 
 type Vendor = { id: string; name: string; type: "internal" | "external" };
+type Category = { id: string; name: string; product_type: ProductType; parent_id: string | null; status: "active" | "archived" };
 
 type Row = {
   id: string; slug: string; name: string; type: ProductType; status: string;
   price: number | null; price_type: "fixed" | "starting_at" | "quote_only";
   stock_quantity: number | null; featured: boolean;
-  quality_verified: boolean; vendor_id: string;
+  quality_verified: boolean; vendor_id: string; category_id: string | null;
   rating_average: number; rating_count: number;
 };
 
