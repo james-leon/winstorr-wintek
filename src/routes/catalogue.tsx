@@ -80,6 +80,8 @@ function Catalogue() {
         case "rating": query = query.order("rating_average", { ascending: false }).order("rating_count", { ascending: false }); break;
         default: query = query.order("created_at", { ascending: false });
       }
+      query = query.limit(48);
+
 
       const { data, error } = await query;
       if (error) throw error;
