@@ -22,7 +22,9 @@ const checkoutSchema = z.object({
     email: z.string().trim().email().max(200).optional().nullable(),
   }),
   shipping_address: addressSchema.nullable().optional(),
+  couponCode: z.string().trim().min(1).max(60).optional().nullable(),
 });
+
 
 export const createOrder = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => checkoutSchema.parse(data))
