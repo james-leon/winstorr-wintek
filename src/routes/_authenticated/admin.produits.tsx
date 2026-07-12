@@ -182,7 +182,19 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
         delivery_mode: data.delivery_mode ?? "",
       }));
     });
+    supabase.from("product_price_tiers")
+      .select("min_quantity, unit_price")
+      .eq("product_id", row.id)
+      .order("min_quantity", { ascending: true })
+      .then(({ data }) => {
+        if (!data) return;
+        setF((prev) => ({
+          ...prev,
+          tiers: data.map((t) => ({ min_quantity: String(t.min_quantity), unit_price: String(t.unit_price) })),
+        }));
+      });
   }, [row]);
+
 
   const save = useMutation({
     mutationFn: async () => {
