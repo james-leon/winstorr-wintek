@@ -12,7 +12,7 @@ type CatSel = "all" | ProductType;
 
 const CAT_OPTIONS: { value: CatSel; label: string }[] = [
   { value: "all", label: "Tout" },
-  { value: "physical", label: "Électronique" },
+  { value: "physical", label: "Produits physiques" },
   { value: "digital", label: "Numérique" },
   { value: "service", label: "Services" },
   { value: "training", label: "Formations" },
