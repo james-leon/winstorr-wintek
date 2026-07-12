@@ -56,7 +56,7 @@ export const Route = createFileRoute("/")({
 });
 
 const TILES: { type: ProductType; title: string; Icon: typeof Cpu }[] = [
-  { type: "physical", title: "Électronique", Icon: Cpu },
+  { type: "physical", title: "Produits physiques", Icon: Cpu },
   { type: "digital", title: "Numérique", Icon: Download },
   { type: "service", title: "Services", Icon: Wrench },
   { type: "training", title: "Formations", Icon: GraduationCap },
