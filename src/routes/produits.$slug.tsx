@@ -273,6 +273,26 @@ function ProductDetail() {
   );
 }
 
+function WishlistToggle({ productId }: { productId: string }) {
+  const { data: ids } = useWishlistIds();
+  const toggle = useToggleWishlist();
+  const wished = ids?.has(productId) ?? false;
+  return (
+    <button
+      type="button"
+      onClick={() => toggle.mutate({ productId, wished })}
+      className={cn(
+        "mt-3 flex w-full items-center justify-center gap-2 rounded-sm border border-border py-2 text-sm font-medium transition hover:bg-muted",
+        wished && "text-accent border-accent/40",
+      )}
+    >
+      <Heart className="h-4 w-4" fill={wished ? "currentColor" : "none"} />
+      {wished ? "Dans votre liste de souhaits" : "Ajouter à la liste de souhaits"}
+    </button>
+  );
+}
+
+
 /* ----- physical ----- */
 function PhysicalActions({ p }: { p: Product }) {
   const { add } = useCart();
