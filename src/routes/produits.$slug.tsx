@@ -375,9 +375,10 @@ function PhysicalActions({
         className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
         disabled={stock <= 0 || unit == null}
         onClick={() => {
-          if (unit == null) return;
-          add({ productId: p.id, slug: p.slug, name: p.name, price: unit, image: p.images[0] ?? null }, qty);
+          if (p.price == null) return;
+          add({ productId: p.id, slug: p.slug, name: p.name, price: p.price, image: p.images[0] ?? null }, qty);
           toast.success(`${p.name} ajouté au panier`);
+
         }}
       >
         Ajouter au panier
