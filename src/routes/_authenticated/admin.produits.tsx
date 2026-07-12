@@ -161,7 +161,9 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
     warranty_duration: "",
     source_type: "",
     delivery_type: "", service_area: "", estimated_duration: "", delivery_mode: "",
+    tiers: [],
   });
+
 
   useEffect(() => {
     if (!row) return;
