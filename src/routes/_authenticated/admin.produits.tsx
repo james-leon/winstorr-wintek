@@ -119,6 +119,7 @@ function AdminProducts() {
         <ProductDialog
           row={editing === "new" ? null : editing}
           vendors={vendors}
+          categories={categories}
           onClose={() => setEditing(null)}
           onSaved={() => { setEditing(null); qc.invalidateQueries({ queryKey: ["admin-products"] }); }}
         />
