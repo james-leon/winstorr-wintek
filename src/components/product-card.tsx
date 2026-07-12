@@ -1,8 +1,11 @@
 import { Link } from "@tanstack/react-router";
+import { Heart } from "lucide-react";
 import { displayPrice, formatFcfa, PRODUCT_TYPE_LABELS, type ProductType } from "@/lib/format";
 import { StarRating } from "@/components/star-rating";
 import { QualityBadge } from "@/components/quality-badge";
 import { imageAtWidth, imageSrcSet } from "@/lib/seo";
+import { useWishlistIds, useToggleWishlist } from "@/lib/wishlist";
+import { cn } from "@/lib/utils";
 
 
 export type ProductCardData = {
