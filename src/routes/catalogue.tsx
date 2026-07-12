@@ -145,7 +145,7 @@ function Catalogue() {
       <div className="mb-8">
         <h1 className="font-display text-3xl text-foreground md:text-4xl">Catalogue</h1>
         <p className="mt-2 text-muted-foreground">
-          {search.type ? `Catégorie : ${PRODUCT_TYPE_LABELS[search.type]}` : "Tous nos produits, services et formations."}
+          {search.type ? `Catégorie : ${PRODUCT_TYPE_LABELS[search.type as ProductType]}` : "Tous nos produits, services et formations."}
         </p>
       </div>
 

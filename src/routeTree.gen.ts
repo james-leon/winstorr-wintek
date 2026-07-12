@@ -19,6 +19,7 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminSessionsRouteImport } from './routes/_authenticated/admin.sessions'
 import { Route as AuthenticatedAdminProduitsRouteImport } from './routes/_authenticated/admin.produits'
 import { Route as AuthenticatedAdminDemandesRouteImport } from './routes/_authenticated/admin.demandes'
+import { Route as AuthenticatedAdminAvisRouteImport } from './routes/_authenticated/admin.avis'
 
 const CatalogueRoute = CatalogueRouteImport.update({
   id: '/catalogue',
@@ -72,6 +73,11 @@ const AuthenticatedAdminDemandesRoute =
     path: '/demandes',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminAvisRoute = AuthenticatedAdminAvisRouteImport.update({
+  id: '/avis',
+  path: '/avis',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/catalogue': typeof CatalogueRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/produits/$slug': typeof ProduitsSlugRoute
+  '/admin/avis': typeof AuthenticatedAdminAvisRoute
   '/admin/demandes': typeof AuthenticatedAdminDemandesRoute
   '/admin/produits': typeof AuthenticatedAdminProduitsRoute
   '/admin/sessions': typeof AuthenticatedAdminSessionsRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/catalogue': typeof CatalogueRoute
   '/produits/$slug': typeof ProduitsSlugRoute
+  '/admin/avis': typeof AuthenticatedAdminAvisRoute
   '/admin/demandes': typeof AuthenticatedAdminDemandesRoute
   '/admin/produits': typeof AuthenticatedAdminProduitsRoute
   '/admin/sessions': typeof AuthenticatedAdminSessionsRoute
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/catalogue': typeof CatalogueRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/produits/$slug': typeof ProduitsSlugRoute
+  '/_authenticated/admin/avis': typeof AuthenticatedAdminAvisRoute
   '/_authenticated/admin/demandes': typeof AuthenticatedAdminDemandesRoute
   '/_authenticated/admin/produits': typeof AuthenticatedAdminProduitsRoute
   '/_authenticated/admin/sessions': typeof AuthenticatedAdminSessionsRoute
@@ -115,6 +124,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/admin'
     | '/produits/$slug'
+    | '/admin/avis'
     | '/admin/demandes'
     | '/admin/produits'
     | '/admin/sessions'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/catalogue'
     | '/produits/$slug'
+    | '/admin/avis'
     | '/admin/demandes'
     | '/admin/produits'
     | '/admin/sessions'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/_authenticated/admin'
     | '/produits/$slug'
+    | '/_authenticated/admin/avis'
     | '/_authenticated/admin/demandes'
     | '/_authenticated/admin/produits'
     | '/_authenticated/admin/sessions'
@@ -223,10 +235,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminDemandesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/avis': {
+      id: '/_authenticated/admin/avis'
+      path: '/avis'
+      fullPath: '/admin/avis'
+      preLoaderRoute: typeof AuthenticatedAdminAvisRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminAvisRoute: typeof AuthenticatedAdminAvisRoute
   AuthenticatedAdminDemandesRoute: typeof AuthenticatedAdminDemandesRoute
   AuthenticatedAdminProduitsRoute: typeof AuthenticatedAdminProduitsRoute
   AuthenticatedAdminSessionsRoute: typeof AuthenticatedAdminSessionsRoute
@@ -234,6 +254,7 @@ interface AuthenticatedAdminRouteChildren {
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminAvisRoute: AuthenticatedAdminAvisRoute,
   AuthenticatedAdminDemandesRoute: AuthenticatedAdminDemandesRoute,
   AuthenticatedAdminProduitsRoute: AuthenticatedAdminProduitsRoute,
   AuthenticatedAdminSessionsRoute: AuthenticatedAdminSessionsRoute,
