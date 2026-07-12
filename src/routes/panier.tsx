@@ -18,7 +18,13 @@ export const Route = createFileRoute("/panier")({
 });
 
 function CartPage() {
-  const { items, add, remove, subtotal, coupon, setCoupon, discount } = useCart();
+  const { items, add, remove, coupon, setCoupon } = useCart();
+  const { data: tiersMap } = useCartTiers(items.map((i) => i.productId));
+  const effectiveUnit = (productId: string, basePrice: number, qty: number) =>
+    resolveUnitPrice(tiersMap?.[productId], qty, basePrice) ?? basePrice;
+  const subtotal = items.reduce((n, i) => n + effectiveUnit(i.productId, i.price, i.quantity) * i.quantity, 0);
+  const discount = coupon ? Math.min(coupon.discountAmount, subtotal) : 0;
+
   const { user } = useAuth();
   const nav = useNavigate();
   const validateFn = useServerFn(validateCouponFn);
