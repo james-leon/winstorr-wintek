@@ -240,6 +240,56 @@ export type Database = {
           },
         ]
       }
+      customer_addresses: {
+        Row: {
+          city: string
+          created_at: string
+          customer_id: string
+          full_name: string
+          id: string
+          is_default: boolean
+          label: string
+          landmark_description: string | null
+          phone: string
+          quartier: string
+          updated_at: string
+        }
+        Insert: {
+          city: string
+          created_at?: string
+          customer_id: string
+          full_name: string
+          id?: string
+          is_default?: boolean
+          label: string
+          landmark_description?: string | null
+          phone: string
+          quartier: string
+          updated_at?: string
+        }
+        Update: {
+          city?: string
+          created_at?: string
+          customer_id?: string
+          full_name?: string
+          id?: string
+          is_default?: boolean
+          label?: string
+          landmark_description?: string | null
+          phone?: string
+          quartier?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_addresses_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string
@@ -947,6 +997,42 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      wishlist_items: {
+        Row: {
+          created_at: string
+          customer_id: string
+          id: string
+          product_id: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          id?: string
+          product_id: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          id?: string
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_items_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wishlist_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
