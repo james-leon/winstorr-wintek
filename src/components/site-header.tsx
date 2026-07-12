@@ -292,18 +292,28 @@ export function SiteHeader() {
             </>
           )}
           <div className="my-2 h-px bg-background/15" />
+          <div className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wide text-background/60">Compte</div>
           {!user && (
             <Link to="/auth" onClick={() => setMobileOpen(false)} className="rounded-sm px-3 py-2 text-sm font-semibold hover:bg-background/10 no-link-color">
               <UserIcon className="inline h-4 w-4 mr-1" /> Se connecter
             </Link>
           )}
           {user && (
-            <button
-              onClick={() => { setMobileOpen(false); void signOut(); }}
-              className="rounded-sm px-3 py-2 text-left text-sm font-semibold hover:bg-background/10"
-            >
-              Déconnexion ({firstName})
-            </button>
+            <>
+              <div className="px-3 py-1 text-xs text-background/80">Bonjour, <span className="font-semibold text-background">{firstName}</span></div>
+              <Link to="/mon-compte" onClick={() => setMobileOpen(false)} className="rounded-sm px-3 py-2 text-sm hover:bg-background/10 no-link-color">
+                <UserIcon className="inline h-4 w-4 mr-1" /> Mon compte
+              </Link>
+              <Link to="/mon-compte/commandes" onClick={() => setMobileOpen(false)} className="rounded-sm px-3 py-2 text-sm hover:bg-background/10 no-link-color">
+                <Package className="inline h-4 w-4 mr-1" /> Mes commandes
+              </Link>
+              <button
+                onClick={() => { setMobileOpen(false); void signOut(); }}
+                className="rounded-sm px-3 py-2 text-left text-sm font-semibold hover:bg-background/10"
+              >
+                Déconnexion
+              </button>
+            </>
           )}
           {isStaff && (
             <Link to="/admin/produits" onClick={() => setMobileOpen(false)} className="rounded-sm px-3 py-2 text-sm font-semibold hover:bg-background/10 no-link-color">
