@@ -141,12 +141,12 @@ export function SiteHeader() {
             )}
 
             <Link
-              to="/mon-compte/commandes"
+              to="/mon-compte"
               className="hidden lg:flex flex-col leading-tight px-2 py-1 rounded-sm hover:ring-1 hover:ring-background/40 no-link-color"
             >
-              <span className="text-[10px] text-background/70">Retours</span>
+              <span className="text-[10px] text-background/70">Compte</span>
               <span className="text-xs font-semibold inline-flex items-center gap-1">
-                <Package className="h-3.5 w-3.5" /> Mes commandes
+                <Package className="h-3.5 w-3.5" /> Mon espace
               </span>
             </Link>
 

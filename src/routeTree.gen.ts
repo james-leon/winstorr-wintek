@@ -18,7 +18,9 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProduitsSlugRouteImport } from './routes/produits.$slug'
 import { Route as AuthenticatedVendeurRouteImport } from './routes/_authenticated/vendeur'
+import { Route as AuthenticatedMonCompteRouteImport } from './routes/_authenticated/mon-compte'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedMonCompteIndexRouteImport } from './routes/_authenticated/mon-compte.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as VendeurInvitationTokenRouteImport } from './routes/vendeur.invitation.$token'
 import { Route as CommandeOrderNumberConfirmationRouteImport } from './routes/commande.$orderNumber.confirmation'
@@ -26,7 +28,10 @@ import { Route as ApiPublicCinetpayWebhookRouteImport } from './routes/api/publi
 import { Route as AuthenticatedVendeurTableauDeBordRouteImport } from './routes/_authenticated/vendeur.tableau-de-bord'
 import { Route as AuthenticatedVendeurProduitsRouteImport } from './routes/_authenticated/vendeur.produits'
 import { Route as AuthenticatedVendeurCommandesRouteImport } from './routes/_authenticated/vendeur.commandes'
+import { Route as AuthenticatedMonCompteProfilRouteImport } from './routes/_authenticated/mon-compte.profil'
+import { Route as AuthenticatedMonCompteListeDeSouhaitsRouteImport } from './routes/_authenticated/mon-compte.liste-de-souhaits'
 import { Route as AuthenticatedMonCompteCommandesRouteImport } from './routes/_authenticated/mon-compte.commandes'
+import { Route as AuthenticatedMonCompteAdressesRouteImport } from './routes/_authenticated/mon-compte.adresses'
 import { Route as AuthenticatedAdminVendeursRouteImport } from './routes/_authenticated/admin.vendeurs'
 import { Route as AuthenticatedAdminSessionsRouteImport } from './routes/_authenticated/admin.sessions'
 import { Route as AuthenticatedAdminRetoursRouteImport } from './routes/_authenticated/admin.retours'
@@ -82,11 +87,22 @@ const AuthenticatedVendeurRoute = AuthenticatedVendeurRouteImport.update({
   path: '/vendeur',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMonCompteRoute = AuthenticatedMonCompteRouteImport.update({
+  id: '/mon-compte',
+  path: '/mon-compte',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMonCompteIndexRoute =
+  AuthenticatedMonCompteIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedMonCompteRoute,
+  } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -127,11 +143,29 @@ const AuthenticatedVendeurCommandesRoute =
     path: '/commandes',
     getParentRoute: () => AuthenticatedVendeurRoute,
   } as any)
+const AuthenticatedMonCompteProfilRoute =
+  AuthenticatedMonCompteProfilRouteImport.update({
+    id: '/profil',
+    path: '/profil',
+    getParentRoute: () => AuthenticatedMonCompteRoute,
+  } as any)
+const AuthenticatedMonCompteListeDeSouhaitsRoute =
+  AuthenticatedMonCompteListeDeSouhaitsRouteImport.update({
+    id: '/liste-de-souhaits',
+    path: '/liste-de-souhaits',
+    getParentRoute: () => AuthenticatedMonCompteRoute,
+  } as any)
 const AuthenticatedMonCompteCommandesRoute =
   AuthenticatedMonCompteCommandesRouteImport.update({
-    id: '/mon-compte/commandes',
-    path: '/mon-compte/commandes',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/commandes',
+    path: '/commandes',
+    getParentRoute: () => AuthenticatedMonCompteRoute,
+  } as any)
+const AuthenticatedMonCompteAdressesRoute =
+  AuthenticatedMonCompteAdressesRouteImport.update({
+    id: '/adresses',
+    path: '/adresses',
+    getParentRoute: () => AuthenticatedMonCompteRoute,
   } as any)
 const AuthenticatedAdminVendeursRoute =
   AuthenticatedAdminVendeursRouteImport.update({
@@ -201,6 +235,7 @@ export interface FileRoutesByFullPath {
   '/panier': typeof PanierRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/mon-compte': typeof AuthenticatedMonCompteRouteWithChildren
   '/vendeur': typeof AuthenticatedVendeurRouteWithChildren
   '/produits/$slug': typeof ProduitsSlugRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
@@ -212,7 +247,10 @@ export interface FileRoutesByFullPath {
   '/admin/retours': typeof AuthenticatedAdminRetoursRoute
   '/admin/sessions': typeof AuthenticatedAdminSessionsRoute
   '/admin/vendeurs': typeof AuthenticatedAdminVendeursRoute
+  '/mon-compte/adresses': typeof AuthenticatedMonCompteAdressesRoute
   '/mon-compte/commandes': typeof AuthenticatedMonCompteCommandesRouteWithChildren
+  '/mon-compte/liste-de-souhaits': typeof AuthenticatedMonCompteListeDeSouhaitsRoute
+  '/mon-compte/profil': typeof AuthenticatedMonCompteProfilRoute
   '/vendeur/commandes': typeof AuthenticatedVendeurCommandesRoute
   '/vendeur/produits': typeof AuthenticatedVendeurProduitsRoute
   '/vendeur/tableau-de-bord': typeof AuthenticatedVendeurTableauDeBordRoute
@@ -220,6 +258,7 @@ export interface FileRoutesByFullPath {
   '/commande/$orderNumber/confirmation': typeof CommandeOrderNumberConfirmationRoute
   '/vendeur/invitation/$token': typeof VendeurInvitationTokenRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/mon-compte/': typeof AuthenticatedMonCompteIndexRoute
   '/mon-compte/commandes/$orderNumber': typeof AuthenticatedMonCompteCommandesOrderNumberRoute
 }
 export interface FileRoutesByTo {
@@ -240,7 +279,10 @@ export interface FileRoutesByTo {
   '/admin/retours': typeof AuthenticatedAdminRetoursRoute
   '/admin/sessions': typeof AuthenticatedAdminSessionsRoute
   '/admin/vendeurs': typeof AuthenticatedAdminVendeursRoute
+  '/mon-compte/adresses': typeof AuthenticatedMonCompteAdressesRoute
   '/mon-compte/commandes': typeof AuthenticatedMonCompteCommandesRouteWithChildren
+  '/mon-compte/liste-de-souhaits': typeof AuthenticatedMonCompteListeDeSouhaitsRoute
+  '/mon-compte/profil': typeof AuthenticatedMonCompteProfilRoute
   '/vendeur/commandes': typeof AuthenticatedVendeurCommandesRoute
   '/vendeur/produits': typeof AuthenticatedVendeurProduitsRoute
   '/vendeur/tableau-de-bord': typeof AuthenticatedVendeurTableauDeBordRoute
@@ -248,6 +290,7 @@ export interface FileRoutesByTo {
   '/commande/$orderNumber/confirmation': typeof CommandeOrderNumberConfirmationRoute
   '/vendeur/invitation/$token': typeof VendeurInvitationTokenRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/mon-compte': typeof AuthenticatedMonCompteIndexRoute
   '/mon-compte/commandes/$orderNumber': typeof AuthenticatedMonCompteCommandesOrderNumberRoute
 }
 export interface FileRoutesById {
@@ -260,6 +303,7 @@ export interface FileRoutesById {
   '/panier': typeof PanierRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/mon-compte': typeof AuthenticatedMonCompteRouteWithChildren
   '/_authenticated/vendeur': typeof AuthenticatedVendeurRouteWithChildren
   '/produits/$slug': typeof ProduitsSlugRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
@@ -271,7 +315,10 @@ export interface FileRoutesById {
   '/_authenticated/admin/retours': typeof AuthenticatedAdminRetoursRoute
   '/_authenticated/admin/sessions': typeof AuthenticatedAdminSessionsRoute
   '/_authenticated/admin/vendeurs': typeof AuthenticatedAdminVendeursRoute
+  '/_authenticated/mon-compte/adresses': typeof AuthenticatedMonCompteAdressesRoute
   '/_authenticated/mon-compte/commandes': typeof AuthenticatedMonCompteCommandesRouteWithChildren
+  '/_authenticated/mon-compte/liste-de-souhaits': typeof AuthenticatedMonCompteListeDeSouhaitsRoute
+  '/_authenticated/mon-compte/profil': typeof AuthenticatedMonCompteProfilRoute
   '/_authenticated/vendeur/commandes': typeof AuthenticatedVendeurCommandesRoute
   '/_authenticated/vendeur/produits': typeof AuthenticatedVendeurProduitsRoute
   '/_authenticated/vendeur/tableau-de-bord': typeof AuthenticatedVendeurTableauDeBordRoute
@@ -279,6 +326,7 @@ export interface FileRoutesById {
   '/commande/$orderNumber/confirmation': typeof CommandeOrderNumberConfirmationRoute
   '/vendeur/invitation/$token': typeof VendeurInvitationTokenRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/mon-compte/': typeof AuthenticatedMonCompteIndexRoute
   '/_authenticated/mon-compte/commandes/$orderNumber': typeof AuthenticatedMonCompteCommandesOrderNumberRoute
 }
 export interface FileRouteTypes {
@@ -291,6 +339,7 @@ export interface FileRouteTypes {
     | '/panier'
     | '/sitemap.xml'
     | '/admin'
+    | '/mon-compte'
     | '/vendeur'
     | '/produits/$slug'
     | '/admin/analytics'
@@ -302,7 +351,10 @@ export interface FileRouteTypes {
     | '/admin/retours'
     | '/admin/sessions'
     | '/admin/vendeurs'
+    | '/mon-compte/adresses'
     | '/mon-compte/commandes'
+    | '/mon-compte/liste-de-souhaits'
+    | '/mon-compte/profil'
     | '/vendeur/commandes'
     | '/vendeur/produits'
     | '/vendeur/tableau-de-bord'
@@ -310,6 +362,7 @@ export interface FileRouteTypes {
     | '/commande/$orderNumber/confirmation'
     | '/vendeur/invitation/$token'
     | '/admin/'
+    | '/mon-compte/'
     | '/mon-compte/commandes/$orderNumber'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -330,7 +383,10 @@ export interface FileRouteTypes {
     | '/admin/retours'
     | '/admin/sessions'
     | '/admin/vendeurs'
+    | '/mon-compte/adresses'
     | '/mon-compte/commandes'
+    | '/mon-compte/liste-de-souhaits'
+    | '/mon-compte/profil'
     | '/vendeur/commandes'
     | '/vendeur/produits'
     | '/vendeur/tableau-de-bord'
@@ -338,6 +394,7 @@ export interface FileRouteTypes {
     | '/commande/$orderNumber/confirmation'
     | '/vendeur/invitation/$token'
     | '/admin'
+    | '/mon-compte'
     | '/mon-compte/commandes/$orderNumber'
   id:
     | '__root__'
@@ -349,6 +406,7 @@ export interface FileRouteTypes {
     | '/panier'
     | '/sitemap.xml'
     | '/_authenticated/admin'
+    | '/_authenticated/mon-compte'
     | '/_authenticated/vendeur'
     | '/produits/$slug'
     | '/_authenticated/admin/analytics'
@@ -360,7 +418,10 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/retours'
     | '/_authenticated/admin/sessions'
     | '/_authenticated/admin/vendeurs'
+    | '/_authenticated/mon-compte/adresses'
     | '/_authenticated/mon-compte/commandes'
+    | '/_authenticated/mon-compte/liste-de-souhaits'
+    | '/_authenticated/mon-compte/profil'
     | '/_authenticated/vendeur/commandes'
     | '/_authenticated/vendeur/produits'
     | '/_authenticated/vendeur/tableau-de-bord'
@@ -368,6 +429,7 @@ export interface FileRouteTypes {
     | '/commande/$orderNumber/confirmation'
     | '/vendeur/invitation/$token'
     | '/_authenticated/admin/'
+    | '/_authenticated/mon-compte/'
     | '/_authenticated/mon-compte/commandes/$orderNumber'
   fileRoutesById: FileRoutesById
 }
@@ -449,12 +511,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedVendeurRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/mon-compte': {
+      id: '/_authenticated/mon-compte'
+      path: '/mon-compte'
+      fullPath: '/mon-compte'
+      preLoaderRoute: typeof AuthenticatedMonCompteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/mon-compte/': {
+      id: '/_authenticated/mon-compte/'
+      path: '/'
+      fullPath: '/mon-compte/'
+      preLoaderRoute: typeof AuthenticatedMonCompteIndexRouteImport
+      parentRoute: typeof AuthenticatedMonCompteRoute
     }
     '/_authenticated/admin/': {
       id: '/_authenticated/admin/'
@@ -505,12 +581,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedVendeurCommandesRouteImport
       parentRoute: typeof AuthenticatedVendeurRoute
     }
+    '/_authenticated/mon-compte/profil': {
+      id: '/_authenticated/mon-compte/profil'
+      path: '/profil'
+      fullPath: '/mon-compte/profil'
+      preLoaderRoute: typeof AuthenticatedMonCompteProfilRouteImport
+      parentRoute: typeof AuthenticatedMonCompteRoute
+    }
+    '/_authenticated/mon-compte/liste-de-souhaits': {
+      id: '/_authenticated/mon-compte/liste-de-souhaits'
+      path: '/liste-de-souhaits'
+      fullPath: '/mon-compte/liste-de-souhaits'
+      preLoaderRoute: typeof AuthenticatedMonCompteListeDeSouhaitsRouteImport
+      parentRoute: typeof AuthenticatedMonCompteRoute
+    }
     '/_authenticated/mon-compte/commandes': {
       id: '/_authenticated/mon-compte/commandes'
-      path: '/mon-compte/commandes'
+      path: '/commandes'
       fullPath: '/mon-compte/commandes'
       preLoaderRoute: typeof AuthenticatedMonCompteCommandesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedMonCompteRoute
+    }
+    '/_authenticated/mon-compte/adresses': {
+      id: '/_authenticated/mon-compte/adresses'
+      path: '/adresses'
+      fullPath: '/mon-compte/adresses'
+      preLoaderRoute: typeof AuthenticatedMonCompteAdressesRouteImport
+      parentRoute: typeof AuthenticatedMonCompteRoute
     }
     '/_authenticated/admin/vendeurs': {
       id: '/_authenticated/admin/vendeurs'
@@ -614,6 +711,45 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
+interface AuthenticatedMonCompteCommandesRouteChildren {
+  AuthenticatedMonCompteCommandesOrderNumberRoute: typeof AuthenticatedMonCompteCommandesOrderNumberRoute
+}
+
+const AuthenticatedMonCompteCommandesRouteChildren: AuthenticatedMonCompteCommandesRouteChildren =
+  {
+    AuthenticatedMonCompteCommandesOrderNumberRoute:
+      AuthenticatedMonCompteCommandesOrderNumberRoute,
+  }
+
+const AuthenticatedMonCompteCommandesRouteWithChildren =
+  AuthenticatedMonCompteCommandesRoute._addFileChildren(
+    AuthenticatedMonCompteCommandesRouteChildren,
+  )
+
+interface AuthenticatedMonCompteRouteChildren {
+  AuthenticatedMonCompteAdressesRoute: typeof AuthenticatedMonCompteAdressesRoute
+  AuthenticatedMonCompteCommandesRoute: typeof AuthenticatedMonCompteCommandesRouteWithChildren
+  AuthenticatedMonCompteListeDeSouhaitsRoute: typeof AuthenticatedMonCompteListeDeSouhaitsRoute
+  AuthenticatedMonCompteProfilRoute: typeof AuthenticatedMonCompteProfilRoute
+  AuthenticatedMonCompteIndexRoute: typeof AuthenticatedMonCompteIndexRoute
+}
+
+const AuthenticatedMonCompteRouteChildren: AuthenticatedMonCompteRouteChildren =
+  {
+    AuthenticatedMonCompteAdressesRoute: AuthenticatedMonCompteAdressesRoute,
+    AuthenticatedMonCompteCommandesRoute:
+      AuthenticatedMonCompteCommandesRouteWithChildren,
+    AuthenticatedMonCompteListeDeSouhaitsRoute:
+      AuthenticatedMonCompteListeDeSouhaitsRoute,
+    AuthenticatedMonCompteProfilRoute: AuthenticatedMonCompteProfilRoute,
+    AuthenticatedMonCompteIndexRoute: AuthenticatedMonCompteIndexRoute,
+  }
+
+const AuthenticatedMonCompteRouteWithChildren =
+  AuthenticatedMonCompteRoute._addFileChildren(
+    AuthenticatedMonCompteRouteChildren,
+  )
+
 interface AuthenticatedVendeurRouteChildren {
   AuthenticatedVendeurCommandesRoute: typeof AuthenticatedVendeurCommandesRoute
   AuthenticatedVendeurProduitsRoute: typeof AuthenticatedVendeurProduitsRoute
@@ -630,32 +766,16 @@ const AuthenticatedVendeurRouteChildren: AuthenticatedVendeurRouteChildren = {
 const AuthenticatedVendeurRouteWithChildren =
   AuthenticatedVendeurRoute._addFileChildren(AuthenticatedVendeurRouteChildren)
 
-interface AuthenticatedMonCompteCommandesRouteChildren {
-  AuthenticatedMonCompteCommandesOrderNumberRoute: typeof AuthenticatedMonCompteCommandesOrderNumberRoute
-}
-
-const AuthenticatedMonCompteCommandesRouteChildren: AuthenticatedMonCompteCommandesRouteChildren =
-  {
-    AuthenticatedMonCompteCommandesOrderNumberRoute:
-      AuthenticatedMonCompteCommandesOrderNumberRoute,
-  }
-
-const AuthenticatedMonCompteCommandesRouteWithChildren =
-  AuthenticatedMonCompteCommandesRoute._addFileChildren(
-    AuthenticatedMonCompteCommandesRouteChildren,
-  )
-
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedMonCompteRoute: typeof AuthenticatedMonCompteRouteWithChildren
   AuthenticatedVendeurRoute: typeof AuthenticatedVendeurRouteWithChildren
-  AuthenticatedMonCompteCommandesRoute: typeof AuthenticatedMonCompteCommandesRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedMonCompteRoute: AuthenticatedMonCompteRouteWithChildren,
   AuthenticatedVendeurRoute: AuthenticatedVendeurRouteWithChildren,
-  AuthenticatedMonCompteCommandesRoute:
-    AuthenticatedMonCompteCommandesRouteWithChildren,
 }
 
 const AuthenticatedRouteRouteWithChildren =

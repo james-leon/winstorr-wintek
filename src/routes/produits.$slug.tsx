@@ -2,7 +2,9 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ChevronLeft, MapPin, Calendar, Clock, Package, Download, ShieldCheck, Truck, BadgeCheck } from "lucide-react";
+import { ChevronLeft, MapPin, Calendar, Clock, Package, Download, ShieldCheck, Truck, BadgeCheck, Heart } from "lucide-react";
+import { useWishlistIds, useToggleWishlist } from "@/lib/wishlist";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { imageAtWidth, imageSrcSet } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
@@ -245,6 +247,9 @@ function ProductDetail() {
               {p.type === "training" && <TrainingActions p={p} />}
             </div>
 
+            <WishlistToggle productId={p.id} />
+
+
             <ul className="mt-4 space-y-1.5 border-t border-border pt-3 text-[11px] text-muted-foreground">
               {p.quality_verified && (
                 <li className="flex items-center gap-1.5 text-success font-medium">
@@ -267,6 +272,26 @@ function ProductDetail() {
     </div>
   );
 }
+
+function WishlistToggle({ productId }: { productId: string }) {
+  const { data: ids } = useWishlistIds();
+  const toggle = useToggleWishlist();
+  const wished = ids?.has(productId) ?? false;
+  return (
+    <button
+      type="button"
+      onClick={() => toggle.mutate({ productId, wished })}
+      className={cn(
+        "mt-3 flex w-full items-center justify-center gap-2 rounded-sm border border-border py-2 text-sm font-medium transition hover:bg-muted",
+        wished && "text-accent border-accent/40",
+      )}
+    >
+      <Heart className="h-4 w-4" fill={wished ? "currentColor" : "none"} />
+      {wished ? "Dans votre liste de souhaits" : "Ajouter à la liste de souhaits"}
+    </button>
+  );
+}
+
 
 /* ----- physical ----- */
 function PhysicalActions({ p }: { p: Product }) {
