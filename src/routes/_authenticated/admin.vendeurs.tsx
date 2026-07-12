@@ -124,7 +124,7 @@ function AdminVendors() {
                     <td className="p-3">{i.email}</td>
                     <td className="p-3 text-xs">{i.proposed_vendor_name ?? (i.vendor_id ? "existant" : "—")}</td>
                     <td className="p-3">
-                      <span className={`inline-block rounded-full px-2 py-0.5 text-xs ${i.status === "pending" ? "bg-warning/15 text-warning" : i.status === "accepted" ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>
+                      <span className={`inline-block rounded-full px-2 py-0.5 text-xs ${i.status === "pending" ? "bg-accent/10 text-accent" : i.status === "accepted" ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>
                         {i.status}
                       </span>
                     </td>
