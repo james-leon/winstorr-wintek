@@ -378,6 +378,42 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
             </div>
           )}
 
+          {f.type === "physical" && (
+            <div className="rounded-lg border border-border bg-muted/30 p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <div>
+                  <Label className="text-sm font-semibold">Prix par palier (tarif dégressif)</Label>
+                  <p className="text-xs text-muted-foreground">Optionnel. Le prix de base s'applique en dessous du 1er palier.</p>
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={() => setF({ ...f, tiers: [...f.tiers, { min_quantity: "", unit_price: "" }] })}>
+                  <Plus className="mr-1 h-3.5 w-3.5" /> Ajouter
+                </Button>
+              </div>
+              {f.tiers.length === 0 && <p className="text-xs text-muted-foreground">Aucun palier défini.</p>}
+              <div className="space-y-2">
+                {f.tiers.map((t, i) => (
+                  <div key={i} className="flex items-end gap-2">
+                    <div className="flex-1">
+                      <Label className="text-xs">Quantité min.</Label>
+                      <Input type="number" min="1" value={t.min_quantity} onChange={(e) => {
+                        const next = [...f.tiers]; next[i] = { ...next[i], min_quantity: e.target.value }; setF({ ...f, tiers: next });
+                      }} />
+                    </div>
+                    <div className="flex-1">
+                      <Label className="text-xs">Prix unitaire (FCFA)</Label>
+                      <Input type="number" min="0" value={t.unit_price} onChange={(e) => {
+                        const next = [...f.tiers]; next[i] = { ...next[i], unit_price: e.target.value }; setF({ ...f, tiers: next });
+                      }} />
+                    </div>
+                    <Button type="button" variant="ghost" size="icon" onClick={() => setF({ ...f, tiers: f.tiers.filter((_, j) => j !== i) })}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {f.type === "digital" && (
             <div>
               <Label>Mode de livraison</Label>
