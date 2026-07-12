@@ -19,7 +19,7 @@ const CAT_OPTIONS: { value: CatSel; label: string }[] = [
 ];
 
 const TYPE_LINKS: { type: ProductType; label: string }[] = [
-  { type: "physical", label: "Électronique" },
+  { type: "physical", label: "Produits physiques" },
   { type: "digital", label: "Numérique" },
   { type: "service", label: "Services" },
   { type: "training", label: "Formations" },

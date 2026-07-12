@@ -13,7 +13,7 @@ export function SiteFooter() {
             Catégories
           </div>
           <ul className="mt-3 space-y-1.5 text-xs text-primary-foreground/80">
-            <li>Électronique</li>
+            <li>Produits physiques</li>
             <li>Produits numériques</li>
             <li>Services techniques</li>
             <li>Formations</li>
