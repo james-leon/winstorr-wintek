@@ -221,13 +221,45 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
         estimated_duration: f.type === "service" && f.estimated_duration ? f.estimated_duration : null,
         delivery_mode: f.type === "training" && f.delivery_mode ? (f.delivery_mode as "in_person" | "online" | "hybrid") : null,
       };
+      // Validate tiers (physical only)
+      const parsedTiers = f.type === "physical"
+        ? f.tiers
+            .map((t) => ({ min_quantity: parseInt(t.min_quantity, 10), unit_price: Number(t.unit_price) }))
+            .filter((t) => Number.isFinite(t.min_quantity) && t.min_quantity >= 1 && Number.isFinite(t.unit_price) && t.unit_price >= 0)
+            .sort((a, b) => a.min_quantity - b.min_quantity)
+        : [];
+      if (f.type === "physical") {
+        const seen = new Set<number>();
+        let prevPrice = Infinity;
+        for (const t of parsedTiers) {
+          if (seen.has(t.min_quantity)) throw new Error(`Quantité minimum dupliquée : ${t.min_quantity}`);
+          seen.add(t.min_quantity);
+          if (t.unit_price > prevPrice) throw new Error("Les prix doivent décroître quand la quantité augmente.");
+          prevPrice = t.unit_price;
+        }
+      }
+
+      let productId = row?.id;
       if (isNew) {
-        const { error } = await supabase.from("products").insert(payload);
+        const { data: inserted, error } = await supabase.from("products").insert(payload).select("id").single();
         if (error) throw error;
+        productId = inserted.id;
       } else {
         const { error } = await supabase.from("products").update(payload).eq("id", row!.id);
         if (error) throw error;
       }
+
+      // Sync tiers: replace-all (simple + safe)
+      if (productId) {
+        await supabase.from("product_price_tiers").delete().eq("product_id", productId);
+        if (parsedTiers.length > 0) {
+          const { error: tErr } = await supabase.from("product_price_tiers").insert(
+            parsedTiers.map((t) => ({ product_id: productId, min_quantity: t.min_quantity, unit_price: t.unit_price })),
+          );
+          if (tErr) throw tErr;
+        }
+      }
+
     },
     onSuccess: () => { toast.success(isNew ? "Produit créé" : "Produit mis à jour"); onSaved(); },
     onError: (e: Error) => toast.error(e.message),
