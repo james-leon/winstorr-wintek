@@ -16,6 +16,7 @@ const TABS = [
   { to: "/admin/avis", label: "Avis" },
   { to: "/admin/sessions", label: "Sessions" },
   { to: "/admin/demandes", label: "Demandes" },
+  { to: "/admin/vendeurs", label: "Vendeurs" },
 ];
 
 function AdminLayout() {
