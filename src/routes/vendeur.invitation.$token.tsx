@@ -82,7 +82,7 @@ function InvitationPage() {
           <div className="space-y-3">
             <p className="text-sm">Connectez-vous ou créez un compte avec l'adresse <strong>{inv.email}</strong> pour accepter.</p>
             <Button asChild className="w-full">
-              <Link to="/auth" search={{ next: `/vendeur/invitation/${token}` } as never}>Se connecter / S'inscrire</Link>
+              <Link to="/auth">Se connecter / S'inscrire</Link>
             </Button>
           </div>
         )}
