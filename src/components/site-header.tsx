@@ -141,7 +141,7 @@ export function SiteHeader() {
             )}
 
             <Link
-              to="/catalogue"
+              to="/mon-compte/commandes"
               className="hidden lg:flex flex-col leading-tight px-2 py-1 rounded-sm hover:ring-1 hover:ring-background/40 no-link-color"
             >
               <span className="text-[10px] text-background/70">Retours</span>
@@ -160,7 +160,7 @@ export function SiteHeader() {
             )}
 
             <Link
-              to="/catalogue"
+              to="/panier"
               className="flex items-end gap-1 rounded-sm px-2 py-1 hover:ring-1 hover:ring-background/40 no-link-color"
               aria-label="Panier"
             >
