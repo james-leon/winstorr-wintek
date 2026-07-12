@@ -58,6 +58,60 @@ export type Database = {
           },
         ]
       }
+      product_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          customer_id: string
+          id: string
+          product_id: string
+          rating: number
+          status: Database["public"]["Enums"]["review_status"]
+          title: string | null
+          updated_at: string
+          verified_purchase: boolean
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          customer_id: string
+          id?: string
+          product_id: string
+          rating: number
+          status?: Database["public"]["Enums"]["review_status"]
+          title?: string | null
+          updated_at?: string
+          verified_purchase?: boolean
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          customer_id?: string
+          id?: string
+          product_id?: string
+          rating?: number
+          status?: Database["public"]["Enums"]["review_status"]
+          title?: string | null
+          updated_at?: string
+          verified_purchase?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_reviews_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           category_id: string | null
@@ -74,16 +128,22 @@ export type Database = {
           name: string
           price: number | null
           price_type: Database["public"]["Enums"]["price_type"]
+          quality_verified: boolean
+          rating_average: number
+          rating_count: number
           requires_diagnostic: boolean | null
           requires_shipping: boolean | null
           service_area: Database["public"]["Enums"]["service_area"] | null
           short_description: string | null
           sku: string | null
           slug: string
+          source_type: Database["public"]["Enums"]["source_type"] | null
           status: Database["public"]["Enums"]["product_status"]
           stock_quantity: number | null
           type: Database["public"]["Enums"]["product_type"]
           updated_at: string
+          vendor_id: string
+          warranty_duration: string | null
           weight_kg: number | null
         }
         Insert: {
@@ -101,16 +161,22 @@ export type Database = {
           name: string
           price?: number | null
           price_type?: Database["public"]["Enums"]["price_type"]
+          quality_verified?: boolean
+          rating_average?: number
+          rating_count?: number
           requires_diagnostic?: boolean | null
           requires_shipping?: boolean | null
           service_area?: Database["public"]["Enums"]["service_area"] | null
           short_description?: string | null
           sku?: string | null
           slug: string
+          source_type?: Database["public"]["Enums"]["source_type"] | null
           status?: Database["public"]["Enums"]["product_status"]
           stock_quantity?: number | null
           type: Database["public"]["Enums"]["product_type"]
           updated_at?: string
+          vendor_id: string
+          warranty_duration?: string | null
           weight_kg?: number | null
         }
         Update: {
@@ -128,16 +194,22 @@ export type Database = {
           name?: string
           price?: number | null
           price_type?: Database["public"]["Enums"]["price_type"]
+          quality_verified?: boolean
+          rating_average?: number
+          rating_count?: number
           requires_diagnostic?: boolean | null
           requires_shipping?: boolean | null
           service_area?: Database["public"]["Enums"]["service_area"] | null
           short_description?: string | null
           sku?: string | null
           slug?: string
+          source_type?: Database["public"]["Enums"]["source_type"] | null
           status?: Database["public"]["Enums"]["product_status"]
           stock_quantity?: number | null
           type?: Database["public"]["Enums"]["product_type"]
           updated_at?: string
+          vendor_id?: string
+          warranty_duration?: string | null
           weight_kg?: number | null
         }
         Relationships: [
@@ -146,6 +218,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_vendor_fk"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
             referencedColumns: ["id"]
           },
         ]
@@ -189,6 +268,7 @@ export type Database = {
           quoted_price: number | null
           status: Database["public"]["Enums"]["service_request_status"]
           updated_at: string
+          vendor_id: string | null
         }
         Insert: {
           created_at?: string
@@ -204,6 +284,7 @@ export type Database = {
           quoted_price?: number | null
           status?: Database["public"]["Enums"]["service_request_status"]
           updated_at?: string
+          vendor_id?: string | null
         }
         Update: {
           created_at?: string
@@ -219,6 +300,7 @@ export type Database = {
           quoted_price?: number | null
           status?: Database["public"]["Enums"]["service_request_status"]
           updated_at?: string
+          vendor_id?: string | null
         }
         Relationships: [
           {
@@ -226,6 +308,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_requests_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
             referencedColumns: ["id"]
           },
         ]
@@ -339,6 +428,51 @@ export type Database = {
         }
         Relationships: []
       }
+      vendors: {
+        Row: {
+          commission_rate: number | null
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          description: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          slug: string
+          status: Database["public"]["Enums"]["vendor_status"]
+          type: Database["public"]["Enums"]["vendor_type"]
+          updated_at: string
+        }
+        Insert: {
+          commission_rate?: number | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          slug: string
+          status?: Database["public"]["Enums"]["vendor_status"]
+          type?: Database["public"]["Enums"]["vendor_type"]
+          updated_at?: string
+        }
+        Update: {
+          commission_rate?: number | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          slug?: string
+          status?: Database["public"]["Enums"]["vendor_status"]
+          type?: Database["public"]["Enums"]["vendor_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -359,6 +493,7 @@ export type Database = {
       price_type: "fixed" | "starting_at" | "quote_only"
       product_status: "draft" | "active" | "archived"
       product_type: "physical" | "digital" | "service" | "training"
+      review_status: "published" | "pending" | "hidden"
       service_area: "on_site" | "in_shop" | "remote" | "both"
       service_request_status:
         | "received"
@@ -368,9 +503,12 @@ export type Database = {
         | "in_progress"
         | "completed"
         | "cancelled"
+      source_type: "direct_import" | "authorized_wholesaler" | "other"
       training_enrollment_status: "pending" | "confirmed" | "cancelled"
       training_mode: "in_person" | "online" | "hybrid"
       training_session_status: "scheduled" | "full" | "cancelled" | "completed"
+      vendor_status: "active" | "suspended" | "pending_approval"
+      vendor_type: "internal" | "external"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -503,6 +641,7 @@ export const Constants = {
       price_type: ["fixed", "starting_at", "quote_only"],
       product_status: ["draft", "active", "archived"],
       product_type: ["physical", "digital", "service", "training"],
+      review_status: ["published", "pending", "hidden"],
       service_area: ["on_site", "in_shop", "remote", "both"],
       service_request_status: [
         "received",
@@ -513,9 +652,12 @@ export const Constants = {
         "completed",
         "cancelled",
       ],
+      source_type: ["direct_import", "authorized_wholesaler", "other"],
       training_enrollment_status: ["pending", "confirmed", "cancelled"],
       training_mode: ["in_person", "online", "hybrid"],
       training_session_status: ["scheduled", "full", "cancelled", "completed"],
+      vendor_status: ["active", "suspended", "pending_approval"],
+      vendor_type: ["internal", "external"],
     },
   },
 } as const
