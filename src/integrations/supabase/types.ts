@@ -440,6 +440,41 @@ export type Database = {
           },
         ]
       }
+      product_price_tiers: {
+        Row: {
+          created_at: string
+          id: string
+          min_quantity: number
+          product_id: string
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          min_quantity: number
+          product_id: string
+          unit_price: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          min_quantity?: number
+          product_id?: string
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_price_tiers_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_reviews: {
         Row: {
           comment: string | null
@@ -1117,6 +1152,10 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      get_tier_unit_price: {
+        Args: { _product_id: string; _quantity: number }
+        Returns: number
       }
       get_vendor_invitation: {
         Args: { _token: string }

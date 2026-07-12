@@ -128,6 +128,8 @@ function AdminProducts() {
   );
 }
 
+type TierRow = { min_quantity: string; unit_price: string };
+
 type FormState = {
   name: string; slug: string; type: ProductType; status: "draft" | "active" | "archived";
   vendor_id: string; category_id: string;
@@ -139,7 +141,9 @@ type FormState = {
   warranty_duration: string;
   source_type: string;
   delivery_type: string; service_area: string; estimated_duration: string; delivery_mode: string;
+  tiers: TierRow[];
 };
+
 
 function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Row | null; vendors: Vendor[]; categories: Category[]; onClose: () => void; onSaved: () => void }) {
   const isNew = !row;
@@ -157,7 +161,9 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
     warranty_duration: "",
     source_type: "",
     delivery_type: "", service_area: "", estimated_duration: "", delivery_mode: "",
+    tiers: [],
   });
+
 
   useEffect(() => {
     if (!row) return;
@@ -176,7 +182,19 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
         delivery_mode: data.delivery_mode ?? "",
       }));
     });
+    supabase.from("product_price_tiers")
+      .select("min_quantity, unit_price")
+      .eq("product_id", row.id)
+      .order("min_quantity", { ascending: true })
+      .then(({ data }) => {
+        if (!data) return;
+        setF((prev) => ({
+          ...prev,
+          tiers: data.map((t) => ({ min_quantity: String(t.min_quantity), unit_price: String(t.unit_price) })),
+        }));
+      });
   }, [row]);
+
 
   const save = useMutation({
     mutationFn: async () => {
@@ -203,13 +221,45 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
         estimated_duration: f.type === "service" && f.estimated_duration ? f.estimated_duration : null,
         delivery_mode: f.type === "training" && f.delivery_mode ? (f.delivery_mode as "in_person" | "online" | "hybrid") : null,
       };
+      // Validate tiers (physical only)
+      const parsedTiers = f.type === "physical"
+        ? f.tiers
+            .map((t) => ({ min_quantity: parseInt(t.min_quantity, 10), unit_price: Number(t.unit_price) }))
+            .filter((t) => Number.isFinite(t.min_quantity) && t.min_quantity >= 1 && Number.isFinite(t.unit_price) && t.unit_price >= 0)
+            .sort((a, b) => a.min_quantity - b.min_quantity)
+        : [];
+      if (f.type === "physical") {
+        const seen = new Set<number>();
+        let prevPrice = Infinity;
+        for (const t of parsedTiers) {
+          if (seen.has(t.min_quantity)) throw new Error(`Quantité minimum dupliquée : ${t.min_quantity}`);
+          seen.add(t.min_quantity);
+          if (t.unit_price > prevPrice) throw new Error("Les prix doivent décroître quand la quantité augmente.");
+          prevPrice = t.unit_price;
+        }
+      }
+
+      let productId = row?.id;
       if (isNew) {
-        const { error } = await supabase.from("products").insert(payload);
+        const { data: inserted, error } = await supabase.from("products").insert(payload).select("id").single();
         if (error) throw error;
+        productId = inserted.id;
       } else {
         const { error } = await supabase.from("products").update(payload).eq("id", row!.id);
         if (error) throw error;
       }
+
+      // Sync tiers: replace-all (simple + safe)
+      if (productId) {
+        await supabase.from("product_price_tiers").delete().eq("product_id", productId);
+        if (parsedTiers.length > 0) {
+          const { error: tErr } = await supabase.from("product_price_tiers").insert(
+            parsedTiers.map((t) => ({ product_id: productId, min_quantity: t.min_quantity, unit_price: t.unit_price })),
+          );
+          if (tErr) throw tErr;
+        }
+      }
+
     },
     onSuccess: () => { toast.success(isNew ? "Produit créé" : "Produit mis à jour"); onSaved(); },
     onError: (e: Error) => toast.error(e.message),
@@ -324,6 +374,42 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
                     <SelectItem value="other">Autre</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+          )}
+
+          {f.type === "physical" && (
+            <div className="rounded-lg border border-border bg-muted/30 p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <div>
+                  <Label className="text-sm font-semibold">Prix par palier (tarif dégressif)</Label>
+                  <p className="text-xs text-muted-foreground">Optionnel. Le prix de base s'applique en dessous du 1er palier.</p>
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={() => setF({ ...f, tiers: [...f.tiers, { min_quantity: "", unit_price: "" }] })}>
+                  <Plus className="mr-1 h-3.5 w-3.5" /> Ajouter
+                </Button>
+              </div>
+              {f.tiers.length === 0 && <p className="text-xs text-muted-foreground">Aucun palier défini.</p>}
+              <div className="space-y-2">
+                {f.tiers.map((t, i) => (
+                  <div key={i} className="flex items-end gap-2">
+                    <div className="flex-1">
+                      <Label className="text-xs">Quantité min.</Label>
+                      <Input type="number" min="1" value={t.min_quantity} onChange={(e) => {
+                        const next = [...f.tiers]; next[i] = { ...next[i], min_quantity: e.target.value }; setF({ ...f, tiers: next });
+                      }} />
+                    </div>
+                    <div className="flex-1">
+                      <Label className="text-xs">Prix unitaire (FCFA)</Label>
+                      <Input type="number" min="0" value={t.unit_price} onChange={(e) => {
+                        const next = [...f.tiers]; next[i] = { ...next[i], unit_price: e.target.value }; setF({ ...f, tiers: next });
+                      }} />
+                    </div>
+                    <Button type="button" variant="ghost" size="icon" onClick={() => setF({ ...f, tiers: f.tiers.filter((_, j) => j !== i) })}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                ))}
               </div>
             </div>
           )}

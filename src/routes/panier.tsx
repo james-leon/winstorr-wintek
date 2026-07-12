@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatFcfa } from "@/lib/format";
 import { validateCouponFn } from "@/lib/coupons.functions";
+import { useCartTiers, resolveUnitPrice } from "@/lib/tiers";
+
 
 export const Route = createFileRoute("/panier")({
   head: () => ({ meta: [{ title: "Panier — Winstorr" }, { name: "description", content: "Votre panier Winstorr." }] }),
@@ -16,7 +18,13 @@ export const Route = createFileRoute("/panier")({
 });
 
 function CartPage() {
-  const { items, add, remove, subtotal, coupon, setCoupon, discount } = useCart();
+  const { items, add, remove, coupon, setCoupon } = useCart();
+  const { data: tiersMap } = useCartTiers(items.map((i) => i.productId));
+  const effectiveUnit = (productId: string, basePrice: number, qty: number) =>
+    resolveUnitPrice(tiersMap?.[productId], qty, basePrice) ?? basePrice;
+  const subtotal = items.reduce((n, i) => n + effectiveUnit(i.productId, i.price, i.quantity) * i.quantity, 0);
+  const discount = coupon ? Math.min(coupon.discountAmount, subtotal) : 0;
+
   const { user } = useAuth();
   const nav = useNavigate();
   const validateFn = useServerFn(validateCouponFn);
@@ -78,33 +86,52 @@ function CartPage() {
       <h1 className="font-display text-2xl text-foreground mb-4">Panier</h1>
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <div className="rounded-sm border border-border bg-card divide-y divide-border">
-          {items.map((i) => (
-            <div key={i.productId} className="flex items-start gap-3 p-3">
-              <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-sm bg-muted">
-                {i.image ? <img src={i.image} alt={i.name} className="h-full w-full object-cover" /> : null}
-              </div>
-              <div className="flex-1 min-w-0">
-                <Link to="/produits/$slug" params={{ slug: i.slug }} className="block font-medium text-foreground line-clamp-2">
-                  {i.name}
-                </Link>
-                <div className="mt-1 text-sm text-muted-foreground">{formatFcfa(i.price)} / unité</div>
-                <div className="mt-2 inline-flex items-center gap-1 rounded-sm border border-border">
-                  <button className="p-1.5 hover:bg-muted" onClick={() => dec(i)} aria-label="Diminuer"><Minus className="h-4 w-4" /></button>
-                  <span className="min-w-8 text-center text-sm font-medium">{i.quantity}</span>
-                  <button className="p-1.5 hover:bg-muted" onClick={() => inc(i)} aria-label="Augmenter"><Plus className="h-4 w-4" /></button>
+          {items.map((i) => {
+            const productTiers = tiersMap?.[i.productId] ?? [];
+            const unit = effectiveUnit(i.productId, i.price, i.quantity);
+            const sorted = [...productTiers].sort((a, b) => a.min_quantity - b.min_quantity);
+            const nextTier = sorted.find((t) => t.min_quantity > i.quantity);
+            return (
+              <div key={i.productId} className="flex items-start gap-3 p-3">
+                <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-sm bg-muted">
+                  {i.image ? <img src={i.image} alt={i.name} className="h-full w-full object-cover" /> : null}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <Link to="/produits/$slug" params={{ slug: i.slug }} className="block font-medium text-foreground line-clamp-2">
+                    {i.name}
+                  </Link>
+                  <div className="mt-1 text-sm text-muted-foreground">
+                    {formatFcfa(unit)} / unité
+                    {unit < i.price && (
+                      <span className="ml-1.5 text-success font-medium">
+                        (tarif dégressif, prix de base {formatFcfa(i.price)})
+                      </span>
+                    )}
+                  </div>
+                  {nextTier && (
+                    <div className="mt-1 text-[11px] text-secondary">
+                      Ajoutez {nextTier.min_quantity - i.quantity} de plus pour {formatFcfa(nextTier.unit_price)}/unité
+                    </div>
+                  )}
+                  <div className="mt-2 inline-flex items-center gap-1 rounded-sm border border-border">
+                    <button className="p-1.5 hover:bg-muted" onClick={() => dec(i)} aria-label="Diminuer"><Minus className="h-4 w-4" /></button>
+                    <span className="min-w-8 text-center text-sm font-medium">{i.quantity}</span>
+                    <button className="p-1.5 hover:bg-muted" onClick={() => inc(i)} aria-label="Augmenter"><Plus className="h-4 w-4" /></button>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold text-accent">{formatFcfa(unit * i.quantity)}</div>
+                  <button
+                    onClick={() => remove(i.productId)}
+                    className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" /> Retirer
+                  </button>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="font-bold text-accent">{formatFcfa(i.price * i.quantity)}</div>
-                <button
-                  onClick={() => remove(i.productId)}
-                  className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive"
-                >
-                  <Trash2 className="h-3.5 w-3.5" /> Retirer
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
+
         </div>
 
         <aside className="h-fit rounded-sm border border-border bg-card p-4 sticky top-4">
