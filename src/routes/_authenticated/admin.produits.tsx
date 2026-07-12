@@ -183,6 +183,7 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
       if (!f.vendor_id) throw new Error("Vendeur requis");
       const payload = {
         vendor_id: f.vendor_id,
+        category_id: f.category_id === "none" ? null : f.category_id,
         name: f.name.trim(),
         slug: (f.slug || slugify(f.name)).trim(),
         type: f.type,
