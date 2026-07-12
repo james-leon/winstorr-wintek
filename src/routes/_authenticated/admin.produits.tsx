@@ -18,12 +18,13 @@ export const Route = createFileRoute("/_authenticated/admin/produits")({
 });
 
 type Vendor = { id: string; name: string; type: "internal" | "external" };
+type Category = { id: string; name: string; product_type: ProductType; parent_id: string | null; status: "active" | "archived" };
 
 type Row = {
   id: string; slug: string; name: string; type: ProductType; status: string;
   price: number | null; price_type: "fixed" | "starting_at" | "quote_only";
   stock_quantity: number | null; featured: boolean;
-  quality_verified: boolean; vendor_id: string;
+  quality_verified: boolean; vendor_id: string; category_id: string | null;
   rating_average: number; rating_count: number;
 };
 
@@ -37,12 +38,20 @@ function AdminProducts() {
       return data as Vendor[];
     },
   });
+  const { data: categories = [] } = useQuery({
+    queryKey: ["admin-categories-lite"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("categories").select("id, name, product_type, parent_id, status").order("product_type").order("display_order").order("name");
+      if (error) throw error;
+      return data as Category[];
+    },
+  });
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["admin-products"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, slug, name, type, status, price, price_type, stock_quantity, featured, quality_verified, vendor_id, rating_average, rating_count")
+        .select("id, slug, name, type, status, price, price_type, stock_quantity, featured, quality_verified, vendor_id, category_id, rating_average, rating_count")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as Row[];
@@ -110,6 +119,7 @@ function AdminProducts() {
         <ProductDialog
           row={editing === "new" ? null : editing}
           vendors={vendors}
+          categories={categories}
           onClose={() => setEditing(null)}
           onSaved={() => { setEditing(null); qc.invalidateQueries({ queryKey: ["admin-products"] }); }}
         />
@@ -120,7 +130,7 @@ function AdminProducts() {
 
 type FormState = {
   name: string; slug: string; type: ProductType; status: "draft" | "active" | "archived";
-  vendor_id: string;
+  vendor_id: string; category_id: string;
   short_description: string; description: string;
   price: string; price_type: "fixed" | "starting_at" | "quote_only";
   stock_quantity: string; featured: boolean;
@@ -131,13 +141,14 @@ type FormState = {
   delivery_type: string; service_area: string; estimated_duration: string; delivery_mode: string;
 };
 
-function ProductDialog({ row, vendors, onClose, onSaved }: { row: Row | null; vendors: Vendor[]; onClose: () => void; onSaved: () => void }) {
+function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Row | null; vendors: Vendor[]; categories: Category[]; onClose: () => void; onSaved: () => void }) {
   const isNew = !row;
   const defaultVendor = vendors.find((v) => v.type === "internal")?.id ?? vendors[0]?.id ?? "";
   const [f, setF] = useState<FormState>({
     name: row?.name ?? "", slug: row?.slug ?? "",
     type: row?.type ?? "physical", status: (row?.status as "draft" | "active" | "archived") ?? "draft",
     vendor_id: row?.vendor_id ?? defaultVendor,
+    category_id: row?.category_id ?? "none",
     short_description: "", description: "",
     price: row?.price?.toString() ?? "", price_type: row?.price_type ?? "fixed",
     stock_quantity: row?.stock_quantity?.toString() ?? "", featured: row?.featured ?? false,
@@ -172,6 +183,7 @@ function ProductDialog({ row, vendors, onClose, onSaved }: { row: Row | null; ve
       if (!f.vendor_id) throw new Error("Vendeur requis");
       const payload = {
         vendor_id: f.vendor_id,
+        category_id: f.category_id === "none" ? null : f.category_id,
         name: f.name.trim(),
         slug: (f.slug || slugify(f.name)).trim(),
         type: f.type,
@@ -258,6 +270,22 @@ function ProductDialog({ row, vendors, onClose, onSaved }: { row: Row | null; ve
               <input id="feat" type="checkbox" checked={f.featured} onChange={(e) => setF({ ...f, featured: e.target.checked })} />
               <Label htmlFor="feat">Mis en avant</Label>
             </div>
+          </div>
+
+          <div>
+            <Label>Catégorie</Label>
+            <Select value={f.category_id} onValueChange={(v) => setF({ ...f, category_id: v })}>
+              <SelectTrigger><SelectValue placeholder="Aucune" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Aucune</SelectItem>
+                {categories
+                  .filter((c) => c.product_type === f.type && c.status === "active")
+                  .map((c) => {
+                    const parent = c.parent_id ? categories.find((p) => p.id === c.parent_id) : null;
+                    return <SelectItem key={c.id} value={c.id}>{parent ? `${parent.name} › ${c.name}` : c.name}</SelectItem>;
+                  })}
+              </SelectContent>
+            </Select>
           </div>
 
           <div><Label>Description courte</Label><Input value={f.short_description} onChange={(e) => setF({ ...f, short_description: e.target.value })} /></div>

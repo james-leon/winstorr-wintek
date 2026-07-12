@@ -18,6 +18,7 @@ type CatalogueSearch = {
   sort?: SortKey;
   minRating?: number;
   verified?: boolean;
+  category?: string;
 };
 
 export const Route = createFileRoute("/catalogue")({
@@ -32,7 +33,8 @@ export const Route = createFileRoute("/catalogue")({
     const mr = Number(search.minRating);
     const minRating = mr >= 1 && mr <= 5 ? mr : undefined;
     const verified = search.verified === true || search.verified === "true" ? true : undefined;
-    return { type, q, sort, minRating, verified };
+    const category = typeof search.category === "string" && search.category.length > 0 ? search.category : undefined;
+    return { type, q, sort, minRating, verified, category };
   },
   head: () => {
     const title = "Catalogue — Électronique, Numérique, Services & Formations | Winstorr";
@@ -62,8 +64,24 @@ function Catalogue() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const sort: SortKey = search.sort ?? "recent";
 
+  const { data: categories = [] } = useQuery({
+    queryKey: ["catalogue-categories", search.type],
+    queryFn: async () => {
+      let q = supabase.from("categories").select("id, name, slug, product_type, parent_id, display_order").eq("status", "active");
+      if (search.type) q = q.eq("product_type", search.type);
+      const { data, error } = await q.order("display_order").order("name");
+      if (error) throw error;
+      return data as { id: string; name: string; slug: string; product_type: ProductType; parent_id: string | null; display_order: number }[];
+    },
+  });
+
+  const selectedCategory = categories.find((c) => c.slug === search.category);
+  const categoryIds = selectedCategory
+    ? [selectedCategory.id, ...categories.filter((c) => c.parent_id === selectedCategory.id).map((c) => c.id)]
+    : null;
+
   const { data: products = [], isLoading } = useQuery({
-    queryKey: ["catalogue", search.type, search.q, search.sort, search.minRating, search.verified],
+    queryKey: ["catalogue", search.type, search.q, search.sort, search.minRating, search.verified, search.category, categoryIds?.join(",")],
     queryFn: async () => {
       let query = supabase
         .from("products")
@@ -73,6 +91,7 @@ function Catalogue() {
       if (search.q) query = query.ilike("name", `%${search.q}%`);
       if (search.verified) query = query.eq("quality_verified", true);
       if (search.minRating) query = query.gte("rating_average", search.minRating);
+      if (categoryIds && categoryIds.length > 0) query = query.in("category_id", categoryIds);
 
       switch (search.sort) {
         case "price_asc": query = query.order("price", { ascending: true, nullsFirst: false }); break;
@@ -111,6 +130,49 @@ function Catalogue() {
           ))}
         </div>
       </div>
+
+      {categories.length > 0 && (
+        <div className="border-t border-border pt-4">
+          <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Catégorie</div>
+          <div className="space-y-0.5">
+            {categories.filter((c) => !c.parent_id).map((parent) => {
+              const children = categories.filter((c) => c.parent_id === parent.id);
+              const active = search.category === parent.slug;
+              return (
+                <div key={parent.id}>
+                  <button
+                    type="button"
+                    onClick={() => setSearch((prev) => ({ ...prev, category: active ? undefined : parent.slug }))}
+                    className={cn(
+                      "w-full text-left rounded-sm px-1.5 py-1 text-xs hover:bg-muted",
+                      active && "bg-muted font-semibold text-foreground",
+                    )}
+                  >
+                    {parent.name}
+                  </button>
+                  {children.map((child) => {
+                    const cActive = search.category === child.slug;
+                    return (
+                      <button
+                        key={child.id}
+                        type="button"
+                        onClick={() => setSearch((prev) => ({ ...prev, category: cActive ? undefined : child.slug }))}
+                        className={cn(
+                          "w-full text-left rounded-sm pl-4 pr-1.5 py-1 text-xs text-muted-foreground hover:bg-muted",
+                          cActive && "bg-muted font-semibold text-foreground",
+                        )}
+                      >
+                        └ {child.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
 
       <div className="border-t border-border pt-4">
         <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Qualité</div>
