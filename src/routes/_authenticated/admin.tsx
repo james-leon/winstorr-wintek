@@ -17,7 +17,9 @@ const TABS = [
   { to: "/admin/sessions", label: "Sessions" },
   { to: "/admin/demandes", label: "Demandes" },
   { to: "/admin/vendeurs", label: "Vendeurs" },
+  { to: "/admin/codes-promo", label: "Codes promo" },
 ];
+
 
 function AdminLayout() {
   const { isStaff, loading } = useAuth();
