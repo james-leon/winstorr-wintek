@@ -1,8 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { Minus, Plus, Trash2, ShoppingBag, Tag, X, Check } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
+import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { formatFcfa } from "@/lib/format";
+import { validateCouponFn } from "@/lib/coupons.functions";
 
 export const Route = createFileRoute("/panier")({
   head: () => ({ meta: [{ title: "Panier — Winstorr" }, { name: "description", content: "Votre panier Winstorr." }] }),
@@ -10,8 +16,41 @@ export const Route = createFileRoute("/panier")({
 });
 
 function CartPage() {
-  const { items, add, remove, subtotal } = useCart();
+  const { items, add, remove, subtotal, coupon, setCoupon, discount } = useCart();
+  const { user } = useAuth();
   const nav = useNavigate();
+  const validateFn = useServerFn(validateCouponFn);
+  const [code, setCode] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const apply = useMutation({
+    mutationFn: async () => {
+      const trimmed = code.trim();
+      if (!trimmed) throw new Error("Entrez un code promo.");
+      const res = await validateFn({
+        data: {
+          code: trimmed,
+          items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+          customerEmail: user?.email ?? null,
+        },
+      });
+      if (!res.ok) throw new Error(res.message);
+      return res;
+    },
+    onSuccess: (r) => {
+      if (r.ok) {
+        setCoupon({
+          code: r.code,
+          discountAmount: r.discountAmount,
+          discountType: r.discountType,
+          discountValue: r.discountValue,
+        });
+        setError(null);
+        setCode("");
+      }
+    },
+    onError: (e: Error) => setError(e.message),
+  });
 
   if (items.length === 0) {
     return (
@@ -28,10 +67,11 @@ function CartPage() {
     add({ productId: i.productId, slug: i.slug, name: i.name, price: i.price, image: i.image }, 1);
   const dec = (i: typeof items[number]) => {
     if (i.quantity <= 1) return remove(i.productId);
-    // decrement by removing and re-adding (n-1)
     remove(i.productId);
     add({ productId: i.productId, slug: i.slug, name: i.name, price: i.price, image: i.image }, i.quantity - 1);
   };
+
+  const total = subtotal - discount;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
@@ -69,17 +109,66 @@ function CartPage() {
 
         <aside className="h-fit rounded-sm border border-border bg-card p-4 sticky top-4">
           <h2 className="font-semibold text-foreground mb-3">Récapitulatif</h2>
+
+          <div className="mb-3 rounded-sm border border-border bg-background p-3">
+            <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+              <Tag className="h-3.5 w-3.5" /> CODE PROMO
+            </div>
+            {coupon ? (
+              <div className="flex items-center justify-between gap-2 rounded-sm bg-success/10 px-2 py-1.5 text-sm">
+                <span className="inline-flex items-center gap-1.5 font-medium text-success">
+                  <Check className="h-4 w-4" /> {coupon.code}
+                </span>
+                <button
+                  onClick={() => setCoupon(null)}
+                  className="text-muted-foreground hover:text-destructive"
+                  aria-label="Retirer le code"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="flex gap-1.5">
+                  <Input
+                    value={code}
+                    onChange={(e) => { setCode(e.target.value.toUpperCase()); setError(null); }}
+                    placeholder="Ex: BIENVENUE10"
+                    className="h-8 text-sm uppercase"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => apply.mutate()}
+                    disabled={apply.isPending}
+                    className="h-8"
+                  >
+                    {apply.isPending ? "…" : "Appliquer"}
+                  </Button>
+                </div>
+                {error && <p className="mt-1.5 text-xs text-muted-foreground">{error}</p>}
+              </>
+            )}
+          </div>
+
           <div className="flex justify-between text-sm py-1">
             <span className="text-muted-foreground">Sous-total</span>
             <span className="font-medium">{formatFcfa(subtotal)}</span>
           </div>
+          {coupon && discount > 0 && (
+            <div className="flex justify-between text-sm py-1">
+              <span className="text-success">Réduction ({coupon.code})</span>
+              <span className="font-medium text-success">−{formatFcfa(discount)}</span>
+            </div>
+          )}
           <div className="flex justify-between text-sm py-1">
             <span className="text-muted-foreground">Livraison</span>
             <span className="text-muted-foreground">Calculée au paiement</span>
           </div>
           <div className="mt-3 border-t border-border pt-3 flex justify-between">
             <span className="font-semibold">Total estimé</span>
-            <span className="text-lg font-bold text-accent">{formatFcfa(subtotal)}</span>
+            <span className="text-lg font-bold text-accent">{formatFcfa(total)}</span>
           </div>
           <Button className="mt-4 w-full bg-accent hover:bg-accent/90 text-accent-foreground" onClick={() => nav({ to: "/commande" })}>
             Passer commande

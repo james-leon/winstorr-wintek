@@ -27,15 +27,13 @@ const CITIES = [
 const SHIPPING_TABLE: Record<string, number> = { douala: 2000, yaounde: 2500, autre: 3500 };
 
 function CheckoutPage() {
-  const { items, subtotal, clear } = useCart();
+  const { items, subtotal, coupon, discount, clear } = useCart();
   const { user } = useAuth();
   const nav = useNavigate();
   const createFn = useServerFn(createOrder);
   const initFn = useServerFn(initiatePayment);
 
   const hasPhysical = useMemo(() => items.some((i) => !i.slug.includes("digital")), [items]);
-  // We can't tell type from cart alone; conservatively assume physical unless all are digital.
-  // Real flag comes from server. We show address by default if any item has weight — client heuristic OK.
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -46,7 +44,7 @@ function CheckoutPage() {
   const [shipPhone, setShipPhone] = useState("");
 
   const shipping = hasPhysical ? SHIPPING_TABLE[ville] : 0;
-  const total = subtotal + shipping;
+  const total = Math.max(0, subtotal + shipping - discount);
 
   const mut = useMutation({
     mutationFn: async () => {
@@ -57,11 +55,13 @@ function CheckoutPage() {
           shipping_address: hasPhysical
             ? { full_name: name, phone: shipPhone || phone, ville, quartier, landmark: landmark || null }
             : null,
+          couponCode: coupon?.code ?? null,
         },
       });
       const pay = await initFn({ data: { orderNumber: order.orderNumber } });
       return { orderNumber: order.orderNumber, paymentUrl: pay.paymentUrl, mocked: pay.mocked };
     },
+
     onSuccess: (r) => {
       clear();
       if (r.mocked) {
