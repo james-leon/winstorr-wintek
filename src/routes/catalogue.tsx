@@ -139,7 +139,7 @@ function Catalogue() {
       <div className="mb-3 flex items-center justify-between gap-3 border-b border-border pb-2">
         <div>
           <h1 className="text-base font-semibold text-foreground">
-            {search.type ? PRODUCT_TYPE_LABELS[search.type] : "Catalogue"}
+            {search.type ? PRODUCT_TYPE_LABELS[search.type as ProductType] : "Catalogue"}
             {search.q && <span className="ml-2 text-muted-foreground font-normal">« {search.q} »</span>}
           </h1>
           <div className="text-xs text-muted-foreground">
