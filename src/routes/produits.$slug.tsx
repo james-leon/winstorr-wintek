@@ -245,6 +245,9 @@ function ProductDetail() {
               {p.type === "training" && <TrainingActions p={p} />}
             </div>
 
+            <WishlistToggle productId={p.id} />
+
+
             <ul className="mt-4 space-y-1.5 border-t border-border pt-3 text-[11px] text-muted-foreground">
               {p.quality_verified && (
                 <li className="flex items-center gap-1.5 text-success font-medium">
