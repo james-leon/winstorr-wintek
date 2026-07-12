@@ -114,6 +114,132 @@ export type Database = {
           },
         ]
       }
+      coupon_redemptions: {
+        Row: {
+          coupon_id: string
+          created_at: string
+          customer_email: string | null
+          customer_id: string | null
+          discount_applied: number
+          id: string
+          order_id: string
+        }
+        Insert: {
+          coupon_id: string
+          created_at?: string
+          customer_email?: string | null
+          customer_id?: string | null
+          discount_applied: number
+          id?: string
+          order_id: string
+        }
+        Update: {
+          coupon_id?: string
+          created_at?: string
+          customer_email?: string | null
+          customer_id?: string | null
+          discount_applied?: number
+          id?: string
+          order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_redemptions_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_redemptions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_redemptions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupons: {
+        Row: {
+          applies_to: Database["public"]["Enums"]["coupon_applies_to"]
+          applies_to_ids: string[] | null
+          code: string
+          created_at: string
+          created_by: string | null
+          current_usage_count: number
+          description: string | null
+          discount_type: Database["public"]["Enums"]["coupon_discount_type"]
+          discount_value: number
+          excludes_sale_items: boolean
+          id: string
+          max_discount_amount: number | null
+          min_order_amount: number | null
+          status: Database["public"]["Enums"]["coupon_status"]
+          updated_at: string
+          usage_limit_per_customer: number | null
+          usage_limit_total: number | null
+          valid_from: string
+          valid_until: string | null
+        }
+        Insert: {
+          applies_to?: Database["public"]["Enums"]["coupon_applies_to"]
+          applies_to_ids?: string[] | null
+          code: string
+          created_at?: string
+          created_by?: string | null
+          current_usage_count?: number
+          description?: string | null
+          discount_type: Database["public"]["Enums"]["coupon_discount_type"]
+          discount_value: number
+          excludes_sale_items?: boolean
+          id?: string
+          max_discount_amount?: number | null
+          min_order_amount?: number | null
+          status?: Database["public"]["Enums"]["coupon_status"]
+          updated_at?: string
+          usage_limit_per_customer?: number | null
+          usage_limit_total?: number | null
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Update: {
+          applies_to?: Database["public"]["Enums"]["coupon_applies_to"]
+          applies_to_ids?: string[] | null
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          current_usage_count?: number
+          description?: string | null
+          discount_type?: Database["public"]["Enums"]["coupon_discount_type"]
+          discount_value?: number
+          excludes_sale_items?: boolean
+          id?: string
+          max_discount_amount?: number | null
+          min_order_amount?: number | null
+          status?: Database["public"]["Enums"]["coupon_status"]
+          updated_at?: string
+          usage_limit_per_customer?: number | null
+          usage_limit_total?: number | null
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupons_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string
@@ -184,12 +310,14 @@ export type Database = {
       orders: {
         Row: {
           cinetpay_transaction_id: string | null
+          coupon_code: string | null
           created_at: string
           currency: string
           customer_email: string | null
           customer_id: string | null
           customer_name: string
           customer_phone: string
+          discount_amount: number
           has_physical_items: boolean
           id: string
           notes: string | null
@@ -205,12 +333,14 @@ export type Database = {
         }
         Insert: {
           cinetpay_transaction_id?: string | null
+          coupon_code?: string | null
           created_at?: string
           currency?: string
           customer_email?: string | null
           customer_id?: string | null
           customer_name: string
           customer_phone: string
+          discount_amount?: number
           has_physical_items?: boolean
           id?: string
           notes?: string | null
@@ -226,12 +356,14 @@ export type Database = {
         }
         Update: {
           cinetpay_transaction_id?: string | null
+          coupon_code?: string | null
           created_at?: string
           currency?: string
           customer_email?: string | null
           customer_id?: string | null
           customer_name?: string
           customer_phone?: string
+          discount_amount?: number
           has_physical_items?: boolean
           id?: string
           notes?: string | null
@@ -834,16 +966,20 @@ export type Database = {
       get_order_by_number: {
         Args: { _order_number: string }
         Returns: {
+          coupon_code: string
           created_at: string
           currency: string
           customer_email: string
           customer_name: string
+          discount_amount: number
           has_physical_items: boolean
           id: string
           order_number: string
           payment_status: Database["public"]["Enums"]["payment_status"]
           shipping_address: Json
+          shipping_fee: number
           status: Database["public"]["Enums"]["order_status"]
+          subtotal: number
           total: number
         }[]
       }
@@ -906,6 +1042,26 @@ export type Database = {
         Args: { _user_id: string; _vendor_id: string }
         Returns: boolean
       }
+      redeem_coupon: {
+        Args: {
+          _coupon_id: string
+          _customer_email: string
+          _customer_id: string
+          _discount: number
+          _order_id: string
+        }
+        Returns: undefined
+      }
+      validate_coupon: {
+        Args: {
+          _code: string
+          _customer_email: string
+          _customer_id: string
+          _product_ids: string[]
+          _subtotal: number
+        }
+        Returns: Json
+      }
     }
     Enums: {
       admin_notification_type:
@@ -914,6 +1070,13 @@ export type Database = {
         | "return_requested"
         | "other"
       app_role: "customer" | "staff" | "admin"
+      coupon_applies_to:
+        | "all_products"
+        | "specific_products"
+        | "specific_category"
+        | "specific_vendor"
+      coupon_discount_type: "percentage" | "fixed_amount"
+      coupon_status: "active" | "paused" | "expired"
       delivery_type: "file_download" | "license_key" | "access_link"
       order_status:
         | "pending_payment"
@@ -1094,6 +1257,14 @@ export const Constants = {
         "other",
       ],
       app_role: ["customer", "staff", "admin"],
+      coupon_applies_to: [
+        "all_products",
+        "specific_products",
+        "specific_category",
+        "specific_vendor",
+      ],
+      coupon_discount_type: ["percentage", "fixed_amount"],
+      coupon_status: ["active", "paused", "expired"],
       delivery_type: ["file_download", "license_key", "access_link"],
       order_status: [
         "pending_payment",

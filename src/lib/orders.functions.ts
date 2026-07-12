@@ -22,7 +22,9 @@ const checkoutSchema = z.object({
     email: z.string().trim().email().max(200).optional().nullable(),
   }),
   shipping_address: addressSchema.nullable().optional(),
+  couponCode: z.string().trim().min(1).max(60).optional().nullable(),
 });
+
 
 export const createOrder = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => checkoutSchema.parse(data))
@@ -87,7 +89,7 @@ export const createOrder = createServerFn({ method: "POST" })
       const city = data.shipping_address?.ville ?? "autre";
       shipping = Number(fees[city] ?? fees.autre ?? 0);
     }
-    const total = subtotal + shipping;
+    const total_before_discount = subtotal + shipping;
 
     // Attach customer_id if the caller is signed in (bearer forwarded by middleware).
     let customerId: string | null = null;
@@ -102,6 +104,25 @@ export const createOrder = createServerFn({ method: "POST" })
       }
     } catch { /* guest checkout */ }
 
+    // Server-side coupon re-validation (never trust client-computed discount)
+    let couponCode: string | null = null;
+    let discountAmount = 0;
+    if (data.couponCode) {
+      const { data: cRes, error: cErr } = await supabaseAdmin.rpc("validate_coupon", {
+        _code: data.couponCode,
+        _subtotal: subtotal,
+        _product_ids: itemsRows.map((r) => r.product_id),
+        _customer_id: customerId as unknown as string,
+        _customer_email: (data.contact.email ?? null) as unknown as string,
+      });
+      if (cErr) throw new Error(cErr.message);
+      const r = cRes as Record<string, unknown>;
+      if (!r.ok) throw new Error(String(r.message ?? "Code promo invalide."));
+      couponCode = String(r.code);
+      discountAmount = Number(r.discount_amount);
+    }
+    const total = Math.max(0, total_before_discount - discountAmount);
+
     const { data: order, error: oErr } = await supabaseAdmin
       .from("orders")
       .insert({
@@ -111,6 +132,8 @@ export const createOrder = createServerFn({ method: "POST" })
         customer_email: data.contact.email ?? null,
         subtotal,
         shipping_fee: shipping,
+        discount_amount: discountAmount,
+        coupon_code: couponCode,
         total,
         has_physical_items: hasPhysical,
         shipping_address: data.shipping_address ?? null,
@@ -118,6 +141,7 @@ export const createOrder = createServerFn({ method: "POST" })
       .select("id, order_number")
       .single();
     if (oErr || !order) throw new Error(oErr?.message || "Impossible de créer la commande.");
+
 
     const { error: iErr } = await supabaseAdmin
       .from("order_items")
@@ -217,5 +241,8 @@ export const mockConfirmPayment = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     const { notifyOrderEvent } = await import("./notifications.server");
     await notifyOrderEvent(order.id, "payment_confirmed").catch((e) => console.error("[notify]", e));
+    const { redeemOrderCouponIfAny } = await import("./coupons.server");
+    await redeemOrderCouponIfAny(order.id).catch((e) => console.error("[redeem]", e));
     return res;
   });
+
