@@ -38,6 +38,8 @@ export const Route = createFileRoute("/api/public/cinetpay-webhook")({
               _method: verify.method ?? "card",
             });
             if (error) return new Response("confirm failed: " + error.message, { status: 500 });
+            const { notifyOrderEvent } = await import("@/lib/notifications.server");
+            await notifyOrderEvent(order.id, "payment_confirmed").catch((e) => console.error("[notify]", e));
             return new Response("ok", { status: 200 });
           }
           if (verify.status === "failed") {
@@ -49,6 +51,8 @@ export const Route = createFileRoute("/api/public/cinetpay-webhook")({
                 cinetpay_transaction_id: verify.transactionId,
               })
               .eq("id", order.id);
+            const { notifyOrderEvent } = await import("@/lib/notifications.server");
+            await notifyOrderEvent(order.id, "payment_failed").catch((e) => console.error("[notify]", e));
             return new Response("failed", { status: 200 });
           }
           return new Response("pending", { status: 200 });
