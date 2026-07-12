@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { ChevronLeft, MapPin, Calendar, Clock, Package, Download, ShieldCheck, Truck, BadgeCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { imageAtWidth, imageSrcSet } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -59,17 +60,75 @@ const productQuery = (slug: string) =>
 
 export const Route = createFileRoute("/produits/$slug")({
   loader: ({ context, params }) => context.queryClient.ensureQueryData(productQuery(params.slug)),
-  head: ({ loaderData }) => ({
-    meta: loaderData
-      ? [
-          { title: `${loaderData.name} — Winstorr` },
-          { name: "description", content: loaderData.short_description ?? loaderData.name },
-          { property: "og:title", content: loaderData.name },
-          { property: "og:description", content: loaderData.short_description ?? "" },
-          ...(loaderData.images[0] ? [{ property: "og:image" as const, content: loaderData.images[0] }] : []),
-        ]
-      : [{ title: "Produit — Winstorr" }, { name: "robots", content: "noindex" }],
-  }),
+  head: ({ loaderData, params }) => {
+    if (!loaderData) {
+      return { meta: [{ title: "Produit — Winstorr" }, { name: "robots", content: "noindex" }] };
+    }
+    const p = loaderData;
+    const priceLabel = p.price ? `${formatFcfa(p.price)}` : "sur devis";
+    const desc = p.short_description ?? `${p.name} — disponible sur Winstorr, la marketplace tech du Cameroun.`;
+    const canonical = `/produits/${params.slug}`;
+    const img = p.images[0];
+
+    const jsonLd: Record<string, unknown> = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: p.name,
+      description: desc,
+      sku: p.id,
+      ...(img ? { image: [img] } : {}),
+      ...(p.vendor ? { brand: { "@type": "Brand", name: p.vendor.name } } : {}),
+    };
+    if (p.price != null) {
+      jsonLd.offers = {
+        "@type": "Offer",
+        price: String(p.price),
+        priceCurrency: "XAF",
+        availability:
+          p.stock_quantity != null && p.stock_quantity <= 0
+            ? "https://schema.org/OutOfStock"
+            : "https://schema.org/InStock",
+        url: canonical,
+      };
+    }
+    if (p.rating_count > 0) {
+      jsonLd.aggregateRating = {
+        "@type": "AggregateRating",
+        ratingValue: p.rating_average,
+        reviewCount: p.rating_count,
+      };
+    }
+
+    const breadcrumbLd = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Accueil", item: "/" },
+        { "@type": "ListItem", position: 2, name: "Catalogue", item: "/catalogue" },
+        { "@type": "ListItem", position: 3, name: p.name, item: canonical },
+      ],
+    };
+
+    return {
+      meta: [
+        { title: `${p.name} — ${priceLabel} | Winstorr` },
+        { name: "description", content: desc },
+        { property: "og:title", content: p.name },
+        { property: "og:description", content: desc },
+        { property: "og:type", content: "product" },
+        { property: "og:url", content: canonical },
+        ...(img ? [{ property: "og:image" as const, content: img }] : []),
+        ...(img ? [{ name: "twitter:image" as const, content: img }] : []),
+        { property: "product:price:amount", content: p.price != null ? String(p.price) : "" },
+        { property: "product:price:currency", content: "XAF" },
+      ],
+      links: [{ rel: "canonical", href: canonical }],
+      scripts: [
+        { type: "application/ld+json", children: JSON.stringify(jsonLd) },
+        { type: "application/ld+json", children: JSON.stringify(breadcrumbLd) },
+      ],
+    };
+  },
   component: ProductDetail,
   errorComponent: ({ error }) => <div className="p-8 text-center text-destructive">{error.message}</div>,
   notFoundComponent: () => (
@@ -80,6 +139,7 @@ export const Route = createFileRoute("/produits/$slug")({
     </div>
   ),
 });
+
 
 const SOURCE_LABELS: Record<NonNullable<Product["source_type"]>, string> = {
   direct_import: "Import direct",
@@ -103,11 +163,22 @@ function ProductDetail() {
         <div>
           <div className="aspect-square overflow-hidden rounded-sm border border-border bg-muted">
             {p.images[activeImg] ? (
-              <img src={p.images[activeImg]} alt={p.name} className="h-full w-full object-cover" />
+              <img
+                src={imageAtWidth(p.images[activeImg], 800) || p.images[activeImg]}
+                srcSet={imageSrcSet(p.images[activeImg], [400, 600, 800, 1200])}
+                sizes="(min-width: 1024px) 480px, 100vw"
+                alt={p.name}
+                fetchPriority="high"
+                decoding="async"
+                width={800}
+                height={800}
+                className="h-full w-full object-cover"
+              />
             ) : (
               <div className="grid h-full w-full place-items-center text-muted-foreground text-sm">Pas d'image</div>
             )}
           </div>
+
           {p.images.length > 1 && (
             <div className="mt-2 grid grid-cols-6 gap-1.5">
               {p.images.map((src, i) => (

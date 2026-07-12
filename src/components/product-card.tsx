@@ -2,6 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { displayPrice, formatFcfa, PRODUCT_TYPE_LABELS, type ProductType } from "@/lib/format";
 import { StarRating } from "@/components/star-rating";
 import { QualityBadge } from "@/components/quality-badge";
+import { imageAtWidth, imageSrcSet } from "@/lib/seo";
+
 
 export type ProductCardData = {
   id: string;
@@ -31,11 +33,17 @@ export function ProductCard({ p }: { p: ProductCardData }) {
       <div className="relative aspect-square overflow-hidden bg-muted">
         {img ? (
           <img
-            src={img}
+            src={imageAtWidth(img, 300) || img}
+            srcSet={imageSrcSet(img, [200, 300, 400, 600])}
+            sizes="(min-width: 1280px) 200px, (min-width: 1024px) 220px, (min-width: 640px) 33vw, 50vw"
             alt={p.name}
             loading="lazy"
+            decoding="async"
+            width={300}
+            height={300}
             className="h-full w-full object-cover"
           />
+
         ) : (
           <div className="grid h-full w-full place-items-center text-muted-foreground">
             <span className="font-display text-3xl opacity-30">{PRODUCT_TYPE_LABELS[p.type][0]}</span>

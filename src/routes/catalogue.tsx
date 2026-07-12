@@ -34,16 +34,25 @@ export const Route = createFileRoute("/catalogue")({
     const verified = search.verified === true || search.verified === "true" ? true : undefined;
     return { type, q, sort, minRating, verified };
   },
-  head: () => ({
-    meta: [
-      { title: "Catalogue — Winstorr" },
-      { name: "description", content: "Parcourez le catalogue Winstorr : électronique, produits numériques, services techniques et formations, avec notes clients et vendeurs vérifiés." },
-      { property: "og:title", content: "Catalogue Winstorr" },
-      { property: "og:description", content: "Tout le catalogue tech Winstorr, avec notes clients et qualité vérifiée." },
-    ],
-  }),
+  head: () => {
+    const title = "Catalogue — Électronique, Numérique, Services & Formations | Winstorr";
+    const description = "Parcourez tout le catalogue Winstorr : électronique, produits numériques, services techniques et formations, avec notes clients et vendeurs vérifiés. Livraison au Cameroun, paiement Mobile Money.";
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: "/catalogue" },
+      ],
+      links: [{ rel: "canonical", href: "/catalogue" }],
+    };
+  },
   component: Catalogue,
 });
+
+
 
 const TYPES: ProductType[] = ["physical", "digital", "service", "training"];
 
@@ -71,6 +80,8 @@ function Catalogue() {
         case "rating": query = query.order("rating_average", { ascending: false }).order("rating_count", { ascending: false }); break;
         default: query = query.order("created_at", { ascending: false });
       }
+      query = query.limit(48);
+
 
       const { data, error } = await query;
       if (error) throw error;

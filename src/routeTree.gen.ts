@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as PanierRouteImport } from './routes/panier'
 import { Route as CommandeRouteImport } from './routes/commande'
 import { Route as CatalogueRouteImport } from './routes/catalogue'
@@ -29,6 +30,11 @@ import { Route as AuthenticatedAdminCommandesRouteImport } from './routes/_authe
 import { Route as AuthenticatedAdminAvisRouteImport } from './routes/_authenticated/admin.avis'
 import { Route as AuthenticatedMonCompteCommandesOrderNumberRouteImport } from './routes/_authenticated/mon-compte.commandes.$orderNumber'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PanierRoute = PanierRouteImport.update({
   id: '/panier',
   path: '/panier',
@@ -139,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/catalogue': typeof CatalogueRoute
   '/commande': typeof CommandeRouteWithChildren
   '/panier': typeof PanierRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/produits/$slug': typeof ProduitsSlugRoute
   '/admin/avis': typeof AuthenticatedAdminAvisRoute
@@ -159,6 +166,7 @@ export interface FileRoutesByTo {
   '/catalogue': typeof CatalogueRoute
   '/commande': typeof CommandeRouteWithChildren
   '/panier': typeof PanierRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/produits/$slug': typeof ProduitsSlugRoute
   '/admin/avis': typeof AuthenticatedAdminAvisRoute
   '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
@@ -180,6 +188,7 @@ export interface FileRoutesById {
   '/catalogue': typeof CatalogueRoute
   '/commande': typeof CommandeRouteWithChildren
   '/panier': typeof PanierRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/produits/$slug': typeof ProduitsSlugRoute
   '/_authenticated/admin/avis': typeof AuthenticatedAdminAvisRoute
@@ -202,6 +211,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/commande'
     | '/panier'
+    | '/sitemap.xml'
     | '/admin'
     | '/produits/$slug'
     | '/admin/avis'
@@ -222,6 +232,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/commande'
     | '/panier'
+    | '/sitemap.xml'
     | '/produits/$slug'
     | '/admin/avis'
     | '/admin/commandes'
@@ -242,6 +253,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/commande'
     | '/panier'
+    | '/sitemap.xml'
     | '/_authenticated/admin'
     | '/produits/$slug'
     | '/_authenticated/admin/avis'
@@ -264,12 +276,20 @@ export interface RootRouteChildren {
   CatalogueRoute: typeof CatalogueRoute
   CommandeRoute: typeof CommandeRouteWithChildren
   PanierRoute: typeof PanierRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ProduitsSlugRoute: typeof ProduitsSlugRoute
   ApiPublicCinetpayWebhookRoute: typeof ApiPublicCinetpayWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/panier': {
       id: '/panier'
       path: '/panier'
@@ -477,6 +497,7 @@ const rootRouteChildren: RootRouteChildren = {
   CatalogueRoute: CatalogueRoute,
   CommandeRoute: CommandeRouteWithChildren,
   PanierRoute: PanierRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   ProduitsSlugRoute: ProduitsSlugRoute,
   ApiPublicCinetpayWebhookRoute: ApiPublicCinetpayWebhookRoute,
 }

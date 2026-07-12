@@ -1,2 +1,13 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /mon-compte
+Disallow: /mon-compte/
+Disallow: /panier
+Disallow: /commande
+Disallow: /commande/
+Disallow: /auth
+Disallow: /api/
+
+Sitemap: /sitemap.xml
