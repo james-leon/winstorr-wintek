@@ -954,6 +954,15 @@ export type Database = {
     }
     Functions: {
       accept_vendor_invitation: { Args: { _token: string }; Returns: Json }
+      admin_analytics: {
+        Args: {
+          _from: string
+          _low_stock_threshold?: number
+          _to: string
+          _vendor_id?: string
+        }
+        Returns: Json
+      }
       confirm_order_payment: {
         Args: {
           _method: Database["public"]["Enums"]["payment_method"]

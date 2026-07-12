@@ -35,6 +35,7 @@ import { Route as AuthenticatedAdminDemandesRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminCommandesRouteImport } from './routes/_authenticated/admin.commandes'
 import { Route as AuthenticatedAdminCodesPromoRouteImport } from './routes/_authenticated/admin.codes-promo'
 import { Route as AuthenticatedAdminAvisRouteImport } from './routes/_authenticated/admin.avis'
+import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin.analytics'
 import { Route as AuthenticatedMonCompteCommandesOrderNumberRouteImport } from './routes/_authenticated/mon-compte.commandes.$orderNumber'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -179,6 +180,12 @@ const AuthenticatedAdminAvisRoute = AuthenticatedAdminAvisRouteImport.update({
   path: '/avis',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminAnalyticsRoute =
+  AuthenticatedAdminAnalyticsRouteImport.update({
+    id: '/analytics',
+    path: '/analytics',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedMonCompteCommandesOrderNumberRoute =
   AuthenticatedMonCompteCommandesOrderNumberRouteImport.update({
     id: '/$orderNumber',
@@ -196,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/vendeur': typeof AuthenticatedVendeurRouteWithChildren
   '/produits/$slug': typeof ProduitsSlugRoute
+  '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/avis': typeof AuthenticatedAdminAvisRoute
   '/admin/codes-promo': typeof AuthenticatedAdminCodesPromoRoute
   '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
@@ -223,6 +231,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vendeur': typeof AuthenticatedVendeurRouteWithChildren
   '/produits/$slug': typeof ProduitsSlugRoute
+  '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/avis': typeof AuthenticatedAdminAvisRoute
   '/admin/codes-promo': typeof AuthenticatedAdminCodesPromoRoute
   '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
@@ -253,6 +262,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/vendeur': typeof AuthenticatedVendeurRouteWithChildren
   '/produits/$slug': typeof ProduitsSlugRoute
+  '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/admin/avis': typeof AuthenticatedAdminAvisRoute
   '/_authenticated/admin/codes-promo': typeof AuthenticatedAdminCodesPromoRoute
   '/_authenticated/admin/commandes': typeof AuthenticatedAdminCommandesRoute
@@ -283,6 +293,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/vendeur'
     | '/produits/$slug'
+    | '/admin/analytics'
     | '/admin/avis'
     | '/admin/codes-promo'
     | '/admin/commandes'
@@ -310,6 +321,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/vendeur'
     | '/produits/$slug'
+    | '/admin/analytics'
     | '/admin/avis'
     | '/admin/codes-promo'
     | '/admin/commandes'
@@ -339,6 +351,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/vendeur'
     | '/produits/$slug'
+    | '/_authenticated/admin/analytics'
     | '/_authenticated/admin/avis'
     | '/_authenticated/admin/codes-promo'
     | '/_authenticated/admin/commandes'
@@ -555,6 +568,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAvisRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/analytics': {
+      id: '/_authenticated/admin/analytics'
+      path: '/analytics'
+      fullPath: '/admin/analytics'
+      preLoaderRoute: typeof AuthenticatedAdminAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/mon-compte/commandes/$orderNumber': {
       id: '/_authenticated/mon-compte/commandes/$orderNumber'
       path: '/$orderNumber'
@@ -566,6 +586,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminAnalyticsRoute: typeof AuthenticatedAdminAnalyticsRoute
   AuthenticatedAdminAvisRoute: typeof AuthenticatedAdminAvisRoute
   AuthenticatedAdminCodesPromoRoute: typeof AuthenticatedAdminCodesPromoRoute
   AuthenticatedAdminCommandesRoute: typeof AuthenticatedAdminCommandesRoute
@@ -578,6 +599,7 @@ interface AuthenticatedAdminRouteChildren {
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminAnalyticsRoute: AuthenticatedAdminAnalyticsRoute,
   AuthenticatedAdminAvisRoute: AuthenticatedAdminAvisRoute,
   AuthenticatedAdminCodesPromoRoute: AuthenticatedAdminCodesPromoRoute,
   AuthenticatedAdminCommandesRoute: AuthenticatedAdminCommandesRoute,
