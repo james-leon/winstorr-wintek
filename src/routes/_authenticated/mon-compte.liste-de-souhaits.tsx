@@ -25,8 +25,8 @@ function WishlistPage() {
       if (error) throw error;
       return (data ?? [])
         .map((r) => r.product)
-        .filter((p): p is ProductCardData => !!p)
-        .map((p) => ({ ...p, images: Array.isArray(p.images) ? (p.images as string[]) : [] }));
+        .filter((p): p is NonNullable<typeof p> => !!p)
+        .map((p): ProductCardData => ({ ...p, images: Array.isArray(p.images) ? (p.images as string[]) : [] }));
     },
   });
 
