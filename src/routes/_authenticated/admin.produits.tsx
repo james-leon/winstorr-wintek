@@ -128,6 +128,8 @@ function AdminProducts() {
   );
 }
 
+type TierRow = { min_quantity: string; unit_price: string };
+
 type FormState = {
   name: string; slug: string; type: ProductType; status: "draft" | "active" | "archived";
   vendor_id: string; category_id: string;
@@ -139,7 +141,9 @@ type FormState = {
   warranty_duration: string;
   source_type: string;
   delivery_type: string; service_area: string; estimated_duration: string; delivery_mode: string;
+  tiers: TierRow[];
 };
+
 
 function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Row | null; vendors: Vendor[]; categories: Category[]; onClose: () => void; onSaved: () => void }) {
   const isNew = !row;
