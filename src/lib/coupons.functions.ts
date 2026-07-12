@@ -36,22 +36,40 @@ export const validateCouponFn = createServerFn({ method: "POST" })
       }
     } catch { /* guest */ }
 
-    // Compute canonical subtotal from products
+    // Compute canonical subtotal from products (with tier pricing)
     const ids = data.items.map((i) => i.productId);
     const { data: products, error: pErr } = await supabaseAdmin
       .from("products")
-      .select("id, price, price_type, status")
+      .select("id, price, price_type, status, type")
       .in("id", ids);
     if (pErr) throw new Error(pErr.message);
+    const { data: tierRows } = await supabaseAdmin
+      .from("product_price_tiers")
+      .select("product_id, min_quantity, unit_price")
+      .in("product_id", ids);
+    const tiersByProduct = new Map<string, { min_quantity: number; unit_price: number }[]>();
+    for (const r of tierRows ?? []) {
+      const list = tiersByProduct.get(r.product_id) ?? [];
+      list.push({ min_quantity: r.min_quantity, unit_price: Number(r.unit_price) });
+      tiersByProduct.set(r.product_id, list);
+    }
     const byId = new Map((products ?? []).map((p) => [p.id, p]));
     let subtotal = 0;
     const productIds: string[] = [];
     for (const it of data.items) {
       const p = byId.get(it.productId);
       if (!p || p.status !== "active" || p.price == null || p.price_type === "quote_only") continue;
-      subtotal += Number(p.price) * it.quantity;
+      let unit = Number(p.price);
+      if (p.type === "physical") {
+        const list = (tiersByProduct.get(p.id) ?? []).slice().sort((a, b) => a.min_quantity - b.min_quantity);
+        let match: { min_quantity: number; unit_price: number } | null = null;
+        for (const t of list) { if (it.quantity >= t.min_quantity) match = t; else break; }
+        if (match) unit = Number(match.unit_price);
+      }
+      subtotal += unit * it.quantity;
       productIds.push(p.id);
     }
+
 
     const { data: res, error } = await supabaseAdmin.rpc("validate_coupon", {
       _code: data.code,
