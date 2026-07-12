@@ -16,7 +16,7 @@ export function slugify(s: string): string {
 export type ProductType = "physical" | "digital" | "service" | "training";
 
 export const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
-  physical: "Électronique",
+  physical: "Produits physiques",
   digital: "Produit numérique",
   service: "Service",
   training: "Formation",
