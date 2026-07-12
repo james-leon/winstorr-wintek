@@ -234,39 +234,7 @@ function ProductDetail() {
 
         {/* Buy box */}
         <aside className="lg:sticky lg:top-24 self-start">
-          <div className="rounded-sm border border-border bg-background p-4">
-            <div className="flex items-baseline gap-2">
-              <div className="text-2xl font-bold text-accent leading-none">{displayPrice(p)}</div>
-              {p.compare_at_price && p.price && p.compare_at_price > p.price && (
-                <div className="text-sm text-muted-foreground line-through">{formatFcfa(p.compare_at_price)}</div>
-              )}
-            </div>
-
-            <div className="mt-4">
-              {p.type === "physical" && <PhysicalActions p={p} />}
-              {p.type === "digital" && <DigitalActions p={p} />}
-              {p.type === "service" && <ServiceActions p={p} />}
-              {p.type === "training" && <TrainingActions p={p} />}
-            </div>
-
-            <WishlistToggle productId={p.id} />
-
-
-            <ul className="mt-4 space-y-1.5 border-t border-border pt-3 text-[11px] text-muted-foreground">
-              {p.quality_verified && (
-                <li className="flex items-center gap-1.5 text-success font-medium">
-                  <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2.5} /> Qualité vérifiée par Wintek
-                </li>
-              )}
-              <li className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5" /> Achat sécurisé sur Winstorr</li>
-              {p.vendor && (
-                <li className="flex items-center gap-1.5">
-                  <BadgeCheck className="h-3.5 w-3.5 text-secondary" />
-                  Expédié par <span className="font-medium text-foreground">{p.vendor.name}</span>
-                </li>
-              )}
-            </ul>
-          </div>
+          <BuyBox p={p} />
         </aside>
       </div>
 
@@ -274,6 +242,88 @@ function ProductDetail() {
     </div>
   );
 }
+
+function BuyBox({ p }: { p: Product }) {
+  const { data: tiers } = useProductTiers(p.type === "physical" ? p.id : undefined);
+  const [qty, setQty] = useState(1);
+  const hasTiers = (tiers?.length ?? 0) > 0;
+  const effectiveUnit = hasTiers && p.price != null
+    ? resolveUnitPrice(tiers, qty, p.price)
+    : p.price;
+
+  return (
+    <div className="rounded-sm border border-border bg-background p-4">
+      <div className="flex items-baseline gap-2">
+        <div className="text-2xl font-bold text-accent leading-none">
+          {p.price_type === "quote_only" || effectiveUnit == null
+            ? displayPrice(p)
+            : (p.price_type === "starting_at" ? "À partir de " : "") + formatFcfa(effectiveUnit)}
+        </div>
+        {p.compare_at_price && p.price && p.compare_at_price > p.price && (
+          <div className="text-sm text-muted-foreground line-through">{formatFcfa(p.compare_at_price)}</div>
+        )}
+      </div>
+      {hasTiers && (
+        <div className="mt-1 inline-flex items-center gap-1 rounded-sm bg-success/10 px-2 py-0.5 text-[11px] font-medium text-success">
+          <Truck className="h-3 w-3" /> Tarif dégressif — prix de gros disponible
+        </div>
+      )}
+      {hasTiers && <TierTable tiers={tiers!} basePrice={p.price} qty={qty} />}
+
+      <div className="mt-4">
+        {p.type === "physical" && <PhysicalActions p={p} tiers={tiers ?? []} qty={qty} setQty={setQty} />}
+        {p.type === "digital" && <DigitalActions p={p} />}
+        {p.type === "service" && <ServiceActions p={p} />}
+        {p.type === "training" && <TrainingActions p={p} />}
+      </div>
+
+      <WishlistToggle productId={p.id} />
+
+      <ul className="mt-4 space-y-1.5 border-t border-border pt-3 text-[11px] text-muted-foreground">
+        {p.quality_verified && (
+          <li className="flex items-center gap-1.5 text-success font-medium">
+            <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2.5} /> Qualité vérifiée par Wintek
+          </li>
+        )}
+        <li className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5" /> Achat sécurisé sur Winstorr</li>
+        {p.vendor && (
+          <li className="flex items-center gap-1.5">
+            <BadgeCheck className="h-3.5 w-3.5 text-secondary" />
+            Expédié par <span className="font-medium text-foreground">{p.vendor.name}</span>
+          </li>
+        )}
+      </ul>
+    </div>
+  );
+}
+
+function TierTable({ tiers, basePrice, qty }: { tiers: PriceTier[]; basePrice: number | null; qty: number }) {
+  const sorted = [...tiers].sort((a, b) => a.min_quantity - b.min_quantity);
+  const rows: { label: string; price: number; active: boolean }[] = [];
+  // Optional implicit row for base price below the first tier
+  if (basePrice != null && sorted[0] && sorted[0].min_quantity > 1) {
+    const active = qty >= 1 && qty < sorted[0].min_quantity;
+    rows.push({ label: `1-${sorted[0].min_quantity - 1} unités`, price: basePrice, active });
+  }
+  for (let i = 0; i < sorted.length; i++) {
+    const t = sorted[i];
+    const next = sorted[i + 1];
+    const label = next ? `${t.min_quantity}-${next.min_quantity - 1} unités` : `${t.min_quantity}+ unités`;
+    const active = qty >= t.min_quantity && (!next || qty < next.min_quantity);
+    rows.push({ label, price: t.unit_price, active });
+  }
+  return (
+    <div className="mt-3 divide-y divide-border rounded-sm border border-border text-xs">
+      {rows.map((r, i) => (
+        <div key={i} className={cn("flex items-center justify-between px-2 py-1.5", r.active && "bg-accent/10 font-medium")}>
+          <span className="text-muted-foreground">{r.label}</span>
+          <span className={cn("text-foreground", r.active && "text-accent font-semibold")}>{formatFcfa(r.price)}/unité</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 
 function WishlistToggle({ productId }: { productId: string }) {
   const { data: ids } = useWishlistIds();
