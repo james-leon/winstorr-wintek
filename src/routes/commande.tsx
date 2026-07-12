@@ -170,14 +170,40 @@ function CheckoutPage() {
 
           {hasPhysical && (
             <section className="rounded-sm border border-border bg-card p-4">
-              <h2 className="font-semibold mb-3">Adresse de livraison</h2>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-semibold">Adresse de livraison</h2>
+                {user && (
+                  <Link to="/mon-compte/adresses" className="text-xs text-secondary underline">
+                    Gérer mes adresses
+                  </Link>
+                )}
+              </div>
+
+              {user && savedAddresses.length > 0 && (
+                <div className="mb-3">
+                  <Label>Utiliser une adresse enregistrée</Label>
+                  <select
+                    className="mt-1 h-9 w-full rounded-sm border border-input bg-background px-3 text-sm"
+                    value={selectedAddrId}
+                    onChange={(e) => chooseAddress(e.target.value)}
+                  >
+                    {savedAddresses.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.label} — {a.quartier}{a.is_default ? " (par défaut)" : ""}
+                      </option>
+                    ))}
+                    <option value="new">➕ Nouvelle adresse</option>
+                  </select>
+                </div>
+              )}
+
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <Label>Ville *</Label>
                   <select
                     className="mt-1 h-9 w-full rounded-sm border border-input bg-background px-3 text-sm"
                     value={ville}
-                    onChange={(e) => setVille(e.target.value as typeof ville)}
+                    onChange={(e) => setVille(e.target.value as CityValue)}
                   >
                     {CITIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
                   </select>
