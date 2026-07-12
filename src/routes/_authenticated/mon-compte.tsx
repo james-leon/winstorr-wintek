@@ -8,13 +8,13 @@ export const Route = createFileRoute("/_authenticated/mon-compte")({
   component: AccountLayout,
 });
 
-const NAV = [
+const NAV: { to: string; label: string; icon: typeof UserIcon; exact?: boolean }[] = [
   { to: "/mon-compte", label: "Aperçu", icon: UserIcon, exact: true },
   { to: "/mon-compte/commandes", label: "Mes commandes", icon: Package },
   { to: "/mon-compte/adresses", label: "Mes adresses", icon: MapPin },
   { to: "/mon-compte/liste-de-souhaits", label: "Liste de souhaits", icon: Heart },
   { to: "/mon-compte/profil", label: "Profil", icon: Settings },
-] as const;
+];
 
 function AccountLayout() {
   const { user } = useAuth();
