@@ -18,6 +18,7 @@ type CatalogueSearch = {
   sort?: SortKey;
   minRating?: number;
   verified?: boolean;
+  category?: string;
 };
 
 export const Route = createFileRoute("/catalogue")({
@@ -32,7 +33,8 @@ export const Route = createFileRoute("/catalogue")({
     const mr = Number(search.minRating);
     const minRating = mr >= 1 && mr <= 5 ? mr : undefined;
     const verified = search.verified === true || search.verified === "true" ? true : undefined;
-    return { type, q, sort, minRating, verified };
+    const category = typeof search.category === "string" && search.category.length > 0 ? search.category : undefined;
+    return { type, q, sort, minRating, verified, category };
   },
   head: () => {
     const title = "Catalogue — Électronique, Numérique, Services & Formations | Winstorr";
