@@ -27,8 +27,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRoles([]);
         return;
       }
-      const { data } = await supabase.from("user_roles").select("role").eq("user_id", u.id);
-      setRoles((data ?? []).map((r) => r.role as Role));
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", u.id);
+      if (error) {
+        console.error("[auth] failed to load user_roles", error);
+        setRoles([]);
+        return;
+      }
+      const next = (data ?? []).map((r) => r.role as Role);
+      console.debug("[auth] loaded roles for", u.id, next);
+      setRoles(next);
     };
 
     supabase.auth.getUser().then(({ data }) => {
@@ -36,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED" || event === "TOKEN_REFRESHED") {
         setLoading(true);
         load(session?.user ?? null).finally(() => setLoading(false));
       }
