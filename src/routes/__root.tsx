@@ -63,12 +63,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Winstorr — Électronique, services & formations tech par Wintek" },
-      { name: "description", content: "Winstorr par Wintek : achetez du matériel électronique, des produits numériques, réservez un service technique ou inscrivez-vous à nos formations." },
-      { property: "og:title", content: "Winstorr — Boutique tech de Wintek" },
-      { property: "og:description", content: "Électronique, produits numériques, services et formations tech." },
+      { title: "Winstorr — Marketplace de confiance au Cameroun | Électronique, Services, Formations" },
+      { name: "description", content: "Winstorr par Wintek : achetez du matériel électronique, des produits numériques, réservez un service technique ou inscrivez-vous à nos formations. Qualité vérifiée, paiement MoMo & Orange Money." },
+      { property: "og:site_name", content: "Winstorr" },
+      { property: "og:title", content: "Winstorr — Marketplace tech du Cameroun" },
+      { property: "og:description", content: "Électronique, produits numériques, services techniques et formations — vendeurs vérifiés, paiement mobile sécurisé." },
       { property: "og:type", content: "website" },
+      { property: "og:locale", content: "fr_FR" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "theme-color", content: "#0D2C54" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -77,12 +80,34 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Russo+One&display=swap" },
     ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Winstorr",
+          alternateName: "Wintek — Winner Technology",
+          url: "/",
+          logo: "/favicon.ico",
+          description: "Marketplace tech du Cameroun opérée par Wintek : électronique, produits numériques, services techniques et formations.",
+          areaServed: "CM",
+          contactPoint: {
+            "@type": "ContactPoint",
+            contactType: "customer support",
+            areaServed: "CM",
+            availableLanguage: ["French"],
+          },
+        }),
+      },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
 });
+
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
