@@ -692,6 +692,85 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string | null
+          proposed_vendor_name: string | null
+          status: Database["public"]["Enums"]["vendor_invitation_status"]
+          token: string
+          vendor_id: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          proposed_vendor_name?: string | null
+          status?: Database["public"]["Enums"]["vendor_invitation_status"]
+          token: string
+          vendor_id?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          proposed_vendor_name?: string | null
+          status?: Database["public"]["Enums"]["vendor_invitation_status"]
+          token?: string
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_invitations_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_members: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["vendor_member_role"]
+          user_id: string
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["vendor_member_role"]
+          user_id: string
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["vendor_member_role"]
+          user_id?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_members_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendors: {
         Row: {
           commission_rate: number | null
@@ -742,6 +821,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_vendor_invitation: { Args: { _token: string }; Returns: Json }
       confirm_order_payment: {
         Args: {
           _method: Database["public"]["Enums"]["payment_method"]
@@ -804,6 +884,16 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_vendor_invitation: {
+        Args: { _token: string }
+        Returns: {
+          email: string
+          expires_at: string
+          proposed_vendor_name: string
+          status: Database["public"]["Enums"]["vendor_invitation_status"]
+          vendor_name: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -812,6 +902,10 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      is_vendor_member: {
+        Args: { _user_id: string; _vendor_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       admin_notification_type:
@@ -862,6 +956,8 @@ export type Database = {
       training_enrollment_status: "pending" | "confirmed" | "cancelled"
       training_mode: "in_person" | "online" | "hybrid"
       training_session_status: "scheduled" | "full" | "cancelled" | "completed"
+      vendor_invitation_status: "pending" | "accepted" | "expired" | "revoked"
+      vendor_member_role: "owner" | "staff"
       vendor_status: "active" | "suspended" | "pending_approval"
       vendor_type: "internal" | "external"
     }
@@ -1044,6 +1140,8 @@ export const Constants = {
       training_enrollment_status: ["pending", "confirmed", "cancelled"],
       training_mode: ["in_person", "online", "hybrid"],
       training_session_status: ["scheduled", "full", "cancelled", "completed"],
+      vendor_invitation_status: ["pending", "accepted", "expired", "revoked"],
+      vendor_member_role: ["owner", "staff"],
       vendor_status: ["active", "suspended", "pending_approval"],
       vendor_type: ["internal", "external"],
     },
