@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { Cpu, Download, Wrench, GraduationCap, ArrowRight } from "lucide-react";
+import { Cpu, Download, Wrench, GraduationCap, ArrowRight, ShieldCheck, Truck, Star, Headset } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductCard, type ProductCardData } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ const featuredQuery = queryOptions({
   queryFn: async (): Promise<ProductCardData[]> => {
     const { data, error } = await supabase
       .from("products")
-      .select("id, slug, name, short_description, images, type, price, price_type, stock_quantity, featured, created_at")
+      .select("id, slug, name, short_description, images, type, price, price_type, stock_quantity, featured, created_at, rating_average, rating_count, quality_verified")
       .eq("status", "active")
       .order("featured", { ascending: false })
       .order("created_at", { ascending: false })
@@ -24,8 +24,32 @@ const featuredQuery = queryOptions({
   },
 });
 
+const topRatedQuery = queryOptions({
+  queryKey: ["top-rated-products"],
+  queryFn: async (): Promise<ProductCardData[]> => {
+    const { data, error } = await supabase
+      .from("products")
+      .select("id, slug, name, short_description, images, type, price, price_type, stock_quantity, rating_average, rating_count, quality_verified")
+      .eq("status", "active")
+      .gt("rating_count", 0)
+      .order("rating_average", { ascending: false })
+      .order("rating_count", { ascending: false })
+      .limit(4);
+    if (error) throw error;
+    return (data ?? []).map((p) => ({
+      ...p,
+      images: Array.isArray(p.images) ? (p.images as string[]) : [],
+    })) as ProductCardData[];
+  },
+});
+
 export const Route = createFileRoute("/")({
-  loader: ({ context }) => context.queryClient.ensureQueryData(featuredQuery),
+  loader: async ({ context }) => {
+    await Promise.all([
+      context.queryClient.ensureQueryData(featuredQuery),
+      context.queryClient.ensureQueryData(topRatedQuery),
+    ]);
+  },
   component: Home,
   errorComponent: ({ error }) => <div className="p-8 text-center text-destructive">{error.message}</div>,
   notFoundComponent: () => <div className="p-8 text-center">Introuvable</div>,
@@ -38,8 +62,16 @@ const TILES: { type: ProductType; title: string; desc: string; Icon: typeof Cpu 
   { type: "training", title: "Formations", desc: "Cours en présentiel, en ligne ou hybrides.", Icon: GraduationCap },
 ];
 
+const TRUST = [
+  { Icon: ShieldCheck, title: "Qualité vérifiée", desc: "Chaque produit vendeur est contrôlé par les équipes Wintek avant publication." },
+  { Icon: Truck, title: "Origine transparente", desc: "Import direct ou grossiste agréé : nous indiquons toujours la provenance." },
+  { Icon: Star, title: "Avis authentiques", desc: "Seuls les clients Winstorr peuvent noter les produits qu'ils ont commandés." },
+  { Icon: Headset, title: "Support local", desc: "Une équipe basée au Cameroun, joignable par téléphone ou en atelier." },
+];
+
 function Home() {
   const { data: products } = useSuspenseQuery(featuredQuery);
+  const { data: topRated } = useSuspenseQuery(topRatedQuery);
 
   return (
     <div>
@@ -52,10 +84,10 @@ function Home() {
               Par Wintek — Winner Technology
             </div>
             <h1 className="font-display text-4xl leading-tight md:text-6xl">
-              La tech dont vous avez besoin, <span className="text-accent">tout au même endroit.</span>
+              La marketplace tech <span className="text-accent">de confiance</span> au Cameroun.
             </h1>
             <p className="mt-4 max-w-lg text-primary-foreground/80">
-              Winstorr regroupe notre matériel électronique, nos produits numériques, nos services techniques et nos formations. Une seule boutique, quatre façons de vous équiper.
+              Winstorr rassemble matériel électronique, produits numériques, services techniques et formations — chaque vendeur vérifié, chaque avis authentique.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
@@ -85,11 +117,9 @@ function Home() {
 
       {/* Tiles */}
       <section className="mx-auto max-w-7xl px-4 py-16">
-        <div className="mb-8 flex items-end justify-between gap-4">
-          <div>
-            <h2 className="font-display text-3xl text-foreground">Quatre univers, une seule expérience</h2>
-            <p className="mt-2 text-muted-foreground">Choisissez la catégorie qui correspond à votre besoin.</p>
-          </div>
+        <div className="mb-8">
+          <h2 className="font-display text-3xl text-foreground">Quatre univers, une seule expérience</h2>
+          <p className="mt-2 text-muted-foreground">Choisissez la catégorie qui correspond à votre besoin.</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {TILES.map(({ Icon, title, desc, type }) => (
@@ -112,7 +142,7 @@ function Home() {
         </div>
       </section>
 
-      {/* Featured products */}
+      {/* Featured */}
       <section className="mx-auto max-w-7xl px-4 pb-16">
         <div className="mb-8 flex items-end justify-between gap-4">
           <div>
@@ -132,6 +162,45 @@ function Home() {
             {products.map((p) => <ProductCard key={p.id} p={p} />)}
           </div>
         )}
+      </section>
+
+      {/* Top rated */}
+      {topRated.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 pb-16">
+          <div className="mb-8 flex items-end justify-between gap-4">
+            <div>
+              <h2 className="font-display text-3xl text-foreground">Les mieux notés</h2>
+              <p className="mt-2 text-muted-foreground">Ce que nos clients recommandent le plus.</p>
+            </div>
+            <Button asChild variant="outline" className="hidden sm:inline-flex">
+              <Link to="/catalogue" search={{ sort: "rating" }}>Voir le classement <ArrowRight className="h-4 w-4" /></Link>
+            </Button>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {topRated.map((p) => <ProductCard key={p.id} p={p} />)}
+          </div>
+        </section>
+      )}
+
+      {/* Trust */}
+      <section className="border-t border-border bg-muted/30">
+        <div className="mx-auto max-w-7xl px-4 py-16">
+          <div className="mb-10 text-center">
+            <h2 className="font-display text-3xl text-foreground">Pourquoi Winstorr ?</h2>
+            <p className="mt-2 text-muted-foreground">Une marketplace pensée pour être aussi fiable qu'un magasin de quartier.</p>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {TRUST.map(({ Icon, title, desc }) => (
+              <div key={title} className="rounded-xl border border-border bg-card p-6">
+                <div className="mb-3 grid h-11 w-11 place-items-center rounded-lg bg-primary/10 text-primary">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h3 className="font-display text-lg text-foreground">{title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
     </div>
   );

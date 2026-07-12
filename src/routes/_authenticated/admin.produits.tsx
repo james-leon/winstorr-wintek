@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,20 +17,32 @@ export const Route = createFileRoute("/_authenticated/admin/produits")({
   component: AdminProducts,
 });
 
+type Vendor = { id: string; name: string; type: "internal" | "external" };
+
 type Row = {
   id: string; slug: string; name: string; type: ProductType; status: string;
   price: number | null; price_type: "fixed" | "starting_at" | "quote_only";
   stock_quantity: number | null; featured: boolean;
+  quality_verified: boolean; vendor_id: string;
+  rating_average: number; rating_count: number;
 };
 
 function AdminProducts() {
   const qc = useQueryClient();
+  const { data: vendors = [] } = useQuery({
+    queryKey: ["admin-vendors"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("vendors").select("id, name, type").order("name");
+      if (error) throw error;
+      return data as Vendor[];
+    },
+  });
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["admin-products"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, slug, name, type, status, price, price_type, stock_quantity, featured")
+        .select("id, slug, name, type, status, price, price_type, stock_quantity, featured, quality_verified, vendor_id, rating_average, rating_count")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as Row[];
@@ -38,6 +50,7 @@ function AdminProducts() {
   });
 
   const [editing, setEditing] = useState<Row | "new" | null>(null);
+  const vendorName = (id: string) => vendors.find((v) => v.id === id)?.name ?? "—";
 
   const del = useMutation({
     mutationFn: async (id: string) => {
@@ -58,18 +71,23 @@ function AdminProducts() {
         <table className="w-full text-sm">
           <thead className="bg-muted text-left">
             <tr>
-              <th className="p-3">Nom</th><th className="p-3">Type</th><th className="p-3">Prix</th>
-              <th className="p-3">Stock</th><th className="p-3">Statut</th><th className="p-3"></th>
+              <th className="p-3">Nom</th><th className="p-3">Type</th><th className="p-3">Vendeur</th>
+              <th className="p-3">Prix</th><th className="p-3">Note</th><th className="p-3">Statut</th><th className="p-3"></th>
             </tr>
           </thead>
           <tbody>
-            {isLoading && <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">Chargement...</td></tr>}
+            {isLoading && <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">Chargement...</td></tr>}
             {rows.map((r) => (
               <tr key={r.id} className="border-t border-border">
-                <td className="p-3 font-medium">{r.name}{r.featured && <span className="ml-2 text-xs text-accent">★</span>}</td>
+                <td className="p-3 font-medium">
+                  {r.name}
+                  {r.featured && <span className="ml-2 text-xs text-accent">★</span>}
+                  {r.quality_verified && <ShieldCheck className="ml-2 inline h-3.5 w-3.5 text-success" />}
+                </td>
                 <td className="p-3"><TypeBadge type={r.type} /></td>
+                <td className="p-3 text-xs">{vendorName(r.vendor_id)}</td>
                 <td className="p-3">{displayPrice(r)}</td>
-                <td className="p-3">{r.type === "physical" ? (r.stock_quantity ?? "—") : "—"}</td>
+                <td className="p-3 text-xs">{r.rating_count > 0 ? `${Number(r.rating_average).toFixed(1)} (${r.rating_count})` : "—"}</td>
                 <td className="p-3">
                   <span className={`inline-block rounded-full px-2 py-0.5 text-xs ${r.status === "active" ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>
                     {r.status}
@@ -88,34 +106,49 @@ function AdminProducts() {
           </tbody>
         </table>
       </div>
-      {editing && <ProductDialog row={editing === "new" ? null : editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); qc.invalidateQueries({ queryKey: ["admin-products"] }); }} />}
+      {editing && (
+        <ProductDialog
+          row={editing === "new" ? null : editing}
+          vendors={vendors}
+          onClose={() => setEditing(null)}
+          onSaved={() => { setEditing(null); qc.invalidateQueries({ queryKey: ["admin-products"] }); }}
+        />
+      )}
     </div>
   );
 }
 
 type FormState = {
   name: string; slug: string; type: ProductType; status: "draft" | "active" | "archived";
+  vendor_id: string;
   short_description: string; description: string;
   price: string; price_type: "fixed" | "starting_at" | "quote_only";
   stock_quantity: string; featured: boolean;
   images: string;
+  quality_verified: boolean;
+  warranty_duration: string;
+  source_type: string;
   delivery_type: string; service_area: string; estimated_duration: string; delivery_mode: string;
 };
 
-function ProductDialog({ row, onClose, onSaved }: { row: Row | null; onClose: () => void; onSaved: () => void }) {
+function ProductDialog({ row, vendors, onClose, onSaved }: { row: Row | null; vendors: Vendor[]; onClose: () => void; onSaved: () => void }) {
   const isNew = !row;
+  const defaultVendor = vendors.find((v) => v.type === "internal")?.id ?? vendors[0]?.id ?? "";
   const [f, setF] = useState<FormState>({
     name: row?.name ?? "", slug: row?.slug ?? "",
     type: row?.type ?? "physical", status: (row?.status as "draft" | "active" | "archived") ?? "draft",
+    vendor_id: row?.vendor_id ?? defaultVendor,
     short_description: "", description: "",
     price: row?.price?.toString() ?? "", price_type: row?.price_type ?? "fixed",
     stock_quantity: row?.stock_quantity?.toString() ?? "", featured: row?.featured ?? false,
     images: "",
+    quality_verified: row?.quality_verified ?? false,
+    warranty_duration: "",
+    source_type: "",
     delivery_type: "", service_area: "", estimated_duration: "", delivery_mode: "",
   });
 
-  // Load full row on edit
-  useState(() => {
+  useEffect(() => {
     if (!row) return;
     supabase.from("products").select("*").eq("id", row.id).maybeSingle().then(({ data }) => {
       if (!data) return;
@@ -124,17 +157,21 @@ function ProductDialog({ row, onClose, onSaved }: { row: Row | null; onClose: ()
         short_description: data.short_description ?? "",
         description: data.description ?? "",
         images: Array.isArray(data.images) ? (data.images as string[]).join("\n") : "",
+        warranty_duration: data.warranty_duration ?? "",
+        source_type: data.source_type ?? "",
         delivery_type: data.delivery_type ?? "",
         service_area: data.service_area ?? "",
         estimated_duration: data.estimated_duration ?? "",
         delivery_mode: data.delivery_mode ?? "",
       }));
     });
-  });
+  }, [row]);
 
   const save = useMutation({
     mutationFn: async () => {
+      if (!f.vendor_id) throw new Error("Vendeur requis");
       const payload = {
+        vendor_id: f.vendor_id,
         name: f.name.trim(),
         slug: (f.slug || slugify(f.name)).trim(),
         type: f.type,
@@ -146,6 +183,9 @@ function ProductDialog({ row, onClose, onSaved }: { row: Row | null; onClose: ()
         stock_quantity: f.type === "physical" && f.stock_quantity ? Number(f.stock_quantity) : null,
         featured: f.featured,
         images: f.images.split("\n").map((s) => s.trim()).filter(Boolean),
+        quality_verified: f.quality_verified,
+        warranty_duration: f.type === "physical" && f.warranty_duration ? f.warranty_duration : null,
+        source_type: f.type === "physical" && f.source_type ? (f.source_type as "direct_import" | "authorized_wholesaler" | "other") : null,
         delivery_type: f.type === "digital" && f.delivery_type ? (f.delivery_type as "file_download" | "license_key" | "access_link") : null,
         service_area: f.type === "service" && f.service_area ? (f.service_area as "on_site" | "in_shop" | "remote" | "both") : null,
         estimated_duration: f.type === "service" && f.estimated_duration ? f.estimated_duration : null,
@@ -172,6 +212,25 @@ function ProductDialog({ row, onClose, onSaved }: { row: Row | null; onClose: ()
             <div><Label>Nom *</Label><Input required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value, slug: isNew && !f.slug ? slugify(e.target.value) : f.slug })} /></div>
             <div><Label>Slug *</Label><Input required value={f.slug} onChange={(e) => setF({ ...f, slug: slugify(e.target.value) })} /></div>
           </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <Label>Vendeur *</Label>
+              <Select value={f.vendor_id} onValueChange={(v) => setF({ ...f, vendor_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Choisir..." /></SelectTrigger>
+                <SelectContent>
+                  {vendors.map((v) => (
+                    <SelectItem key={v.id} value={v.id}>{v.name} {v.type === "internal" && "• Officiel"}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-end gap-2">
+              <input id="qv" type="checkbox" checked={f.quality_verified} onChange={(e) => setF({ ...f, quality_verified: e.target.checked })} />
+              <Label htmlFor="qv" className="flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5 text-success" /> Qualité vérifiée</Label>
+            </div>
+          </div>
+
           <div className="grid gap-3 sm:grid-cols-3">
             <div>
               <Label>Type *</Label>
@@ -222,6 +281,24 @@ function ProductDialog({ row, onClose, onSaved }: { row: Row | null; onClose: ()
               <div><Label>Stock</Label><Input type="number" min="0" value={f.stock_quantity} onChange={(e) => setF({ ...f, stock_quantity: e.target.value })} /></div>
             )}
           </div>
+
+          {f.type === "physical" && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div><Label>Garantie</Label><Input value={f.warranty_duration} onChange={(e) => setF({ ...f, warranty_duration: e.target.value })} placeholder="ex : 12 mois" /></div>
+              <div>
+                <Label>Origine</Label>
+                <Select value={f.source_type || "none"} onValueChange={(v) => setF({ ...f, source_type: v === "none" ? "" : v })}>
+                  <SelectTrigger><SelectValue placeholder="Non spécifié" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Non spécifié</SelectItem>
+                    <SelectItem value="direct_import">Import direct</SelectItem>
+                    <SelectItem value="authorized_wholesaler">Grossiste agréé</SelectItem>
+                    <SelectItem value="other">Autre</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
 
           {f.type === "digital" && (
             <div>

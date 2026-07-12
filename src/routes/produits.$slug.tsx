@@ -1,16 +1,19 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery, useQuery, useMutation } from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ChevronLeft, MapPin, Calendar, Clock, Package, Download } from "lucide-react";
+import { ChevronLeft, MapPin, Calendar, Clock, Package, Download, ShieldCheck, Truck, BadgeCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { TypeBadge } from "@/components/type-badge";
+import { StarRating } from "@/components/star-rating";
+import { QualityBadge, VendorLine } from "@/components/quality-badge";
 import { displayPrice, formatFcfa, type ProductType } from "@/lib/format";
 import { useCart } from "@/lib/cart-context";
+import { useAuth } from "@/lib/auth-context";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 type Product = {
@@ -30,6 +33,12 @@ type Product = {
   service_area: "on_site" | "in_shop" | "remote" | "both" | null;
   estimated_duration: string | null;
   delivery_mode: "in_person" | "online" | "hybrid" | null;
+  rating_average: number;
+  rating_count: number;
+  quality_verified: boolean;
+  warranty_duration: string | null;
+  source_type: "direct_import" | "authorized_wholesaler" | "other" | null;
+  vendor: { id: string; name: string; slug: string; type: "internal" | "external" } | null;
 };
 
 const productQuery = (slug: string) =>
@@ -38,7 +47,7 @@ const productQuery = (slug: string) =>
     queryFn: async (): Promise<Product> => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, slug, name, short_description, description, images, type, price, price_type, compare_at_price, stock_quantity, delivery_type, delivery_instructions, service_area, estimated_duration, delivery_mode")
+        .select("id, slug, name, short_description, description, images, type, price, price_type, compare_at_price, stock_quantity, delivery_type, delivery_instructions, service_area, estimated_duration, delivery_mode, rating_average, rating_count, quality_verified, warranty_duration, source_type, vendor:vendors(id, name, slug, type)")
         .eq("slug", slug)
         .eq("status", "active")
         .maybeSingle();
@@ -72,6 +81,12 @@ export const Route = createFileRoute("/produits/$slug")({
   ),
 });
 
+const SOURCE_LABELS: Record<NonNullable<Product["source_type"]>, string> = {
+  direct_import: "Import direct",
+  authorized_wholesaler: "Grossiste agréé",
+  other: "Autre origine",
+};
+
 function ProductDetail() {
   const { slug } = Route.useParams();
   const { data: p } = useSuspenseQuery(productQuery(slug));
@@ -82,8 +97,10 @@ function ProductDetail() {
       <Link to="/catalogue" className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
         <ChevronLeft className="h-4 w-4" /> Retour au catalogue
       </Link>
-      <div className="grid gap-10 lg:grid-cols-2">
-        <div>
+
+      <div className="grid gap-8 lg:grid-cols-[1fr_1fr_320px]">
+        {/* Gallery */}
+        <div className="lg:col-span-1">
           <div className="aspect-square overflow-hidden rounded-xl border border-border bg-muted">
             {p.images[activeImg] ? (
               <img src={p.images[activeImg]} alt={p.name} className="h-full w-full object-cover" />
@@ -94,11 +111,7 @@ function ProductDetail() {
           {p.images.length > 1 && (
             <div className="mt-3 grid grid-cols-5 gap-2">
               {p.images.map((src, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveImg(i)}
-                  className={`aspect-square overflow-hidden rounded-md border-2 ${i === activeImg ? "border-primary" : "border-transparent"}`}
-                >
+                <button key={i} onClick={() => setActiveImg(i)} className={`aspect-square overflow-hidden rounded-md border-2 ${i === activeImg ? "border-primary" : "border-transparent"}`}>
                   <img src={src} alt="" className="h-full w-full object-cover" />
                 </button>
               ))}
@@ -106,33 +119,71 @@ function ProductDetail() {
           )}
         </div>
 
+        {/* Middle info */}
         <div>
-          <TypeBadge type={p.type} />
+          <div className="flex flex-wrap items-center gap-2">
+            <TypeBadge type={p.type} />
+            {p.quality_verified && <QualityBadge />}
+          </div>
           <h1 className="mt-3 font-display text-3xl text-foreground md:text-4xl">{p.name}</h1>
+          {p.vendor && <div className="mt-2"><VendorLine name={p.vendor.name} internal={p.vendor.type === "internal"} /></div>}
+          <div className="mt-2"><StarRating rating={Number(p.rating_average)} count={p.rating_count} size="md" /></div>
           {p.short_description && <p className="mt-3 text-muted-foreground">{p.short_description}</p>}
 
-          <div className="mt-6 flex items-baseline gap-3">
-            <div className="font-display text-3xl text-primary">{displayPrice(p)}</div>
-            {p.compare_at_price && p.price && p.compare_at_price > p.price && (
-              <div className="text-lg text-muted-foreground line-through">{formatFcfa(p.compare_at_price)}</div>
-            )}
-          </div>
-
-          <div className="mt-6">
-            {p.type === "physical" && <PhysicalActions p={p} />}
-            {p.type === "digital" && <DigitalActions p={p} />}
-            {p.type === "service" && <ServiceActions p={p} />}
-            {p.type === "training" && <TrainingActions p={p} />}
-          </div>
+          {(p.warranty_duration || p.source_type) && (
+            <div className="mt-5 flex flex-wrap gap-2">
+              {p.warranty_duration && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                  <BadgeCheck className="h-3.5 w-3.5" /> Garantie {p.warranty_duration}
+                </span>
+              )}
+              {p.source_type && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground/80">
+                  <Truck className="h-3.5 w-3.5" /> {SOURCE_LABELS[p.source_type]}
+                </span>
+              )}
+            </div>
+          )}
 
           {p.description && (
-            <div className="mt-10 border-t border-border pt-6">
+            <div className="mt-8 border-t border-border pt-6">
               <h2 className="font-display text-xl text-foreground">Description</h2>
               <div className="prose mt-3 max-w-none whitespace-pre-wrap text-sm text-foreground/80">{p.description}</div>
             </div>
           )}
         </div>
+
+        {/* Buy box */}
+        <aside className="lg:sticky lg:top-24 self-start">
+          <div className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-elevated)]">
+            <div className="flex items-baseline gap-3">
+              <div className="font-display text-3xl text-primary">{displayPrice(p)}</div>
+              {p.compare_at_price && p.price && p.compare_at_price > p.price && (
+                <div className="text-lg text-muted-foreground line-through">{formatFcfa(p.compare_at_price)}</div>
+              )}
+            </div>
+
+            <div className="mt-5">
+              {p.type === "physical" && <PhysicalActions p={p} />}
+              {p.type === "digital" && <DigitalActions p={p} />}
+              {p.type === "service" && <ServiceActions p={p} />}
+              {p.type === "training" && <TrainingActions p={p} />}
+            </div>
+
+            <ul className="mt-5 space-y-2 border-t border-border pt-4 text-xs text-muted-foreground">
+              <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-success" /> Achat sécurisé sur Winstorr</li>
+              {p.vendor && (
+                <li className="flex items-center gap-2">
+                  <BadgeCheck className="h-4 w-4 text-primary" />
+                  Expédié par <span className="font-medium text-foreground">{p.vendor.name}</span>
+                </li>
+              )}
+            </ul>
+          </div>
+        </aside>
       </div>
+
+      <ReviewsSection productId={p.id} rating={Number(p.rating_average)} count={p.rating_count} />
     </div>
   );
 }
@@ -154,23 +205,23 @@ function PhysicalActions({ p }: { p: Product }) {
       </div>
       <div className="flex items-center gap-3">
         <div className="flex items-center rounded-md border border-input">
-          <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="px-3 py-2 text-lg">−</button>
+          <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))} className="px-3 py-2 text-lg">−</button>
           <span className="min-w-8 text-center">{qty}</span>
-          <button onClick={() => setQty((q) => q + 1)} className="px-3 py-2 text-lg">+</button>
+          <button type="button" onClick={() => setQty((q) => q + 1)} className="px-3 py-2 text-lg">+</button>
         </div>
-        <Button
-          size="lg"
-          className="flex-1 bg-accent text-accent-foreground hover:bg-accent/90"
-          disabled={stock <= 0 || !p.price}
-          onClick={() => {
-            if (!p.price) return;
-            add({ productId: p.id, slug: p.slug, name: p.name, price: p.price, image: p.images[0] ?? null }, qty);
-            toast.success(`${p.name} ajouté au panier`);
-          }}
-        >
-          Ajouter au panier
-        </Button>
       </div>
+      <Button
+        size="lg"
+        className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
+        disabled={stock <= 0 || !p.price}
+        onClick={() => {
+          if (!p.price) return;
+          add({ productId: p.id, slug: p.slug, name: p.name, price: p.price, image: p.images[0] ?? null }, qty);
+          toast.success(`${p.name} ajouté au panier`);
+        }}
+      >
+        Ajouter au panier
+      </Button>
     </div>
   );
 }
@@ -229,34 +280,26 @@ function ServiceActions({ p }: { p: Product }) {
 
   if (done) {
     return (
-      <div className="rounded-lg border border-success/40 bg-success/10 p-5">
-        <h3 className="font-display text-lg text-success">Demande envoyée ✓</h3>
-        <p className="mt-2 text-sm text-foreground/80">
-          Nous vous recontactons sous 24h au numéro fourni pour confirmer votre demande.
-        </p>
+      <div className="rounded-lg border border-success/40 bg-success/10 p-4">
+        <h3 className="font-display text-base text-success">Demande envoyée ✓</h3>
+        <p className="mt-1 text-xs text-foreground/80">Nous vous recontactons sous 24h.</p>
       </div>
     );
   }
 
   return (
-    <form
-      onSubmit={(e) => { e.preventDefault(); mut.mutate(); }}
-      className="space-y-3 rounded-lg border border-border bg-card p-5"
-    >
-      <h3 className="font-display text-lg text-foreground">Demander un devis</h3>
+    <form onSubmit={(e) => { e.preventDefault(); mut.mutate(); }} className="space-y-3">
       <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
         {p.service_area && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {areas[p.service_area]}</span>}
         {p.estimated_duration && <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {p.estimated_duration}</span>}
       </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div><Label>Nom complet *</Label><Input required minLength={2} value={form.customer_name} onChange={(e) => setForm({ ...form, customer_name: e.target.value })} /></div>
-        <div><Label>Téléphone *</Label><Input required minLength={6} value={form.customer_phone} onChange={(e) => setForm({ ...form, customer_phone: e.target.value })} /></div>
-      </div>
+      <div><Label>Nom complet *</Label><Input required minLength={2} value={form.customer_name} onChange={(e) => setForm({ ...form, customer_name: e.target.value })} /></div>
+      <div><Label>Téléphone *</Label><Input required minLength={6} value={form.customer_phone} onChange={(e) => setForm({ ...form, customer_phone: e.target.value })} /></div>
       <div><Label>Email</Label><Input type="email" value={form.customer_email} onChange={(e) => setForm({ ...form, customer_email: e.target.value })} /></div>
-      <div><Label>Description du besoin *</Label><Textarea required minLength={5} rows={4} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+      <div><Label>Description du besoin *</Label><Textarea required minLength={5} rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
       <div><Label>Date souhaitée</Label><Input type="date" value={form.preferred_date} onChange={(e) => setForm({ ...form, preferred_date: e.target.value })} /></div>
       <Button type="submit" size="lg" disabled={mut.isPending} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-        {mut.isPending ? "Envoi..." : "Envoyer la demande"}
+        {mut.isPending ? "Envoi..." : "Demander un devis"}
       </Button>
     </form>
   );
@@ -285,10 +328,10 @@ function TrainingActions({ p }: { p: Product }) {
 
   return (
     <div className="space-y-3">
-      <h3 className="font-display text-lg text-foreground">Prochaines sessions</h3>
+      <div className="text-sm font-semibold text-foreground">Prochaines sessions</div>
       {sessions.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border bg-muted/30 p-6 text-sm text-muted-foreground">
-          Aucune session programmée. Revenez bientôt !
+        <div className="rounded-lg border border-dashed border-border bg-muted/30 p-4 text-xs text-muted-foreground">
+          Aucune session programmée pour l'instant.
         </div>
       ) : (
         <ul className="space-y-2">
@@ -297,19 +340,17 @@ function TrainingActions({ p }: { p: Product }) {
             const full = s.status === "full" || seats <= 0;
             const price = s.price_override ?? p.price;
             return (
-              <li key={s.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-4">
-                <div>
-                  <div className="flex items-center gap-2 font-medium">
-                    <Calendar className="h-4 w-4 text-primary" />
-                    {new Date(s.start_date).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })}
-                  </div>
-                  <div className="mt-1 flex flex-wrap gap-3 text-xs text-muted-foreground">
-                    {s.location && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {s.location}</span>}
-                    <span>{full ? "Complet" : `${seats} place${seats > 1 ? "s" : ""} restante${seats > 1 ? "s" : ""}`}</span>
-                    {price != null && <span className="font-medium text-foreground">{formatFcfa(price)}</span>}
-                  </div>
+              <li key={s.id} className="rounded-lg border border-border bg-background p-3">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Calendar className="h-4 w-4 text-primary" />
+                  {new Date(s.start_date).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })}
                 </div>
-                <Button disabled={full} onClick={() => setOpenId(s.id)} className="bg-accent text-accent-foreground hover:bg-accent/90">
+                <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                  {s.location && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {s.location}</span>}
+                  <span>{full ? "Complet" : `${seats} place${seats > 1 ? "s" : ""}`}</span>
+                  {price != null && <span className="font-medium text-foreground">{formatFcfa(price)}</span>}
+                </div>
+                <Button size="sm" disabled={full} onClick={() => setOpenId(s.id)} className="mt-2 w-full bg-accent text-accent-foreground hover:bg-accent/90">
                   {full ? "Complet" : "S'inscrire"}
                 </Button>
               </li>
@@ -358,5 +399,140 @@ function EnrollDialog({ session, onClose, onDone }: { session: Session | null; o
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/* ----- reviews ----- */
+type Review = {
+  id: string;
+  rating: number;
+  title: string | null;
+  comment: string | null;
+  created_at: string;
+  verified_purchase: boolean;
+  customer: { full_name: string | null } | null;
+};
+
+function ReviewsSection({ productId, rating, count }: { productId: string; rating: number; count: number }) {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  const { data: reviews = [], isLoading } = useQuery({
+    queryKey: ["reviews", productId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("product_reviews")
+        .select("id, rating, title, comment, created_at, verified_purchase, customer:profiles(full_name)")
+        .eq("product_id", productId)
+        .eq("status", "published")
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return data as Review[];
+    },
+  });
+
+  const myReview = reviews.find((r) => false); // published-only fetch — form always shows for logged-in users
+  const [form, setForm] = useState({ rating: 5, title: "", comment: "" });
+
+  const submit = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error("Connectez-vous pour laisser un avis");
+      const { error } = await supabase.from("product_reviews").insert({
+        product_id: productId,
+        customer_id: user.id,
+        rating: form.rating,
+        title: form.title.trim() || null,
+        comment: form.comment.trim() || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Merci ! Votre avis sera publié après modération.");
+      setForm({ rating: 5, title: "", comment: "" });
+      qc.invalidateQueries({ queryKey: ["reviews", productId] });
+      qc.invalidateQueries({ queryKey: ["product"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <section className="mt-14 border-t border-border pt-10">
+      <div className="grid gap-10 lg:grid-cols-[280px_1fr]">
+        <div>
+          <h2 className="font-display text-2xl text-foreground">Avis clients</h2>
+          <div className="mt-3">
+            <div className="font-display text-4xl text-foreground">{rating.toFixed(1)}<span className="text-lg text-muted-foreground">/5</span></div>
+            <StarRating rating={rating} showCount={false} size="lg" className="mt-1" />
+            <div className="mt-1 text-sm text-muted-foreground">{count} avis publié{count > 1 ? "s" : ""}</div>
+          </div>
+
+          <div className="mt-6 rounded-lg border border-border bg-card p-4">
+            {user ? (
+              <form onSubmit={(e) => { e.preventDefault(); submit.mutate(); }} className="space-y-3">
+                <div className="font-medium text-sm text-foreground">Laisser un avis</div>
+                <div>
+                  <Label>Note</Label>
+                  <div className="mt-1 flex gap-1">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <button key={n} type="button" onClick={() => setForm({ ...form, rating: n })} className="p-1">
+                        <StarRating rating={n <= form.rating ? 5 : 0} showCount={false} size="sm" className="pointer-events-none" />
+                        <span className="sr-only">{n} étoiles</span>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">{form.rating}/5</div>
+                </div>
+                <div><Label>Titre</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} maxLength={120} /></div>
+                <div><Label>Commentaire</Label><Textarea rows={3} value={form.comment} onChange={(e) => setForm({ ...form, comment: e.target.value })} maxLength={1000} /></div>
+                <Button type="submit" disabled={submit.isPending} className="w-full">{submit.isPending ? "..." : "Publier"}</Button>
+              </form>
+            ) : (
+              <div className="text-sm">
+                <div className="font-medium text-foreground">Envie de donner votre avis ?</div>
+                <p className="mt-1 text-xs text-muted-foreground">Connectez-vous pour partager votre expérience.</p>
+                <Button asChild size="sm" variant="outline" className="mt-3 w-full">
+                  <Link to="/auth">Se connecter</Link>
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div>
+          {isLoading ? (
+            <div className="py-8 text-center text-muted-foreground">Chargement...</div>
+          ) : reviews.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-border bg-muted/30 p-10 text-center text-muted-foreground">
+              Aucun avis pour le moment. Soyez le premier à partager votre expérience !
+            </div>
+          ) : (
+            <ul className="space-y-5">
+              {reviews.map((r) => (
+                <li key={r.id} className="rounded-lg border border-border bg-card p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="grid h-9 w-9 place-items-center rounded-full bg-primary/10 font-semibold text-primary">
+                        {(r.customer?.full_name ?? "?").slice(0, 1).toUpperCase()}
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-foreground">{r.customer?.full_name ?? "Client Winstorr"}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {new Date(r.created_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })}
+                          {r.verified_purchase && <span className="ml-2 inline-flex items-center gap-1 text-success"><BadgeCheck className="h-3 w-3" /> Achat vérifié</span>}
+                        </div>
+                      </div>
+                    </div>
+                    <StarRating rating={r.rating} showCount={false} />
+                  </div>
+                  {r.title && <div className="mt-3 font-medium text-foreground">{r.title}</div>}
+                  {r.comment && <div className="mt-1 whitespace-pre-wrap text-sm text-foreground/80">{r.comment}</div>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+      {myReview && null}
+    </section>
   );
 }

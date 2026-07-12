@@ -10,6 +10,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
 
 const TABS = [
   { to: "/admin/produits", label: "Produits" },
+  { to: "/admin/avis", label: "Avis" },
   { to: "/admin/sessions", label: "Sessions" },
   { to: "/admin/demandes", label: "Demandes" },
 ];
@@ -31,7 +32,7 @@ function AdminLayout() {
       <div className="mb-6 flex items-center justify-between gap-4">
         <h1 className="font-display text-3xl text-foreground">Administration</h1>
       </div>
-      <nav className="mb-6 flex gap-1 border-b border-border">
+      <nav className="mb-6 flex gap-1 border-b border-border overflow-x-auto">
         {TABS.map((t) => {
           const active = path.startsWith(t.to);
           return (
@@ -39,7 +40,7 @@ function AdminLayout() {
               key={t.to}
               to={t.to}
               className={cn(
-                "border-b-2 px-4 py-2.5 text-sm font-medium transition-colors",
+                "border-b-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap",
                 active ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground",
               )}
             >
