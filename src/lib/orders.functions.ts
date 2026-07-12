@@ -178,7 +178,7 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
     const { requireSupabaseAuth } = await import("@/integrations/supabase/auth-middleware");
     void requireSupabaseAuth; // keep in graph
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const patch: Record<string, unknown> = { status: data.status };
+    const patch: { status: typeof data.status; notes?: string | null } = { status: data.status };
     if (data.notes !== undefined) patch.notes = data.notes;
     const { error } = await supabaseAdmin.from("orders").update(patch).eq("id", data.orderId);
     if (error) throw new Error(error.message);
