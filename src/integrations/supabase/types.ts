@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read: boolean
+          related_order_id: string | null
+          related_return_id: string | null
+          type: Database["public"]["Enums"]["admin_notification_type"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          read?: boolean
+          related_order_id?: string | null
+          related_return_id?: string | null
+          type: Database["public"]["Enums"]["admin_notification_type"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean
+          related_order_id?: string | null
+          related_return_id?: string | null
+          type?: Database["public"]["Enums"]["admin_notification_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_notifications_related_order_id_fkey"
+            columns: ["related_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_settings: {
         Row: {
           key: string
@@ -412,6 +450,73 @@ export type Database = {
         }
         Relationships: []
       }
+      return_requests: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          description: string
+          id: string
+          order_id: string
+          order_item_id: string | null
+          photo_urls: Json | null
+          reason: Database["public"]["Enums"]["return_reason"]
+          refund_amount: number | null
+          resolution_notes: string | null
+          status: Database["public"]["Enums"]["return_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          description: string
+          id?: string
+          order_id: string
+          order_item_id?: string | null
+          photo_urls?: Json | null
+          reason: Database["public"]["Enums"]["return_reason"]
+          refund_amount?: number | null
+          resolution_notes?: string | null
+          status?: Database["public"]["Enums"]["return_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          description?: string
+          id?: string
+          order_id?: string
+          order_item_id?: string | null
+          photo_urls?: Json | null
+          reason?: Database["public"]["Enums"]["return_reason"]
+          refund_amount?: number | null
+          resolution_notes?: string | null
+          status?: Database["public"]["Enums"]["return_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "return_requests_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "return_requests_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "return_requests_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_requests: {
         Row: {
           created_at: string
@@ -676,6 +781,29 @@ export type Database = {
           unit_price: number
         }[]
       }
+      get_order_returns: {
+        Args: { _order_number: string }
+        Returns: {
+          created_at: string
+          customer_id: string | null
+          description: string
+          id: string
+          order_id: string
+          order_item_id: string | null
+          photo_urls: Json | null
+          reason: Database["public"]["Enums"]["return_reason"]
+          refund_amount: number | null
+          resolution_notes: string | null
+          status: Database["public"]["Enums"]["return_status"]
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "return_requests"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -686,6 +814,11 @@ export type Database = {
       is_staff: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
+      admin_notification_type:
+        | "new_order"
+        | "payment_failed"
+        | "return_requested"
+        | "other"
       app_role: "customer" | "staff" | "admin"
       delivery_type: "file_download" | "license_key" | "access_link"
       order_status:
@@ -702,6 +835,19 @@ export type Database = {
       price_type: "fixed" | "starting_at" | "quote_only"
       product_status: "draft" | "active" | "archived"
       product_type: "physical" | "digital" | "service" | "training"
+      return_reason:
+        | "defective"
+        | "wrong_item"
+        | "not_as_described"
+        | "changed_mind"
+        | "other"
+      return_status:
+        | "requested"
+        | "under_review"
+        | "approved"
+        | "rejected"
+        | "refunded"
+        | "exchanged"
       review_status: "published" | "pending" | "hidden"
       service_area: "on_site" | "in_shop" | "remote" | "both"
       service_request_status:
@@ -845,6 +991,12 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      admin_notification_type: [
+        "new_order",
+        "payment_failed",
+        "return_requested",
+        "other",
+      ],
       app_role: ["customer", "staff", "admin"],
       delivery_type: ["file_download", "license_key", "access_link"],
       order_status: [
@@ -862,6 +1014,21 @@ export const Constants = {
       price_type: ["fixed", "starting_at", "quote_only"],
       product_status: ["draft", "active", "archived"],
       product_type: ["physical", "digital", "service", "training"],
+      return_reason: [
+        "defective",
+        "wrong_item",
+        "not_as_described",
+        "changed_mind",
+        "other",
+      ],
+      return_status: [
+        "requested",
+        "under_review",
+        "approved",
+        "rejected",
+        "refunded",
+        "exchanged",
+      ],
       review_status: ["published", "pending", "hidden"],
       service_area: ["on_site", "in_shop", "remote", "both"],
       service_request_status: [
