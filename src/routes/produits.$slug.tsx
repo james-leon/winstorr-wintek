@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { ChevronLeft, MapPin, Calendar, Clock, Package, Download, ShieldCheck, Truck, BadgeCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { imageAtWidth, imageSrcSet } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -162,11 +163,22 @@ function ProductDetail() {
         <div>
           <div className="aspect-square overflow-hidden rounded-sm border border-border bg-muted">
             {p.images[activeImg] ? (
-              <img src={p.images[activeImg]} alt={p.name} className="h-full w-full object-cover" />
+              <img
+                src={imageAtWidth(p.images[activeImg], 800) || p.images[activeImg]}
+                srcSet={imageSrcSet(p.images[activeImg], [400, 600, 800, 1200])}
+                sizes="(min-width: 1024px) 480px, 100vw"
+                alt={p.name}
+                fetchPriority="high"
+                decoding="async"
+                width={800}
+                height={800}
+                className="h-full w-full object-cover"
+              />
             ) : (
               <div className="grid h-full w-full place-items-center text-muted-foreground text-sm">Pas d'image</div>
             )}
           </div>
+
           {p.images.length > 1 && (
             <div className="mt-2 grid grid-cols-6 gap-1.5">
               {p.images.map((src, i) => (
