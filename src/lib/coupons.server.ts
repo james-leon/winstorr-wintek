@@ -25,9 +25,10 @@ export async function redeemOrderCouponIfAny(orderId: string): Promise<void> {
   const { error } = await supabaseAdmin.rpc("redeem_coupon", {
     _coupon_id: coupon.id,
     _order_id: order.id,
-    _customer_id: order.customer_id,
-    _customer_email: order.customer_email,
+    _customer_id: (order.customer_id ?? null) as unknown as string,
+    _customer_email: (order.customer_email ?? null) as unknown as string,
     _discount: Number(order.discount_amount),
   });
+
   if (error) console.error("[redeem_coupon]", error.message);
 }

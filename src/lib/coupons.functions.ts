@@ -57,9 +57,10 @@ export const validateCouponFn = createServerFn({ method: "POST" })
       _code: data.code,
       _subtotal: subtotal,
       _product_ids: productIds,
-      _customer_id: customerId,
-      _customer_email: data.customerEmail ?? null,
+      _customer_id: customerId as unknown as string,
+      _customer_email: (data.customerEmail ?? null) as unknown as string,
     });
+
     if (error) throw new Error(error.message);
 
     const r = res as Record<string, unknown>;
