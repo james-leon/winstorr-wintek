@@ -37,7 +37,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
-        load(session?.user ?? null);
+        setLoading(true);
+        load(session?.user ?? null).finally(() => setLoading(false));
       }
     });
 
