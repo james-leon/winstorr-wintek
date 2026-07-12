@@ -346,14 +346,17 @@ function WishlistToggle({ productId }: { productId: string }) {
 
 
 /* ----- physical ----- */
-function PhysicalActions({ p }: { p: Product }) {
+function PhysicalActions({
+  p, tiers, qty, setQty,
+}: { p: Product; tiers: PriceTier[]; qty: number; setQty: (updater: (q: number) => number) => void }) {
   const { add } = useCart();
-  const [qty, setQty] = useState(1);
   const stock = p.stock_quantity ?? 0;
   const stockLabel =
     stock <= 0 ? { text: "Rupture de stock", cls: "text-destructive" }
     : stock <= 3 ? { text: `Stock limité (${stock})`, cls: "text-accent" }
     : { text: "En stock", cls: "text-success" };
+  const unit = resolveUnitPrice(tiers, qty, p.price);
+  void tiers;
 
   return (
     <div className="space-y-4">
@@ -370,10 +373,10 @@ function PhysicalActions({ p }: { p: Product }) {
       <Button
         size="lg"
         className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
-        disabled={stock <= 0 || !p.price}
+        disabled={stock <= 0 || unit == null}
         onClick={() => {
-          if (!p.price) return;
-          add({ productId: p.id, slug: p.slug, name: p.name, price: p.price, image: p.images[0] ?? null }, qty);
+          if (unit == null) return;
+          add({ productId: p.id, slug: p.slug, name: p.name, price: unit, image: p.images[0] ?? null }, qty);
           toast.success(`${p.name} ajouté au panier`);
         }}
       >
@@ -382,6 +385,7 @@ function PhysicalActions({ p }: { p: Product }) {
     </div>
   );
 }
+
 
 /* ----- digital ----- */
 function DigitalActions({ p }: { p: Product }) {
