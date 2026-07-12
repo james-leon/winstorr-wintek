@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { ShieldCheck } from "lucide-react";
@@ -12,19 +12,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createOrder, initiatePayment } from "@/lib/orders.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { CITIES, SHIPPING_TABLE, type CityValue } from "@/lib/address";
 
 export const Route = createFileRoute("/commande")({
   head: () => ({ meta: [{ title: "Commande — Winstorr" }] }),
   component: CheckoutPage,
 });
 
-const CITIES = [
-  { value: "douala", label: "Douala" },
-  { value: "yaounde", label: "Yaoundé" },
-  { value: "autre", label: "Autre" },
-] as const;
-
-const SHIPPING_TABLE: Record<string, number> = { douala: 2000, yaounde: 2500, autre: 3500 };
+type SavedAddress = {
+  id: string;
+  label: string;
+  full_name: string;
+  phone: string;
+  city: CityValue;
+  quartier: string;
+  landmark_description: string | null;
+  is_default: boolean;
+};
 
 function CheckoutPage() {
   const { items, subtotal, coupon, discount, clear } = useCart();
@@ -38,13 +43,58 @@ function CheckoutPage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState(user?.email ?? "");
-  const [ville, setVille] = useState<"douala" | "yaounde" | "autre">("douala");
+  const [ville, setVille] = useState<CityValue>("douala");
   const [quartier, setQuartier] = useState("");
   const [landmark, setLandmark] = useState("");
   const [shipPhone, setShipPhone] = useState("");
+  const [selectedAddrId, setSelectedAddrId] = useState<string>("new");
+
+  const { data: savedAddresses = [] } = useQuery({
+    queryKey: ["addresses-for-checkout", user?.id],
+    enabled: !!user && hasPhysical,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("customer_addresses")
+        .select("id, label, full_name, phone, city, quartier, landmark_description, is_default")
+        .eq("customer_id", user!.id)
+        .order("is_default", { ascending: false })
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as SavedAddress[];
+    },
+  });
+
+  // Auto-select default address once loaded
+  useEffect(() => {
+    if (!hasPhysical || savedAddresses.length === 0 || selectedAddrId !== "new") return;
+    const def = savedAddresses.find((a) => a.is_default) ?? savedAddresses[0];
+    if (def) applyAddress(def);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedAddresses, hasPhysical]);
+
+  function applyAddress(a: SavedAddress) {
+    setSelectedAddrId(a.id);
+    setName(a.full_name);
+    setShipPhone(a.phone);
+    setVille(a.city);
+    setQuartier(a.quartier);
+    setLandmark(a.landmark_description ?? "");
+    if (!phone) setPhone(a.phone);
+  }
+
+  function chooseAddress(id: string) {
+    if (id === "new") {
+      setSelectedAddrId("new");
+      setQuartier(""); setLandmark(""); setShipPhone("");
+      return;
+    }
+    const a = savedAddresses.find((x) => x.id === id);
+    if (a) applyAddress(a);
+  }
 
   const shipping = hasPhysical ? SHIPPING_TABLE[ville] : 0;
   const total = Math.max(0, subtotal + shipping - discount);
+
 
   const mut = useMutation({
     mutationFn: async () => {
