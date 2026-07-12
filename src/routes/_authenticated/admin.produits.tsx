@@ -130,7 +130,7 @@ function AdminProducts() {
 
 type FormState = {
   name: string; slug: string; type: ProductType; status: "draft" | "active" | "archived";
-  vendor_id: string;
+  vendor_id: string; category_id: string;
   short_description: string; description: string;
   price: string; price_type: "fixed" | "starting_at" | "quote_only";
   stock_quantity: string; featured: boolean;
@@ -141,13 +141,14 @@ type FormState = {
   delivery_type: string; service_area: string; estimated_duration: string; delivery_mode: string;
 };
 
-function ProductDialog({ row, vendors, onClose, onSaved }: { row: Row | null; vendors: Vendor[]; onClose: () => void; onSaved: () => void }) {
+function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Row | null; vendors: Vendor[]; categories: Category[]; onClose: () => void; onSaved: () => void }) {
   const isNew = !row;
   const defaultVendor = vendors.find((v) => v.type === "internal")?.id ?? vendors[0]?.id ?? "";
   const [f, setF] = useState<FormState>({
     name: row?.name ?? "", slug: row?.slug ?? "",
     type: row?.type ?? "physical", status: (row?.status as "draft" | "active" | "archived") ?? "draft",
     vendor_id: row?.vendor_id ?? defaultVendor,
+    category_id: row?.category_id ?? "none",
     short_description: "", description: "",
     price: row?.price?.toString() ?? "", price_type: row?.price_type ?? "fixed",
     stock_quantity: row?.stock_quantity?.toString() ?? "", featured: row?.featured ?? false,
