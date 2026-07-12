@@ -17,7 +17,9 @@ import { QualityBadge, VendorLine } from "@/components/quality-badge";
 import { displayPrice, formatFcfa, type ProductType } from "@/lib/format";
 import { useCart } from "@/lib/cart-context";
 import { useAuth } from "@/lib/auth-context";
+import { useProductTiers, resolveUnitPrice, type PriceTier } from "@/lib/tiers";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+
 
 type Product = {
   id: string;
