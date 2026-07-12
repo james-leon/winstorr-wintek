@@ -38,12 +38,20 @@ function AdminProducts() {
       return data as Vendor[];
     },
   });
+  const { data: categories = [] } = useQuery({
+    queryKey: ["admin-categories-lite"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("categories").select("id, name, product_type, parent_id, status").order("product_type").order("display_order").order("name");
+      if (error) throw error;
+      return data as Category[];
+    },
+  });
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["admin-products"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, slug, name, type, status, price, price_type, stock_quantity, featured, quality_verified, vendor_id, rating_average, rating_count")
+        .select("id, slug, name, type, status, price, price_type, stock_quantity, featured, quality_verified, vendor_id, category_id, rating_average, rating_count")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as Row[];
