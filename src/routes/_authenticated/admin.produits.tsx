@@ -272,6 +272,22 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
             </div>
           </div>
 
+          <div>
+            <Label>Catégorie</Label>
+            <Select value={f.category_id} onValueChange={(v) => setF({ ...f, category_id: v })}>
+              <SelectTrigger><SelectValue placeholder="Aucune" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Aucune</SelectItem>
+                {categories
+                  .filter((c) => c.product_type === f.type && c.status === "active")
+                  .map((c) => {
+                    const parent = c.parent_id ? categories.find((p) => p.id === c.parent_id) : null;
+                    return <SelectItem key={c.id} value={c.id}>{parent ? `${parent.name} › ${c.name}` : c.name}</SelectItem>;
+                  })}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div><Label>Description courte</Label><Input value={f.short_description} onChange={(e) => setF({ ...f, short_description: e.target.value })} /></div>
           <div><Label>Description complète</Label><Textarea rows={4} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></div>
           <div><Label>Images (une URL par ligne)</Label><Textarea rows={3} value={f.images} onChange={(e) => setF({ ...f, images: e.target.value })} placeholder="https://..." /></div>
