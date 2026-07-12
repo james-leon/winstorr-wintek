@@ -93,25 +93,29 @@ function ProductDetail() {
   const [activeImg, setActiveImg] = useState(0);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      <Link to="/catalogue" className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-        <ChevronLeft className="h-4 w-4" /> Retour au catalogue
+    <div className="mx-auto max-w-6xl px-3 py-4">
+      <Link to="/catalogue" className="mb-3 inline-flex items-center gap-1 text-xs text-secondary hover:underline">
+        <ChevronLeft className="h-3.5 w-3.5" /> Retour au catalogue
       </Link>
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_1fr_320px]">
+      <div className="grid gap-5 rounded-sm border border-border bg-card p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)_320px]">
         {/* Gallery */}
-        <div className="lg:col-span-1">
-          <div className="aspect-square overflow-hidden rounded-xl border border-border bg-muted">
+        <div>
+          <div className="aspect-square overflow-hidden rounded-sm border border-border bg-muted">
             {p.images[activeImg] ? (
               <img src={p.images[activeImg]} alt={p.name} className="h-full w-full object-cover" />
             ) : (
-              <div className="grid h-full w-full place-items-center text-muted-foreground">Pas d'image</div>
+              <div className="grid h-full w-full place-items-center text-muted-foreground text-sm">Pas d'image</div>
             )}
           </div>
           {p.images.length > 1 && (
-            <div className="mt-3 grid grid-cols-5 gap-2">
+            <div className="mt-2 grid grid-cols-6 gap-1.5">
               {p.images.map((src, i) => (
-                <button key={i} onClick={() => setActiveImg(i)} className={`aspect-square overflow-hidden rounded-md border-2 ${i === activeImg ? "border-primary" : "border-transparent"}`}>
+                <button
+                  key={i}
+                  onClick={() => setActiveImg(i)}
+                  className={`aspect-square overflow-hidden rounded-sm border ${i === activeImg ? "border-secondary" : "border-border"}`}
+                >
                   <img src={src} alt="" className="h-full w-full object-cover" />
                 </button>
               ))}
@@ -120,61 +124,66 @@ function ProductDetail() {
         </div>
 
         {/* Middle info */}
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-1.5">
             <TypeBadge type={p.type} />
             {p.quality_verified && <QualityBadge />}
           </div>
-          <h1 className="mt-3 font-display text-3xl text-foreground md:text-4xl">{p.name}</h1>
-          {p.vendor && <div className="mt-2"><VendorLine name={p.vendor.name} internal={p.vendor.type === "internal"} /></div>}
-          <div className="mt-2"><StarRating rating={Number(p.rating_average)} count={p.rating_count} size="md" /></div>
-          {p.short_description && <p className="mt-3 text-muted-foreground">{p.short_description}</p>}
+          <h1 className="mt-2 text-xl md:text-2xl font-semibold text-foreground leading-tight">{p.name}</h1>
+          {p.vendor && <div className="mt-1"><VendorLine name={p.vendor.name} internal={p.vendor.type === "internal"} /></div>}
+          <div className="mt-1.5"><StarRating rating={Number(p.rating_average)} count={p.rating_count} size="sm" /></div>
+          {p.short_description && <p className="mt-3 text-sm text-foreground/80">{p.short_description}</p>}
 
           {(p.warranty_duration || p.source_type) && (
-            <div className="mt-5 flex flex-wrap gap-2">
+            <div className="mt-4 flex flex-wrap gap-1.5">
               {p.warranty_duration && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                  <BadgeCheck className="h-3.5 w-3.5" /> Garantie {p.warranty_duration}
+                <span className="inline-flex items-center gap-1 rounded-sm border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-foreground/80">
+                  <BadgeCheck className="h-3 w-3 text-secondary" /> Garantie {p.warranty_duration}
                 </span>
               )}
               {p.source_type && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground/80">
-                  <Truck className="h-3.5 w-3.5" /> {SOURCE_LABELS[p.source_type]}
+                <span className="inline-flex items-center gap-1 rounded-sm border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-foreground/80">
+                  <Truck className="h-3 w-3" /> {SOURCE_LABELS[p.source_type]}
                 </span>
               )}
             </div>
           )}
 
           {p.description && (
-            <div className="mt-8 border-t border-border pt-6">
-              <h2 className="font-display text-xl text-foreground">Description</h2>
-              <div className="prose mt-3 max-w-none whitespace-pre-wrap text-sm text-foreground/80">{p.description}</div>
+            <div className="mt-6 border-t border-border pt-4">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Description</h2>
+              <div className="mt-2 whitespace-pre-wrap text-sm text-foreground/85 leading-relaxed">{p.description}</div>
             </div>
           )}
         </div>
 
         {/* Buy box */}
         <aside className="lg:sticky lg:top-24 self-start">
-          <div className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-elevated)]">
-            <div className="flex items-baseline gap-3">
-              <div className="font-display text-3xl text-primary">{displayPrice(p)}</div>
+          <div className="rounded-sm border border-border bg-background p-4">
+            <div className="flex items-baseline gap-2">
+              <div className="text-2xl font-bold text-accent leading-none">{displayPrice(p)}</div>
               {p.compare_at_price && p.price && p.compare_at_price > p.price && (
-                <div className="text-lg text-muted-foreground line-through">{formatFcfa(p.compare_at_price)}</div>
+                <div className="text-sm text-muted-foreground line-through">{formatFcfa(p.compare_at_price)}</div>
               )}
             </div>
 
-            <div className="mt-5">
+            <div className="mt-4">
               {p.type === "physical" && <PhysicalActions p={p} />}
               {p.type === "digital" && <DigitalActions p={p} />}
               {p.type === "service" && <ServiceActions p={p} />}
               {p.type === "training" && <TrainingActions p={p} />}
             </div>
 
-            <ul className="mt-5 space-y-2 border-t border-border pt-4 text-xs text-muted-foreground">
-              <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-success" /> Achat sécurisé sur Winstorr</li>
+            <ul className="mt-4 space-y-1.5 border-t border-border pt-3 text-[11px] text-muted-foreground">
+              {p.quality_verified && (
+                <li className="flex items-center gap-1.5 text-success font-medium">
+                  <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2.5} /> Qualité vérifiée par Wintek
+                </li>
+              )}
+              <li className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5" /> Achat sécurisé sur Winstorr</li>
               {p.vendor && (
-                <li className="flex items-center gap-2">
-                  <BadgeCheck className="h-4 w-4 text-primary" />
+                <li className="flex items-center gap-1.5">
+                  <BadgeCheck className="h-3.5 w-3.5 text-secondary" />
                   Expédié par <span className="font-medium text-foreground">{p.vendor.name}</span>
                 </li>
               )}
