@@ -1,7 +1,7 @@
-import { createFileRoute, Link, Outlet, useRouterState, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { useMyVendors } from "@/lib/vendor";
+import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/_authenticated/vendeur")({
   component: VendorLayout,
@@ -14,17 +14,43 @@ const TABS = [
 ];
 
 function VendorLayout() {
-  const { data: memberships, isLoading } = useMyVendors();
-  const nav = useNavigate();
+  const { loading: authLoading } = useAuth();
+  const { data: memberships, isPending, isFetching, isSuccess, isError, error } = useMyVendors();
   const path = useRouterState({ select: (s) => s.location.pathname });
 
-  useEffect(() => {
-    if (!isLoading && memberships && memberships.length === 0) void nav({ to: "/" });
-  }, [isLoading, memberships, nav]);
+  // Wait explicitly for BOTH auth to be ready AND the membership query to have succeeded.
+  if (authLoading || isPending || isFetching) {
+    return <div className="p-8 text-center text-muted-foreground">Chargement de votre espace vendeur…</div>;
+  }
 
-  if (isLoading) return <div className="p-8 text-center text-muted-foreground">Chargement...</div>;
+  if (isError) {
+    return (
+      <div className="mx-auto max-w-lg p-8 text-center">
+        <h1 className="font-display text-2xl text-foreground">Erreur</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Impossible de vérifier votre accès vendeur. {error instanceof Error ? error.message : ""}
+        </p>
+      </div>
+    );
+  }
+
+  // Query succeeded but no vendor membership found — do NOT silently redirect;
+  // show a clear message so the bug is visible instead of bouncing to /.
+  if (isSuccess && (!memberships || memberships.length === 0)) {
+    return (
+      <div className="mx-auto max-w-lg p-8 text-center">
+        <h1 className="font-display text-2xl text-foreground">Accès vendeur requis</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Votre compte n'est rattaché à aucun vendeur. Contactez l'administrateur si vous pensez qu'il s'agit d'une erreur.
+        </p>
+        <Link to="/" className="mt-6 inline-flex rounded-sm bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
+          Retour à l'accueil
+        </Link>
+      </div>
+    );
+  }
+
   if (!memberships || memberships.length === 0) return null;
-
   const current = memberships[0];
 
   return (
