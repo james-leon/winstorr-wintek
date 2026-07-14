@@ -256,8 +256,8 @@ export function SiteHeader() {
       {/* Mobile menu */}
       <div
         className={cn(
-          "md:hidden overflow-hidden bg-primary text-background transition-all border-t border-background/10",
-          mobileOpen ? "max-h-[500px]" : "max-h-0",
+          "md:hidden bg-primary text-background transition-[max-height] duration-200 border-t border-background/10",
+          mobileOpen ? "max-h-[calc(100vh-7rem)] overflow-y-auto" : "max-h-0 overflow-hidden",
         )}
       >
         <nav className="flex flex-col gap-0.5 p-2">
