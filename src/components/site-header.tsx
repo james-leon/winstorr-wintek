@@ -256,10 +256,9 @@ export function SiteHeader() {
       {/* Mobile menu */}
       <div
         className={cn(
-          "md:hidden bg-primi text-background transition-[max-height] duration-200 border-t border-background/10",
+          "md:hidden bg-primary text-background transition-[max-height] duration-200 border-t border-background/10",
           mobileOpen ? "max-h-[calc(100vh-7rem)] overflow-y-auto" : "max-h-0 overflow-hidden",
         )}
-        style={mobileOpen ? { backgroundColor: "hsl(var(--primary))" } : undefined}
       >
         <nav className="flex flex-col gap-0.5 p-2">
           <Link to="/catalogue" onClick={() => setMobileOpen(false)} className="rounded-sm px-3 py-2 text-sm font-semibold hover:bg-background/10 no-link-color">
