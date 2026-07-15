@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 import type { ProductType } from "@/lib/format";
 import { NavigationDrawer } from "@/components/navigation-drawer";
-import logo from "@/assets/winstorr-logo.png.asset.json";
+import icon from "@/assets/winstorr-icon.png.asset.json";
 
 type CatSel = "all" | ProductType;
 
@@ -74,13 +74,12 @@ export function SiteHeader() {
             <Menu className="h-6 w-6" />
           </button>
 
-          <Link to="/" className="flex items-center shrink-0 no-link-color" aria-label="Winstorr — Accueil">
-            <img
-              src={logo.url}
-              alt="Winstorr"
-              className="h-8 md:h-10 w-auto"
-              style={{ filter: "brightness(0) invert(1)" }}
-            />
+          <Link to="/" className="flex items-center gap-2 shrink-0 no-link-color" aria-label="Winstorr — Accueil">
+            <img src={icon.url} alt="" className="h-8 md:h-10 w-auto" />
+            <span className="hidden sm:flex flex-col leading-none">
+              <span className="font-display text-xl md:text-2xl tracking-wide text-white">Winstorr</span>
+              <span className="text-[9px] md:text-[10px] font-semibold tracking-[0.2em] mt-0.5" style={{ color: "#FF7A18" }}>ECOMMERCE</span>
+            </span>
           </Link>
 
           {/* Delivery — desktop */}
