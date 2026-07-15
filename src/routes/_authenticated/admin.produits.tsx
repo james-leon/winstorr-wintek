@@ -157,7 +157,7 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
     short_description: "", description: "",
     price: row?.price?.toString() ?? "", price_type: row?.price_type ?? "fixed",
     stock_quantity: row?.stock_quantity?.toString() ?? "", featured: row?.featured ?? false,
-    images: "",
+    images: [],
     quality_verified: row?.quality_verified ?? false,
     warranty_duration: "",
     source_type: "",
