@@ -213,7 +213,7 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
         price_type: f.price_type,
         stock_quantity: f.type === "physical" && f.stock_quantity ? Number(f.stock_quantity) : null,
         featured: f.featured,
-        images: f.images.split("\n").map((s) => s.trim()).filter(Boolean),
+        images: f.images.map((s) => s.trim()).filter(Boolean),
         quality_verified: f.quality_verified,
         warranty_duration: f.type === "physical" && f.warranty_duration ? f.warranty_duration : null,
         source_type: f.type === "physical" && f.source_type ? (f.source_type as "direct_import" | "authorized_wholesaler" | "other") : null,
