@@ -213,6 +213,10 @@ function CartPage() {
           <Link to="/catalogue" className="mt-3 block text-center text-sm text-secondary hover:underline">
             Continuer mes achats
           </Link>
+          <div className="mt-4 border-t border-border pt-3">
+            <TrustStrip />
+          </div>
+
         </aside>
       </div>
     </div>
