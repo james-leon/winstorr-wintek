@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ShoppingCart, Menu, Search, MapPin, ChevronDown, Package, LayoutDashboard } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/lib/cart-context";
@@ -34,6 +34,7 @@ export function SiteHeader() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<CatSel>("all");
+  const moreDetailsRef = useRef<HTMLDetailsElement>(null);
 
   const { data: topCategories = [] } = useQuery({
     queryKey: ["header-top-categories-v2"],
@@ -52,6 +53,24 @@ export function SiteHeader() {
     },
     staleTime: 5 * 60_000,
   });
+
+  useEffect(() => {
+    const details = moreDetailsRef.current;
+    if (!details) return;
+    const closeOnOutside = (e: MouseEvent) => {
+      if (!details.contains(e.target as Node)) {
+        details.open = false;
+      }
+    };
+    details.addEventListener("toggle", () => {
+      if (details.open) {
+        document.addEventListener("mousedown", closeOnOutside);
+      } else {
+        document.removeEventListener("mousedown", closeOnOutside);
+      }
+    });
+    return () => document.removeEventListener("mousedown", closeOnOutside);
+  }, []);
 
 
   const submit = (e: React.FormEvent) => {
@@ -255,7 +274,7 @@ export function SiteHeader() {
               </Link>
             ))}
             {topCategories.length > 3 && (
-              <details className="relative">
+              <details ref={moreDetailsRef} className="relative">
                 <summary className="cursor-pointer list-none px-3 py-1.5 text-xs text-white/75 hover:text-white hover:bg-white/10 whitespace-nowrap inline-flex items-center gap-1">
                   Plus <ChevronDown className="h-3 w-3" />
                 </summary>
