@@ -34,6 +34,7 @@ export function SiteHeader() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<CatSel>("all");
+  const moreDetailsRef = useRef<HTMLDetailsElement>(null);
 
   const { data: topCategories = [] } = useQuery({
     queryKey: ["header-top-categories-v2"],
