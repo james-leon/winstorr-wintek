@@ -242,7 +242,7 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
 
           <div><Label>Description courte</Label><Input value={f.short_description} onChange={(e) => setF({ ...f, short_description: e.target.value })} /></div>
           <div><Label>Description complète</Label><Textarea rows={4} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></div>
-          <div><Label>Images (une URL par ligne)</Label><Textarea rows={3} value={f.images} onChange={(e) => setF({ ...f, images: e.target.value })} placeholder="https://..." /></div>
+          <ImageGalleryManager value={f.images} onChange={(next) => setF({ ...f, images: next })} />
 
           <div className="grid gap-3 sm:grid-cols-3">
             <div>
