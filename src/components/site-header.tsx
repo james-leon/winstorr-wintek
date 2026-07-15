@@ -293,8 +293,6 @@ export function SiteHeader() {
             <>
               <div className="mt-2 px-3 text-[10px] font-semibold uppercase tracking-wide text-background/60">Catégories</div>
 
-            <>
-              <div className="mt-2 px-3 text-[10px] font-semibold uppercase tracking-wide text-background/60">Catégories</div>
               {topCategories.map((c) => (
                 <Link
                   key={c.id}
