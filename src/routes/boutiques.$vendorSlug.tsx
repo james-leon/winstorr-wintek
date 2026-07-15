@@ -124,7 +124,7 @@ export const Route = createFileRoute("/boutiques/$vendorSlug")({
       vendor.description ??
       `Découvrez la boutique ${vendor.name} sur Winstorr. Vendeur vérifié, livraison au Cameroun.`;
     const image = storefront?.banner_url ?? vendor.logo_url ?? undefined;
-    const meta: { title?: string; name?: string; property?: string; content: string }[] = [
+    const meta: Array<Record<string, string>> = [
       { title },
       { name: "description", content: description.slice(0, 155) },
       { property: "og:title", content: title },
@@ -132,6 +132,7 @@ export const Route = createFileRoute("/boutiques/$vendorSlug")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ];
+
     if (image) {
       meta.push({ property: "og:image", content: image });
       meta.push({ name: "twitter:image", content: image });
@@ -144,7 +145,8 @@ export const Route = createFileRoute("/boutiques/$vendorSlug")({
       <EmptyState
         title="Impossible de charger la boutique"
         description={error.message}
-        icon={<StoreIcon className="h-8 w-8" />}
+        icon={StoreIcon}
+
       />
     </div>
   ),
@@ -153,9 +155,16 @@ export const Route = createFileRoute("/boutiques/$vendorSlug")({
       <EmptyState
         title="Boutique introuvable"
         description="Cette boutique n’existe pas ou n’est plus active."
-        icon={<StoreIcon className="h-8 w-8" />}
-        actionLabel="Voir toutes les boutiques"
-        actionTo="/boutiques"
+        icon={StoreIcon}
+        action={
+          <Link
+            to="/boutiques"
+            className="inline-flex items-center rounded-sm bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground no-link-color"
+          >
+            Voir toutes les boutiques
+          </Link>
+        }
+
       />
     </div>
   ),
@@ -313,7 +322,7 @@ function Storefront() {
           <EmptyState
             title="Aucun produit actif pour l’instant"
             description="Cette boutique n’a pas encore publié de produit. Revenez bientôt."
-            icon={<Package className="h-8 w-8" />}
+            icon={Package}
           />
         ) : (
           <div className="space-y-8">
