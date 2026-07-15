@@ -623,7 +623,43 @@ const PRIMARY_PROMO: PromoTile[] = [
 
 /* Category mosaic — dynamic tiles from top-level categories with products */
 
-function CategoryMosaic({ cats }: { cats: RootCategory[] }) {
+function CategoryMosaic({ cats, dbTiles = [] }: { cats: RootCategory[]; dbTiles?: DbBanner[] }) {
+  if (dbTiles.length > 0) {
+    return (
+      <section className="mx-auto max-w-7xl px-4 pt-6">
+        <SectionHeader title="Explorez Winstorr" />
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+          {dbTiles.map((t) => (
+            <Link
+              key={t.id}
+              to={t.link_url ?? "/catalogue"}
+              className="group relative flex min-h-[140px] flex-col justify-end overflow-hidden rounded-sm no-link-color"
+              style={t.background_color && !t.image_url ? { background: t.background_color } : undefined}
+            >
+              {t.image_url ? (
+                <>
+                  <img src={t.image_url} alt="" className="absolute inset-0 h-full w-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
+                </>
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-br from-primary to-secondary" />
+              )}
+              <div className="relative p-3 text-white">
+                <div className="text-[13px] font-bold leading-tight drop-shadow">{t.title}</div>
+                <div className="mt-0.5 inline-flex items-center gap-0.5 text-[11px] font-medium opacity-90">
+                  {t.cta_label ?? "Explorer"} <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+    );
+  }
+  return CategoryMosaicFallback({ cats });
+}
+
+function CategoryMosaicFallback({ cats }: { cats: RootCategory[] }) {
   if (cats.length === 0) return null;
   // First tile is featured (spans 2x2 on md+), remainder are standard cells.
   const [featured, ...rest] = cats;
