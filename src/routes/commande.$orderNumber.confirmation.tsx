@@ -67,13 +67,16 @@ function ConfirmationPage() {
   const isFailed = order.payment_status === "failed";
   const isPending = order.payment_status === "pending";
 
+  const { user } = useAuth();
+  const [dismissedNudge, setDismissedNudge] = useState(false);
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <div className="rounded-sm border border-border bg-card p-6">
         <div className="flex items-center gap-3">
-          {isPaid && <CheckCircle2 className="h-10 w-10 text-success" />}
-          {isFailed && <XCircle className="h-10 w-10 text-destructive" />}
-          {isPending && <Loader2 className="h-10 w-10 text-secondary animate-spin" />}
+          {isPaid && <SuccessCheckmark />}
+          {isFailed && <XCircle className="h-14 w-14 text-destructive" />}
+          {isPending && <Loader2 className="h-14 w-14 text-secondary animate-spin" />}
           <div>
             <h1 className="font-display text-2xl text-foreground">
               {isPaid && "Merci pour votre commande !"}
@@ -83,6 +86,27 @@ function ConfirmationPage() {
             <p className="text-sm text-muted-foreground">Commande n° <span className="font-mono">{order.order_number}</span></p>
           </div>
         </div>
+
+        {isPaid && !user && !dismissedNudge && (
+          <div className="mt-4 flex items-start gap-3 rounded-sm border border-secondary/30 bg-secondary/5 p-3">
+            <UserPlus className="mt-0.5 h-5 w-5 shrink-0 text-secondary" />
+            <div className="flex-1">
+              <div className="text-sm font-medium text-foreground">Créez un compte pour suivre votre commande</div>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Retrouvez cette commande et vos futures livraisons dans votre espace personnel.
+              </p>
+              <div className="mt-2 flex gap-2">
+                <Button asChild size="sm" variant="outline" className="h-8">
+                  <Link to="/auth" search={{ email: order.customer_email ?? undefined } as never}>Créer mon compte</Link>
+                </Button>
+                <Button size="sm" variant="ghost" className="h-8" onClick={() => setDismissedNudge(true)}>
+                  Plus tard
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
 
         {isFailed && (
           <div className="mt-4 flex gap-2">
