@@ -85,7 +85,10 @@ function VendorProducts() {
           </thead>
           <tbody>
             {isLoading && <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">Chargement...</td></tr>}
-            {rows.map((r) => (
+            {rows.map((r) => {
+              const meta = STATUS_META[r.status] ?? { label: r.status, cls: "bg-muted text-muted-foreground" };
+              return (
+              <>
               <tr key={r.id} className="border-t border-border">
                 <td className="p-3 font-medium">
                   {r.name}
@@ -96,20 +99,35 @@ function VendorProducts() {
                 <td className="p-3 text-xs">{r.stock_quantity ?? "—"}</td>
                 <td className="p-3 text-xs">{r.rating_count > 0 ? `${Number(r.rating_average).toFixed(1)} (${r.rating_count})` : "—"}</td>
                 <td className="p-3">
-                  <span className={`inline-block rounded-full px-2 py-0.5 text-xs ${r.status === "active" ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>
-                    {r.status}
+                  <span className={`inline-block rounded-full px-2 py-0.5 text-xs ${meta.cls}`}>
+                    {meta.label}
                   </span>
                 </td>
                 <td className="p-3">
                   <div className="flex justify-end gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => setEditing(r)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => confirm(`Supprimer ${r.name} ?`) && del.mutate(r.id)}>
+                    <Button variant="ghost" size="icon" onClick={() => setEditing(r)} aria-label="Modifier"><Pencil className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => confirm(`Supprimer ${r.name} ?`) && del.mutate(r.id)} aria-label="Supprimer">
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </div>
                 </td>
               </tr>
-            ))}
+              {r.status === "rejected" && r.rejection_reason && (
+                <tr key={`rej-${r.id}`} className="border-t border-destructive/20 bg-destructive/5">
+                  <td colSpan={7} className="px-3 py-2 text-xs text-destructive">
+                    <strong>Motif du rejet :</strong> {r.rejection_reason}
+                    <button
+                      onClick={() => setEditing(r)}
+                      className="ml-3 rounded border border-destructive/40 px-2 py-0.5 text-xs font-medium hover:bg-destructive/10"
+                    >
+                      Modifier et resoumettre
+                    </button>
+                  </td>
+                </tr>
+              )}
+              </>
+              );
+            })}
             {!isLoading && rows.length === 0 && (
               <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">Aucun produit. Créez le premier.</td></tr>
             )}
