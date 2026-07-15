@@ -524,32 +524,56 @@ type PromoTile = {
   search?: Record<string, unknown>;
 };
 
-function PromoTiles({ tiles }: { tiles: PromoTile[] }) {
+function PromoTiles({ tiles, dbTiles = [] }: { tiles: PromoTile[]; dbTiles?: DbBanner[] }) {
+  const useDb = dbTiles.length > 0;
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-      {tiles.map((t) => (
-        <Link
-          key={t.title}
-          to={t.to}
-          search={t.search as never}
-          className={cn(
-            "group flex min-h-[140px] flex-col justify-between rounded-sm border p-3.5 no-link-color transition-colors",
-            t.tint,
-            t.ring,
-          )}
-        >
-          <div className={cn("grid h-9 w-9 place-items-center rounded-sm", t.iconTint)}>
-            <t.Icon className="h-4 w-4" strokeWidth={2.5} />
-          </div>
-          <div>
-            <div className="text-sm font-bold text-foreground leading-tight">{t.title}</div>
-            <div className="mt-0.5 text-xs text-muted-foreground leading-snug">{t.sub}</div>
-            <div className="mt-2 inline-flex items-center gap-0.5 text-xs font-medium text-secondary">
-              Découvrir <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-            </div>
-          </div>
-        </Link>
-      ))}
+      {useDb
+        ? dbTiles.map((t) => (
+            <Link
+              key={t.id}
+              to={t.link_url ?? "/catalogue"}
+              className="group relative flex min-h-[140px] flex-col justify-end overflow-hidden rounded-sm border border-border p-3.5 no-link-color"
+              style={t.background_color && !t.image_url ? { background: t.background_color } : undefined}
+            >
+              {t.image_url && (
+                <>
+                  <img src={t.image_url} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                </>
+              )}
+              <div className="relative text-white">
+                <div className="text-sm font-bold leading-tight drop-shadow">{t.title}</div>
+                {t.subtitle && <div className="mt-0.5 text-xs leading-snug opacity-90 drop-shadow">{t.subtitle}</div>}
+                <div className="mt-2 inline-flex items-center gap-0.5 text-xs font-medium text-accent">
+                  {t.cta_label ?? "Découvrir"} <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                </div>
+              </div>
+            </Link>
+          ))
+        : tiles.map((t) => (
+            <Link
+              key={t.title}
+              to={t.to}
+              search={t.search as never}
+              className={cn(
+                "group flex min-h-[140px] flex-col justify-between rounded-sm border p-3.5 no-link-color transition-colors",
+                t.tint,
+                t.ring,
+              )}
+            >
+              <div className={cn("grid h-9 w-9 place-items-center rounded-sm", t.iconTint)}>
+                <t.Icon className="h-4 w-4" strokeWidth={2.5} />
+              </div>
+              <div>
+                <div className="text-sm font-bold text-foreground leading-tight">{t.title}</div>
+                <div className="mt-0.5 text-xs text-muted-foreground leading-snug">{t.sub}</div>
+                <div className="mt-2 inline-flex items-center gap-0.5 text-xs font-medium text-secondary">
+                  Découvrir <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                </div>
+              </div>
+            </Link>
+          ))}
     </div>
   );
 }
