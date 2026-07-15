@@ -87,9 +87,53 @@ export function ImageGalleryManager({ value, onChange }: Props) {
         </span>
       </div>
 
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragOver(true);
+        }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragOver(false);
+          if (e.dataTransfer.files?.length) uploadFiles(e.dataTransfer.files);
+        }}
+        onClick={() => fileInputRef.current?.click()}
+        role="button"
+        tabIndex={0}
+        className={cn(
+          "flex cursor-pointer flex-col items-center justify-center gap-1 rounded-sm border-2 border-dashed px-3 py-4 text-center text-xs transition",
+          dragOver ? "border-secondary bg-secondary/5" : "border-border bg-muted/40 hover:bg-muted",
+        )}
+      >
+        {uploading > 0 ? (
+          <>
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            <span className="text-muted-foreground">Envoi de {uploading} image{uploading > 1 ? "s" : ""}…</span>
+          </>
+        ) : (
+          <>
+            <Upload className="h-5 w-5 text-muted-foreground" />
+            <span className="font-medium text-foreground">Glissez-déposez vos images ici ou cliquez pour parcourir</span>
+            <span className="text-muted-foreground">JPG, PNG, WEBP — redimensionnées automatiquement en carré (1000×1000)</span>
+          </>
+        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={(e) => {
+            if (e.target.files?.length) uploadFiles(e.target.files);
+            e.target.value = "";
+          }}
+        />
+      </div>
+
       {value.length === 0 && (
-        <p className="rounded-sm border border-dashed border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-          Ajoutez plusieurs photos pour rassurer vos clients — angles différents, emballage, détails. 3 à 4 photos minimum recommandées.
+        <p className="text-xs text-muted-foreground">
+          Astuce : 3 à 4 photos minimum (angles différents, emballage, détails).
         </p>
       )}
 
