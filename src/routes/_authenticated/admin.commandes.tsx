@@ -3,13 +3,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatFcfa } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { updateOrderStatus } from "@/lib/orders.functions";
+import { updateOrderStatus, confirmCashPayment } from "@/lib/orders.functions";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/_authenticated/admin/commandes")({
   component: AdminOrdersPage,
@@ -34,7 +36,7 @@ function AdminOrdersPage() {
     queryFn: async () => {
       let q = supabase
         .from("orders")
-        .select("id, order_number, status, payment_status, total, customer_name, customer_phone, has_physical_items, shipping_address, notes, created_at")
+        .select("id, order_number, status, payment_status, payment_method, total, customer_name, customer_phone, has_physical_items, shipping_address, delivery_mode, pickup_point_id, notes, created_at")
         .order("created_at", { ascending: false })
         .limit(200);
       if (statusFilter !== "all") q = q.eq("status", statusFilter as any);
@@ -70,6 +72,21 @@ function AdminOrdersPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const confirmCashFn = useServerFn(confirmCashPayment);
+  const cashMut = useMutation({
+    mutationFn: (orderId: string) => confirmCashFn({ data: { orderId, notes: notes || null } }),
+    onSuccess: (res: any) => {
+      if (res?.ok === false) {
+        toast.info(res.reason === "already_paid" ? "Déjà payée." : "Impossible de confirmer.");
+      } else {
+        toast.success("Paiement en espèces confirmé.");
+      }
+      qc.invalidateQueries({ queryKey: ["admin-orders"] });
+      setSelected(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <div>
       <div className="mb-4 flex items-center gap-2">
@@ -99,7 +116,14 @@ function AdminOrdersPage() {
                 <td className="p-2">{o.customer_name}<div className="text-xs text-muted-foreground">{o.customer_phone}</div></td>
                 <td className="p-2 font-bold text-accent">{formatFcfa(Number(o.total))}</td>
                 <td className="p-2"><span className={cn("rounded-sm px-2 py-0.5 text-xs", o.status === "paid" || o.status === "delivered" ? "bg-success/10 text-success" : o.status === "payment_failed" || o.status === "cancelled" ? "bg-destructive/10 text-destructive" : "bg-muted")}>{STATUS_LABEL[o.status]}</span></td>
-                <td className="p-2 text-xs">{o.payment_status}</td>
+                <td className="p-2 text-xs">
+                  {o.payment_status}
+                  {o.payment_method === "cash_on_pickup" && (
+                    <span className="ml-1 inline-flex items-center gap-0.5 rounded-sm bg-accent/10 text-accent px-1 py-0.5 text-[10px] font-medium">
+                      <Wallet className="h-2.5 w-2.5" /> espèces
+                    </span>
+                  )}
+                </td>
                 <td className="p-2 text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("fr-FR")}</td>
                 <td className="p-2"><Button size="sm" variant="outline" onClick={() => { setSelected(o); setNewStatus(o.status); setNotes(o.notes || ""); }}>Détails</Button></td>
               </tr>
@@ -117,7 +141,15 @@ function AdminOrdersPage() {
           {selected && (
             <div className="space-y-3 text-sm">
               <div><strong>Client :</strong> {selected.customer_name} — {selected.customer_phone}</div>
-              {selected.has_physical_items && selected.shipping_address && (
+              <div className="flex flex-wrap gap-2 text-xs">
+                <span className="rounded-sm bg-muted px-2 py-0.5">Mode : {selected.delivery_mode === "pickup" ? "Retrait" : selected.delivery_mode === "home_delivery" ? "Livraison" : "—"}</span>
+                {selected.payment_method === "cash_on_pickup" && (
+                  <span className="inline-flex items-center gap-1 rounded-sm bg-accent/10 text-accent px-2 py-0.5">
+                    <Wallet className="h-3 w-3" /> Paiement à la réception
+                  </span>
+                )}
+              </div>
+              {selected.delivery_mode === "home_delivery" && selected.shipping_address && (
                 <div>
                   <strong>Livraison :</strong> {selected.shipping_address.quartier}, {selected.shipping_address.ville}
                   {selected.shipping_address.landmark && <> — {selected.shipping_address.landmark}</>}
@@ -149,8 +181,18 @@ function AdminOrdersPage() {
               </div>
             </div>
           )}
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setSelected(null)}>Annuler</Button>
+            {selected?.payment_method === "cash_on_pickup" && selected?.payment_status !== "paid" && (
+              <Button
+                variant="outline"
+                className="border-success text-success hover:bg-success/10"
+                onClick={() => cashMut.mutate(selected.id)}
+                disabled={cashMut.isPending}
+              >
+                <Wallet className="h-4 w-4 mr-1" /> Marquer payée (espèces)
+              </Button>
+            )}
             <Button onClick={() => mut.mutate()} disabled={mut.isPending}>Enregistrer</Button>
           </DialogFooter>
         </DialogContent>

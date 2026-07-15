@@ -23,7 +23,12 @@ const checkoutSchema = z.object({
   }),
   shipping_address: addressSchema.nullable().optional(),
   couponCode: z.string().trim().min(1).max(60).optional().nullable(),
+  delivery_mode: z.enum(["home_delivery", "pickup", "none"]).default("home_delivery"),
+  pickup_point_id: z.string().uuid().nullable().optional(),
+  payment_method: z.enum(["cinetpay", "cash_on_pickup"]).default("cinetpay"),
 });
+
+
 
 
 export const createOrder = createServerFn({ method: "POST" })
@@ -96,14 +101,18 @@ export const createOrder = createServerFn({ method: "POST" })
       };
     });
 
+    const deliveryMode = hasPhysical ? data.delivery_mode : "none";
 
-    if (hasPhysical && !data.shipping_address) {
-      throw new Error("Adresse de livraison requise pour les articles physiques.");
+    if (hasPhysical && deliveryMode === "home_delivery" && !data.shipping_address) {
+      throw new Error("Adresse de livraison requise pour la livraison à domicile.");
+    }
+    if (hasPhysical && deliveryMode === "pickup" && !data.pickup_point_id) {
+      throw new Error("Point de retrait requis.");
     }
 
-    // Shipping fee lookup
+    // Shipping fee lookup — 0 for pickup
     let shipping = 0;
-    if (hasPhysical) {
+    if (hasPhysical && deliveryMode === "home_delivery") {
       const { data: setting } = await supabaseAdmin
         .from("app_settings")
         .select("value")
@@ -114,6 +123,7 @@ export const createOrder = createServerFn({ method: "POST" })
       shipping = Number(fees[city] ?? fees.autre ?? 0);
     }
     const total_before_discount = subtotal + shipping;
+
 
     // Attach customer_id if the caller is signed in (bearer forwarded by middleware).
     let customerId: string | null = null;
@@ -147,6 +157,7 @@ export const createOrder = createServerFn({ method: "POST" })
     }
     const total = Math.max(0, total_before_discount - discountAmount);
 
+    const isCash = data.payment_method === "cash_on_pickup";
     const { data: order, error: oErr } = await supabaseAdmin
       .from("orders")
       .insert({
@@ -160,7 +171,10 @@ export const createOrder = createServerFn({ method: "POST" })
         coupon_code: couponCode,
         total,
         has_physical_items: hasPhysical,
-        shipping_address: data.shipping_address ?? null,
+        shipping_address: deliveryMode === "home_delivery" ? (data.shipping_address ?? null) : null,
+        delivery_mode: deliveryMode,
+        pickup_point_id: deliveryMode === "pickup" ? (data.pickup_point_id ?? null) : null,
+        payment_method: isCash ? "cash_on_pickup" : null,
       })
       .select("id, order_number")
       .single();
@@ -172,7 +186,8 @@ export const createOrder = createServerFn({ method: "POST" })
       .insert(itemsRows.map((r) => ({ ...r, order_id: order.id })));
     if (iErr) throw new Error(iErr.message);
 
-    return { orderId: order.id, orderNumber: order.order_number, total, hasPhysical };
+    return { orderId: order.id, orderNumber: order.order_number, total, hasPhysical, isCash };
+
   });
 
 export const initiatePayment = createServerFn({ method: "POST" })
@@ -269,4 +284,26 @@ export const mockConfirmPayment = createServerFn({ method: "POST" })
     await redeemOrderCouponIfAny(order.id).catch((e) => console.error("[redeem]", e));
     return res;
   });
+
+// Staff-only: confirm a cash-on-pickup order as paid
+export const confirmCashPayment = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) =>
+    z.object({ orderId: z.string().uuid(), notes: z.string().max(500).optional().nullable() }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireSupabaseAuth } = await import("@/integrations/supabase/auth-middleware");
+    void requireSupabaseAuth;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: res, error } = await supabaseAdmin.rpc("confirm_cash_payment", {
+      _order_id: data.orderId,
+      _notes: data.notes ?? undefined,
+    });
+    if (error) throw new Error(error.message);
+    const { notifyOrderEvent } = await import("./notifications.server");
+    await notifyOrderEvent(data.orderId, "payment_confirmed").catch((e) => console.error("[notify]", e));
+    const { redeemOrderCouponIfAny } = await import("./coupons.server");
+    await redeemOrderCouponIfAny(data.orderId).catch((e) => console.error("[redeem]", e));
+    return res;
+  });
+
 

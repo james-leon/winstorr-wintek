@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { XCircle, Loader2, Package, Download, UserPlus } from "lucide-react";
+import { XCircle, Loader2, Package, Download, UserPlus, Wallet, Store, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { formatFcfa } from "@/lib/format";
@@ -66,6 +66,8 @@ function ConfirmationPage() {
   const isPaid = order.payment_status === "paid";
   const isFailed = order.payment_status === "failed";
   const isPending = order.payment_status === "pending";
+  const isCash = (order as any).payment_method === "cash_on_pickup";
+  const isPickup = (order as any).delivery_mode === "pickup";
 
   const { user } = useAuth();
   const [dismissedNudge, setDismissedNudge] = useState(false);
@@ -74,18 +76,52 @@ function ConfirmationPage() {
     <div className="mx-auto max-w-3xl px-4 py-8">
       <div className="rounded-sm border border-border bg-card p-6">
         <div className="flex items-center gap-3">
-          {isPaid && <SuccessCheckmark />}
+          {(isPaid || (isCash && isPending)) && <SuccessCheckmark />}
           {isFailed && <XCircle className="h-14 w-14 text-destructive" />}
-          {isPending && <Loader2 className="h-14 w-14 text-secondary animate-spin" />}
+          {isPending && !isCash && <Loader2 className="h-14 w-14 text-secondary animate-spin" />}
           <div>
             <h1 className="font-display text-2xl text-foreground">
               {isPaid && "Merci pour votre commande !"}
+              {isCash && isPending && "Commande enregistrée !"}
               {isFailed && "Paiement échoué"}
-              {isPending && "Paiement en cours de vérification…"}
+              {isPending && !isCash && "Paiement en cours de vérification…"}
             </h1>
             <p className="text-sm text-muted-foreground">Commande n° <span className="font-mono">{order.order_number}</span></p>
           </div>
         </div>
+
+        {isCash && isPending && (
+          <div className="mt-4 flex items-start gap-3 rounded-sm border border-accent/40 bg-accent/5 p-3">
+            <Wallet className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+            <div className="text-sm">
+              <div className="font-medium text-foreground">Paiement à la réception (espèces)</div>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {isPickup
+                  ? "Réglez le montant en espèces au point de retrait lors du retrait de votre commande."
+                  : "Réglez le montant en espèces à notre livreur à la livraison."}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {isPickup && (order as any).pickup_point_name && (
+          <div className="mt-4 flex items-start gap-3 rounded-sm border border-secondary/30 bg-secondary/5 p-3">
+            <Store className="mt-0.5 h-5 w-5 shrink-0 text-secondary" />
+            <div className="text-sm">
+              <div className="font-medium text-foreground">{(order as any).pickup_point_name}</div>
+              <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                <MapPin className="h-3 w-3" /> {(order as any).pickup_point_address}, {(order as any).pickup_point_city}
+              </div>
+              {(order as any).pickup_point_hours && (
+                <div className="text-xs text-muted-foreground mt-0.5">{(order as any).pickup_point_hours}</div>
+              )}
+              {(order as any).pickup_point_phone && (
+                <div className="text-xs text-muted-foreground mt-0.5">Tel : {(order as any).pickup_point_phone}</div>
+              )}
+            </div>
+          </div>
+        )}
+
 
         {isPaid && !user && !dismissedNudge && (
           <div className="mt-4 flex items-start gap-3 rounded-sm border border-secondary/30 bg-secondary/5 p-3">
@@ -117,7 +153,7 @@ function ConfirmationPage() {
           </div>
         )}
 
-        {isPending && (
+        {isPending && !isCash && (
           <div className="mt-4 space-y-2">
             <p className="text-sm text-muted-foreground">Nous vérifions votre paiement automatiquement. Cette page se met à jour toute seule.</p>
             {import.meta.env.DEV && (

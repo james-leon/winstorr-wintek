@@ -370,6 +370,7 @@ export type Database = {
           customer_id: string | null
           customer_name: string
           customer_phone: string
+          delivery_mode: string
           discount_amount: number
           has_physical_items: boolean
           id: string
@@ -377,6 +378,7 @@ export type Database = {
           order_number: string
           payment_method: Database["public"]["Enums"]["payment_method"] | null
           payment_status: Database["public"]["Enums"]["payment_status"]
+          pickup_point_id: string | null
           shipping_address: Json | null
           shipping_fee: number
           status: Database["public"]["Enums"]["order_status"]
@@ -393,6 +395,7 @@ export type Database = {
           customer_id?: string | null
           customer_name: string
           customer_phone: string
+          delivery_mode?: string
           discount_amount?: number
           has_physical_items?: boolean
           id?: string
@@ -400,6 +403,7 @@ export type Database = {
           order_number?: string
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          pickup_point_id?: string | null
           shipping_address?: Json | null
           shipping_fee?: number
           status?: Database["public"]["Enums"]["order_status"]
@@ -416,6 +420,7 @@ export type Database = {
           customer_id?: string | null
           customer_name?: string
           customer_phone?: string
+          delivery_mode?: string
           discount_amount?: number
           has_physical_items?: boolean
           id?: string
@@ -423,6 +428,7 @@ export type Database = {
           order_number?: string
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          pickup_point_id?: string | null
           shipping_address?: Json | null
           shipping_fee?: number
           status?: Database["public"]["Enums"]["order_status"]
@@ -438,7 +444,91 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "orders_pickup_point_id_fkey"
+            columns: ["pickup_point_id"]
+            isOneToOne: false
+            referencedRelation: "pickup_points"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      payment_confirmations: {
+        Row: {
+          amount: number
+          confirmed_by: string | null
+          created_at: string
+          id: string
+          method: string
+          notes: string | null
+          order_id: string
+        }
+        Insert: {
+          amount: number
+          confirmed_by?: string | null
+          created_at?: string
+          id?: string
+          method: string
+          notes?: string | null
+          order_id: string
+        }
+        Update: {
+          amount?: number
+          confirmed_by?: string | null
+          created_at?: string
+          id?: string
+          method?: string
+          notes?: string | null
+          order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_confirmations_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pickup_points: {
+        Row: {
+          address: string
+          city: string
+          contact_phone: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          opening_hours: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          city: string
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          opening_hours?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          city?: string
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          opening_hours?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       product_price_tiers: {
         Row: {
@@ -1087,6 +1177,10 @@ export type Database = {
         }
         Returns: Json
       }
+      confirm_cash_payment: {
+        Args: { _notes?: string; _order_id: string }
+        Returns: Json
+      }
       confirm_order_payment: {
         Args: {
           _method: Database["public"]["Enums"]["payment_method"]
@@ -1104,11 +1198,19 @@ export type Database = {
           currency: string
           customer_email: string
           customer_name: string
+          delivery_mode: string
           discount_amount: number
           has_physical_items: boolean
           id: string
           order_number: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
           payment_status: Database["public"]["Enums"]["payment_status"]
+          pickup_point_address: string
+          pickup_point_city: string
+          pickup_point_hours: string
+          pickup_point_id: string
+          pickup_point_name: string
+          pickup_point_phone: string
           shipping_address: Json
           shipping_fee: number
           status: Database["public"]["Enums"]["order_status"]
@@ -1225,7 +1327,7 @@ export type Database = {
         | "completed"
         | "cancelled"
         | "payment_failed"
-      payment_method: "mtn_momo" | "orange_money" | "card"
+      payment_method: "mtn_momo" | "orange_money" | "card" | "cash_on_pickup"
       payment_status: "pending" | "paid" | "failed" | "refunded"
       price_type: "fixed" | "starting_at" | "quote_only"
       product_status: "draft" | "active" | "archived"
@@ -1415,7 +1517,7 @@ export const Constants = {
         "cancelled",
         "payment_failed",
       ],
-      payment_method: ["mtn_momo", "orange_money", "card"],
+      payment_method: ["mtn_momo", "orange_money", "card", "cash_on_pickup"],
       payment_status: ["pending", "paid", "failed", "refunded"],
       price_type: ["fixed", "starting_at", "quote_only"],
       product_status: ["draft", "active", "archived"],
