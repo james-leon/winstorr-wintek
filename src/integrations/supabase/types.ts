@@ -1579,6 +1579,7 @@ export type Database = {
         }
         Returns: Json
       }
+      can_manage_product_image: { Args: { _name: string }; Returns: boolean }
       confirm_cash_payment: {
         Args: { _notes?: string; _order_id: string }
         Returns: Json
