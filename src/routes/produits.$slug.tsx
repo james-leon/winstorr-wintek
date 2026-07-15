@@ -213,7 +213,7 @@ function ProductDetail() {
             {p.quality_verified && <QualityBadge />}
           </div>
           <h1 className="mt-2 text-xl md:text-2xl font-semibold text-foreground leading-tight">{p.name}</h1>
-          {p.vendor && <div className="mt-1"><VendorLine name={p.vendor.name} internal={p.vendor.type === "internal"} /></div>}
+          {p.vendor && <div className="mt-1"><VendorLine name={p.vendor.name} slug={p.vendor.slug} internal={p.vendor.type === "internal"} /></div>}
           <div className="mt-1.5"><StarRating rating={Number(p.rating_average)} count={p.rating_count} size="sm" /></div>
           {p.short_description && <p className="mt-3 text-sm text-foreground/80">{p.short_description}</p>}
 
