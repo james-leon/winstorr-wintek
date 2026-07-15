@@ -300,7 +300,9 @@ function AdminBannersPage() {
         description="Cette action est définitive."
         confirmLabel="Supprimer"
         variant="destructive"
-        onConfirm={() => deleteId && del.mutate(deleteId)}
+        onConfirm={() => {
+          if (deleteId) del.mutate(deleteId);
+        }}
         onCancel={() => setDeleteId(null)}
       />
     </div>

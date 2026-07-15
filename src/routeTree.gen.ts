@@ -51,6 +51,7 @@ import { Route as AuthenticatedAdminCommissionsRouteImport } from './routes/_aut
 import { Route as AuthenticatedAdminCommandesRouteImport } from './routes/_authenticated/admin.commandes'
 import { Route as AuthenticatedAdminCodesPromoRouteImport } from './routes/_authenticated/admin.codes-promo'
 import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_authenticated/admin.categories'
+import { Route as AuthenticatedAdminBanieresRouteImport } from './routes/_authenticated/admin.banieres'
 import { Route as AuthenticatedAdminAvisRouteImport } from './routes/_authenticated/admin.avis'
 import { Route as AuthenticatedAdminAnnoncesVendeursRouteImport } from './routes/_authenticated/admin.annonces-vendeurs'
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin.analytics'
@@ -292,6 +293,12 @@ const AuthenticatedAdminCategoriesRoute =
     path: '/categories',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminBanieresRoute =
+  AuthenticatedAdminBanieresRouteImport.update({
+    id: '/banieres',
+    path: '/banieres',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminAvisRoute = AuthenticatedAdminAvisRouteImport.update({
   id: '/avis',
   path: '/avis',
@@ -332,6 +339,7 @@ export interface FileRoutesByFullPath {
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/annonces-vendeurs': typeof AuthenticatedAdminAnnoncesVendeursRoute
   '/admin/avis': typeof AuthenticatedAdminAvisRoute
+  '/admin/banieres': typeof AuthenticatedAdminBanieresRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/codes-promo': typeof AuthenticatedAdminCodesPromoRoute
   '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
@@ -377,6 +385,7 @@ export interface FileRoutesByTo {
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/annonces-vendeurs': typeof AuthenticatedAdminAnnoncesVendeursRoute
   '/admin/avis': typeof AuthenticatedAdminAvisRoute
+  '/admin/banieres': typeof AuthenticatedAdminBanieresRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/codes-promo': typeof AuthenticatedAdminCodesPromoRoute
   '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
@@ -426,6 +435,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/admin/annonces-vendeurs': typeof AuthenticatedAdminAnnoncesVendeursRoute
   '/_authenticated/admin/avis': typeof AuthenticatedAdminAvisRoute
+  '/_authenticated/admin/banieres': typeof AuthenticatedAdminBanieresRoute
   '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/_authenticated/admin/codes-promo': typeof AuthenticatedAdminCodesPromoRoute
   '/_authenticated/admin/commandes': typeof AuthenticatedAdminCommandesRoute
@@ -475,6 +485,7 @@ export interface FileRouteTypes {
     | '/admin/analytics'
     | '/admin/annonces-vendeurs'
     | '/admin/avis'
+    | '/admin/banieres'
     | '/admin/categories'
     | '/admin/codes-promo'
     | '/admin/commandes'
@@ -520,6 +531,7 @@ export interface FileRouteTypes {
     | '/admin/analytics'
     | '/admin/annonces-vendeurs'
     | '/admin/avis'
+    | '/admin/banieres'
     | '/admin/categories'
     | '/admin/codes-promo'
     | '/admin/commandes'
@@ -568,6 +580,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/analytics'
     | '/_authenticated/admin/annonces-vendeurs'
     | '/_authenticated/admin/avis'
+    | '/_authenticated/admin/banieres'
     | '/_authenticated/admin/categories'
     | '/_authenticated/admin/codes-promo'
     | '/_authenticated/admin/commandes'
@@ -911,6 +924,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminCategoriesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/banieres': {
+      id: '/_authenticated/admin/banieres'
+      path: '/banieres'
+      fullPath: '/admin/banieres'
+      preLoaderRoute: typeof AuthenticatedAdminBanieresRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/avis': {
       id: '/_authenticated/admin/avis'
       path: '/avis'
@@ -946,6 +966,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAnalyticsRoute: typeof AuthenticatedAdminAnalyticsRoute
   AuthenticatedAdminAnnoncesVendeursRoute: typeof AuthenticatedAdminAnnoncesVendeursRoute
   AuthenticatedAdminAvisRoute: typeof AuthenticatedAdminAvisRoute
+  AuthenticatedAdminBanieresRoute: typeof AuthenticatedAdminBanieresRoute
   AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute
   AuthenticatedAdminCodesPromoRoute: typeof AuthenticatedAdminCodesPromoRoute
   AuthenticatedAdminCommandesRoute: typeof AuthenticatedAdminCommandesRoute
@@ -966,6 +987,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAnnoncesVendeursRoute:
     AuthenticatedAdminAnnoncesVendeursRoute,
   AuthenticatedAdminAvisRoute: AuthenticatedAdminAvisRoute,
+  AuthenticatedAdminBanieresRoute: AuthenticatedAdminBanieresRoute,
   AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
   AuthenticatedAdminCodesPromoRoute: AuthenticatedAdminCodesPromoRoute,
   AuthenticatedAdminCommandesRoute: AuthenticatedAdminCommandesRoute,
