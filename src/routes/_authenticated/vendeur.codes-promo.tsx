@@ -83,7 +83,7 @@ function VendorCoupons() {
                 <td className="p-3 text-xs">{c.valid_until ? new Date(c.valid_until).toLocaleDateString("fr-FR") : "—"}</td>
                 <td className="p-3"><span className={`rounded-full px-2 py-0.5 text-xs ${c.status === "active" ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>{c.status}</span></td>
                 <td className="p-3 text-right">
-                  <Button size="sm" variant="outline" onClick={() => toggle.mutate({ id: c.id, status: c.status === "active" ? "disabled" : "active" })}>
+                  <Button size="sm" variant="outline" onClick={() => toggle.mutate({ id: c.id, status: c.status === "active" ? "paused" : "active" })}>
                     {c.status === "active" ? "Désactiver" : "Activer"}
                   </Button>
                 </td>

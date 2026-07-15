@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { formatFCFA } from "@/lib/format";
+import { formatFcfa } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -84,8 +84,8 @@ function AdminWithdrawals() {
             {rows.map((r) => (
               <tr key={r.id}>
                 <td className="p-3 font-medium">{r.vendors?.name ?? r.vendor_id.slice(0, 8)}</td>
-                <td className="p-3 font-semibold">{formatFCFA(Number(r.amount_requested))}</td>
-                <td className="p-3 text-xs text-muted-foreground">{formatFCFA(Number(r.available_balance_at_request))}</td>
+                <td className="p-3 font-semibold">{formatFcfa(Number(r.amount_requested))}</td>
+                <td className="p-3 text-xs text-muted-foreground">{formatFcfa(Number(r.available_balance_at_request))}</td>
                 <td className="p-3 text-xs">{r.payout_method}<div className="text-muted-foreground">{r.payout_details}</div></td>
                 <td className="p-3">
                   <span className={`rounded-full px-2 py-0.5 text-xs ${
@@ -118,7 +118,7 @@ function ProcessDialog({ w, onClose, onDone }: { w: W; onClose: () => void; onDo
         <DialogHeader><DialogTitle>Traiter la demande de retrait</DialogTitle></DialogHeader>
         <div className="space-y-3 text-sm">
           <div><span className="text-muted-foreground">Vendeur :</span> <b>{w.vendors?.name}</b></div>
-          <div><span className="text-muted-foreground">Montant :</span> <b>{formatFCFA(Number(w.amount_requested))}</b></div>
+          <div><span className="text-muted-foreground">Montant :</span> <b>{formatFcfa(Number(w.amount_requested))}</b></div>
           <div><span className="text-muted-foreground">Méthode :</span> {w.payout_method} — <span className="font-mono">{w.payout_details}</span></div>
           <Textarea rows={3} placeholder="Notes internes…" value={notes} onChange={(e) => setNotes(e.target.value)} />
         </div>

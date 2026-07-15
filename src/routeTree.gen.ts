@@ -28,22 +28,31 @@ import { Route as VendeurInvitationTokenRouteImport } from './routes/vendeur.inv
 import { Route as CommandeOrderNumberConfirmationRouteImport } from './routes/commande.$orderNumber.confirmation'
 import { Route as ApiPublicCinetpayWebhookRouteImport } from './routes/api/public/cinetpay-webhook'
 import { Route as AuthenticatedVendeurTableauDeBordRouteImport } from './routes/_authenticated/vendeur.tableau-de-bord'
+import { Route as AuthenticatedVendeurRevenusRouteImport } from './routes/_authenticated/vendeur.revenus'
+import { Route as AuthenticatedVendeurQuestionsRouteImport } from './routes/_authenticated/vendeur.questions'
 import { Route as AuthenticatedVendeurProduitsRouteImport } from './routes/_authenticated/vendeur.produits'
 import { Route as AuthenticatedVendeurCommandesRouteImport } from './routes/_authenticated/vendeur.commandes'
+import { Route as AuthenticatedVendeurCodesPromoRouteImport } from './routes/_authenticated/vendeur.codes-promo'
+import { Route as AuthenticatedVendeurBoutiqueRouteImport } from './routes/_authenticated/vendeur.boutique'
+import { Route as AuthenticatedVendeurAnnoncesRouteImport } from './routes/_authenticated/vendeur.annonces'
 import { Route as AuthenticatedMonCompteProfilRouteImport } from './routes/_authenticated/mon-compte.profil'
 import { Route as AuthenticatedMonCompteListeDeSouhaitsRouteImport } from './routes/_authenticated/mon-compte.liste-de-souhaits'
 import { Route as AuthenticatedMonCompteCommandesRouteImport } from './routes/_authenticated/mon-compte.commandes'
 import { Route as AuthenticatedMonCompteAdressesRouteImport } from './routes/_authenticated/mon-compte.adresses'
 import { Route as AuthenticatedAdminVendeursRouteImport } from './routes/_authenticated/admin.vendeurs'
 import { Route as AuthenticatedAdminSessionsRouteImport } from './routes/_authenticated/admin.sessions'
+import { Route as AuthenticatedAdminRetraitsRouteImport } from './routes/_authenticated/admin.retraits'
 import { Route as AuthenticatedAdminRetoursRouteImport } from './routes/_authenticated/admin.retours'
+import { Route as AuthenticatedAdminQuestionsRouteImport } from './routes/_authenticated/admin.questions'
 import { Route as AuthenticatedAdminProduitsRouteImport } from './routes/_authenticated/admin.produits'
 import { Route as AuthenticatedAdminPointsRetraitRouteImport } from './routes/_authenticated/admin.points-retrait'
 import { Route as AuthenticatedAdminDemandesRouteImport } from './routes/_authenticated/admin.demandes'
+import { Route as AuthenticatedAdminCommissionsRouteImport } from './routes/_authenticated/admin.commissions'
 import { Route as AuthenticatedAdminCommandesRouteImport } from './routes/_authenticated/admin.commandes'
 import { Route as AuthenticatedAdminCodesPromoRouteImport } from './routes/_authenticated/admin.codes-promo'
 import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_authenticated/admin.categories'
 import { Route as AuthenticatedAdminAvisRouteImport } from './routes/_authenticated/admin.avis'
+import { Route as AuthenticatedAdminAnnoncesVendeursRouteImport } from './routes/_authenticated/admin.annonces-vendeurs'
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin.analytics'
 import { Route as AuthenticatedMonCompteCommandesOrderNumberRouteImport } from './routes/_authenticated/mon-compte.commandes.$orderNumber'
 
@@ -145,6 +154,18 @@ const AuthenticatedVendeurTableauDeBordRoute =
     path: '/tableau-de-bord',
     getParentRoute: () => AuthenticatedVendeurRoute,
   } as any)
+const AuthenticatedVendeurRevenusRoute =
+  AuthenticatedVendeurRevenusRouteImport.update({
+    id: '/revenus',
+    path: '/revenus',
+    getParentRoute: () => AuthenticatedVendeurRoute,
+  } as any)
+const AuthenticatedVendeurQuestionsRoute =
+  AuthenticatedVendeurQuestionsRouteImport.update({
+    id: '/questions',
+    path: '/questions',
+    getParentRoute: () => AuthenticatedVendeurRoute,
+  } as any)
 const AuthenticatedVendeurProduitsRoute =
   AuthenticatedVendeurProduitsRouteImport.update({
     id: '/produits',
@@ -155,6 +176,24 @@ const AuthenticatedVendeurCommandesRoute =
   AuthenticatedVendeurCommandesRouteImport.update({
     id: '/commandes',
     path: '/commandes',
+    getParentRoute: () => AuthenticatedVendeurRoute,
+  } as any)
+const AuthenticatedVendeurCodesPromoRoute =
+  AuthenticatedVendeurCodesPromoRouteImport.update({
+    id: '/codes-promo',
+    path: '/codes-promo',
+    getParentRoute: () => AuthenticatedVendeurRoute,
+  } as any)
+const AuthenticatedVendeurBoutiqueRoute =
+  AuthenticatedVendeurBoutiqueRouteImport.update({
+    id: '/boutique',
+    path: '/boutique',
+    getParentRoute: () => AuthenticatedVendeurRoute,
+  } as any)
+const AuthenticatedVendeurAnnoncesRoute =
+  AuthenticatedVendeurAnnoncesRouteImport.update({
+    id: '/annonces',
+    path: '/annonces',
     getParentRoute: () => AuthenticatedVendeurRoute,
   } as any)
 const AuthenticatedMonCompteProfilRoute =
@@ -193,10 +232,22 @@ const AuthenticatedAdminSessionsRoute =
     path: '/sessions',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminRetraitsRoute =
+  AuthenticatedAdminRetraitsRouteImport.update({
+    id: '/retraits',
+    path: '/retraits',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminRetoursRoute =
   AuthenticatedAdminRetoursRouteImport.update({
     id: '/retours',
     path: '/retours',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminQuestionsRoute =
+  AuthenticatedAdminQuestionsRouteImport.update({
+    id: '/questions',
+    path: '/questions',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminProduitsRoute =
@@ -215,6 +266,12 @@ const AuthenticatedAdminDemandesRoute =
   AuthenticatedAdminDemandesRouteImport.update({
     id: '/demandes',
     path: '/demandes',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminCommissionsRoute =
+  AuthenticatedAdminCommissionsRouteImport.update({
+    id: '/commissions',
+    path: '/commissions',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminCommandesRoute =
@@ -240,6 +297,12 @@ const AuthenticatedAdminAvisRoute = AuthenticatedAdminAvisRouteImport.update({
   path: '/avis',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminAnnoncesVendeursRoute =
+  AuthenticatedAdminAnnoncesVendeursRouteImport.update({
+    id: '/annonces-vendeurs',
+    path: '/annonces-vendeurs',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminAnalyticsRoute =
   AuthenticatedAdminAnalyticsRouteImport.update({
     id: '/analytics',
@@ -267,22 +330,31 @@ export interface FileRoutesByFullPath {
   '/boutiques/$vendorSlug': typeof BoutiquesVendorSlugRoute
   '/produits/$slug': typeof ProduitsSlugRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/admin/annonces-vendeurs': typeof AuthenticatedAdminAnnoncesVendeursRoute
   '/admin/avis': typeof AuthenticatedAdminAvisRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/codes-promo': typeof AuthenticatedAdminCodesPromoRoute
   '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
+  '/admin/commissions': typeof AuthenticatedAdminCommissionsRoute
   '/admin/demandes': typeof AuthenticatedAdminDemandesRoute
   '/admin/points-retrait': typeof AuthenticatedAdminPointsRetraitRoute
   '/admin/produits': typeof AuthenticatedAdminProduitsRoute
+  '/admin/questions': typeof AuthenticatedAdminQuestionsRoute
   '/admin/retours': typeof AuthenticatedAdminRetoursRoute
+  '/admin/retraits': typeof AuthenticatedAdminRetraitsRoute
   '/admin/sessions': typeof AuthenticatedAdminSessionsRoute
   '/admin/vendeurs': typeof AuthenticatedAdminVendeursRoute
   '/mon-compte/adresses': typeof AuthenticatedMonCompteAdressesRoute
   '/mon-compte/commandes': typeof AuthenticatedMonCompteCommandesRouteWithChildren
   '/mon-compte/liste-de-souhaits': typeof AuthenticatedMonCompteListeDeSouhaitsRoute
   '/mon-compte/profil': typeof AuthenticatedMonCompteProfilRoute
+  '/vendeur/annonces': typeof AuthenticatedVendeurAnnoncesRoute
+  '/vendeur/boutique': typeof AuthenticatedVendeurBoutiqueRoute
+  '/vendeur/codes-promo': typeof AuthenticatedVendeurCodesPromoRoute
   '/vendeur/commandes': typeof AuthenticatedVendeurCommandesRoute
   '/vendeur/produits': typeof AuthenticatedVendeurProduitsRoute
+  '/vendeur/questions': typeof AuthenticatedVendeurQuestionsRoute
+  '/vendeur/revenus': typeof AuthenticatedVendeurRevenusRoute
   '/vendeur/tableau-de-bord': typeof AuthenticatedVendeurTableauDeBordRoute
   '/api/public/cinetpay-webhook': typeof ApiPublicCinetpayWebhookRoute
   '/commande/$orderNumber/confirmation': typeof CommandeOrderNumberConfirmationRoute
@@ -303,22 +375,31 @@ export interface FileRoutesByTo {
   '/boutiques/$vendorSlug': typeof BoutiquesVendorSlugRoute
   '/produits/$slug': typeof ProduitsSlugRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/admin/annonces-vendeurs': typeof AuthenticatedAdminAnnoncesVendeursRoute
   '/admin/avis': typeof AuthenticatedAdminAvisRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/codes-promo': typeof AuthenticatedAdminCodesPromoRoute
   '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
+  '/admin/commissions': typeof AuthenticatedAdminCommissionsRoute
   '/admin/demandes': typeof AuthenticatedAdminDemandesRoute
   '/admin/points-retrait': typeof AuthenticatedAdminPointsRetraitRoute
   '/admin/produits': typeof AuthenticatedAdminProduitsRoute
+  '/admin/questions': typeof AuthenticatedAdminQuestionsRoute
   '/admin/retours': typeof AuthenticatedAdminRetoursRoute
+  '/admin/retraits': typeof AuthenticatedAdminRetraitsRoute
   '/admin/sessions': typeof AuthenticatedAdminSessionsRoute
   '/admin/vendeurs': typeof AuthenticatedAdminVendeursRoute
   '/mon-compte/adresses': typeof AuthenticatedMonCompteAdressesRoute
   '/mon-compte/commandes': typeof AuthenticatedMonCompteCommandesRouteWithChildren
   '/mon-compte/liste-de-souhaits': typeof AuthenticatedMonCompteListeDeSouhaitsRoute
   '/mon-compte/profil': typeof AuthenticatedMonCompteProfilRoute
+  '/vendeur/annonces': typeof AuthenticatedVendeurAnnoncesRoute
+  '/vendeur/boutique': typeof AuthenticatedVendeurBoutiqueRoute
+  '/vendeur/codes-promo': typeof AuthenticatedVendeurCodesPromoRoute
   '/vendeur/commandes': typeof AuthenticatedVendeurCommandesRoute
   '/vendeur/produits': typeof AuthenticatedVendeurProduitsRoute
+  '/vendeur/questions': typeof AuthenticatedVendeurQuestionsRoute
+  '/vendeur/revenus': typeof AuthenticatedVendeurRevenusRoute
   '/vendeur/tableau-de-bord': typeof AuthenticatedVendeurTableauDeBordRoute
   '/api/public/cinetpay-webhook': typeof ApiPublicCinetpayWebhookRoute
   '/commande/$orderNumber/confirmation': typeof CommandeOrderNumberConfirmationRoute
@@ -343,22 +424,31 @@ export interface FileRoutesById {
   '/boutiques/$vendorSlug': typeof BoutiquesVendorSlugRoute
   '/produits/$slug': typeof ProduitsSlugRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/_authenticated/admin/annonces-vendeurs': typeof AuthenticatedAdminAnnoncesVendeursRoute
   '/_authenticated/admin/avis': typeof AuthenticatedAdminAvisRoute
   '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/_authenticated/admin/codes-promo': typeof AuthenticatedAdminCodesPromoRoute
   '/_authenticated/admin/commandes': typeof AuthenticatedAdminCommandesRoute
+  '/_authenticated/admin/commissions': typeof AuthenticatedAdminCommissionsRoute
   '/_authenticated/admin/demandes': typeof AuthenticatedAdminDemandesRoute
   '/_authenticated/admin/points-retrait': typeof AuthenticatedAdminPointsRetraitRoute
   '/_authenticated/admin/produits': typeof AuthenticatedAdminProduitsRoute
+  '/_authenticated/admin/questions': typeof AuthenticatedAdminQuestionsRoute
   '/_authenticated/admin/retours': typeof AuthenticatedAdminRetoursRoute
+  '/_authenticated/admin/retraits': typeof AuthenticatedAdminRetraitsRoute
   '/_authenticated/admin/sessions': typeof AuthenticatedAdminSessionsRoute
   '/_authenticated/admin/vendeurs': typeof AuthenticatedAdminVendeursRoute
   '/_authenticated/mon-compte/adresses': typeof AuthenticatedMonCompteAdressesRoute
   '/_authenticated/mon-compte/commandes': typeof AuthenticatedMonCompteCommandesRouteWithChildren
   '/_authenticated/mon-compte/liste-de-souhaits': typeof AuthenticatedMonCompteListeDeSouhaitsRoute
   '/_authenticated/mon-compte/profil': typeof AuthenticatedMonCompteProfilRoute
+  '/_authenticated/vendeur/annonces': typeof AuthenticatedVendeurAnnoncesRoute
+  '/_authenticated/vendeur/boutique': typeof AuthenticatedVendeurBoutiqueRoute
+  '/_authenticated/vendeur/codes-promo': typeof AuthenticatedVendeurCodesPromoRoute
   '/_authenticated/vendeur/commandes': typeof AuthenticatedVendeurCommandesRoute
   '/_authenticated/vendeur/produits': typeof AuthenticatedVendeurProduitsRoute
+  '/_authenticated/vendeur/questions': typeof AuthenticatedVendeurQuestionsRoute
+  '/_authenticated/vendeur/revenus': typeof AuthenticatedVendeurRevenusRoute
   '/_authenticated/vendeur/tableau-de-bord': typeof AuthenticatedVendeurTableauDeBordRoute
   '/api/public/cinetpay-webhook': typeof ApiPublicCinetpayWebhookRoute
   '/commande/$orderNumber/confirmation': typeof CommandeOrderNumberConfirmationRoute
@@ -383,22 +473,31 @@ export interface FileRouteTypes {
     | '/boutiques/$vendorSlug'
     | '/produits/$slug'
     | '/admin/analytics'
+    | '/admin/annonces-vendeurs'
     | '/admin/avis'
     | '/admin/categories'
     | '/admin/codes-promo'
     | '/admin/commandes'
+    | '/admin/commissions'
     | '/admin/demandes'
     | '/admin/points-retrait'
     | '/admin/produits'
+    | '/admin/questions'
     | '/admin/retours'
+    | '/admin/retraits'
     | '/admin/sessions'
     | '/admin/vendeurs'
     | '/mon-compte/adresses'
     | '/mon-compte/commandes'
     | '/mon-compte/liste-de-souhaits'
     | '/mon-compte/profil'
+    | '/vendeur/annonces'
+    | '/vendeur/boutique'
+    | '/vendeur/codes-promo'
     | '/vendeur/commandes'
     | '/vendeur/produits'
+    | '/vendeur/questions'
+    | '/vendeur/revenus'
     | '/vendeur/tableau-de-bord'
     | '/api/public/cinetpay-webhook'
     | '/commande/$orderNumber/confirmation'
@@ -419,22 +518,31 @@ export interface FileRouteTypes {
     | '/boutiques/$vendorSlug'
     | '/produits/$slug'
     | '/admin/analytics'
+    | '/admin/annonces-vendeurs'
     | '/admin/avis'
     | '/admin/categories'
     | '/admin/codes-promo'
     | '/admin/commandes'
+    | '/admin/commissions'
     | '/admin/demandes'
     | '/admin/points-retrait'
     | '/admin/produits'
+    | '/admin/questions'
     | '/admin/retours'
+    | '/admin/retraits'
     | '/admin/sessions'
     | '/admin/vendeurs'
     | '/mon-compte/adresses'
     | '/mon-compte/commandes'
     | '/mon-compte/liste-de-souhaits'
     | '/mon-compte/profil'
+    | '/vendeur/annonces'
+    | '/vendeur/boutique'
+    | '/vendeur/codes-promo'
     | '/vendeur/commandes'
     | '/vendeur/produits'
+    | '/vendeur/questions'
+    | '/vendeur/revenus'
     | '/vendeur/tableau-de-bord'
     | '/api/public/cinetpay-webhook'
     | '/commande/$orderNumber/confirmation'
@@ -458,22 +566,31 @@ export interface FileRouteTypes {
     | '/boutiques/$vendorSlug'
     | '/produits/$slug'
     | '/_authenticated/admin/analytics'
+    | '/_authenticated/admin/annonces-vendeurs'
     | '/_authenticated/admin/avis'
     | '/_authenticated/admin/categories'
     | '/_authenticated/admin/codes-promo'
     | '/_authenticated/admin/commandes'
+    | '/_authenticated/admin/commissions'
     | '/_authenticated/admin/demandes'
     | '/_authenticated/admin/points-retrait'
     | '/_authenticated/admin/produits'
+    | '/_authenticated/admin/questions'
     | '/_authenticated/admin/retours'
+    | '/_authenticated/admin/retraits'
     | '/_authenticated/admin/sessions'
     | '/_authenticated/admin/vendeurs'
     | '/_authenticated/mon-compte/adresses'
     | '/_authenticated/mon-compte/commandes'
     | '/_authenticated/mon-compte/liste-de-souhaits'
     | '/_authenticated/mon-compte/profil'
+    | '/_authenticated/vendeur/annonces'
+    | '/_authenticated/vendeur/boutique'
+    | '/_authenticated/vendeur/codes-promo'
     | '/_authenticated/vendeur/commandes'
     | '/_authenticated/vendeur/produits'
+    | '/_authenticated/vendeur/questions'
+    | '/_authenticated/vendeur/revenus'
     | '/_authenticated/vendeur/tableau-de-bord'
     | '/api/public/cinetpay-webhook'
     | '/commande/$orderNumber/confirmation'
@@ -632,6 +749,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedVendeurTableauDeBordRouteImport
       parentRoute: typeof AuthenticatedVendeurRoute
     }
+    '/_authenticated/vendeur/revenus': {
+      id: '/_authenticated/vendeur/revenus'
+      path: '/revenus'
+      fullPath: '/vendeur/revenus'
+      preLoaderRoute: typeof AuthenticatedVendeurRevenusRouteImport
+      parentRoute: typeof AuthenticatedVendeurRoute
+    }
+    '/_authenticated/vendeur/questions': {
+      id: '/_authenticated/vendeur/questions'
+      path: '/questions'
+      fullPath: '/vendeur/questions'
+      preLoaderRoute: typeof AuthenticatedVendeurQuestionsRouteImport
+      parentRoute: typeof AuthenticatedVendeurRoute
+    }
     '/_authenticated/vendeur/produits': {
       id: '/_authenticated/vendeur/produits'
       path: '/produits'
@@ -644,6 +775,27 @@ declare module '@tanstack/react-router' {
       path: '/commandes'
       fullPath: '/vendeur/commandes'
       preLoaderRoute: typeof AuthenticatedVendeurCommandesRouteImport
+      parentRoute: typeof AuthenticatedVendeurRoute
+    }
+    '/_authenticated/vendeur/codes-promo': {
+      id: '/_authenticated/vendeur/codes-promo'
+      path: '/codes-promo'
+      fullPath: '/vendeur/codes-promo'
+      preLoaderRoute: typeof AuthenticatedVendeurCodesPromoRouteImport
+      parentRoute: typeof AuthenticatedVendeurRoute
+    }
+    '/_authenticated/vendeur/boutique': {
+      id: '/_authenticated/vendeur/boutique'
+      path: '/boutique'
+      fullPath: '/vendeur/boutique'
+      preLoaderRoute: typeof AuthenticatedVendeurBoutiqueRouteImport
+      parentRoute: typeof AuthenticatedVendeurRoute
+    }
+    '/_authenticated/vendeur/annonces': {
+      id: '/_authenticated/vendeur/annonces'
+      path: '/annonces'
+      fullPath: '/vendeur/annonces'
+      preLoaderRoute: typeof AuthenticatedVendeurAnnoncesRouteImport
       parentRoute: typeof AuthenticatedVendeurRoute
     }
     '/_authenticated/mon-compte/profil': {
@@ -688,11 +840,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminSessionsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/retraits': {
+      id: '/_authenticated/admin/retraits'
+      path: '/retraits'
+      fullPath: '/admin/retraits'
+      preLoaderRoute: typeof AuthenticatedAdminRetraitsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/retours': {
       id: '/_authenticated/admin/retours'
       path: '/retours'
       fullPath: '/admin/retours'
       preLoaderRoute: typeof AuthenticatedAdminRetoursRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/questions': {
+      id: '/_authenticated/admin/questions'
+      path: '/questions'
+      fullPath: '/admin/questions'
+      preLoaderRoute: typeof AuthenticatedAdminQuestionsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/produits': {
@@ -714,6 +880,13 @@ declare module '@tanstack/react-router' {
       path: '/demandes'
       fullPath: '/admin/demandes'
       preLoaderRoute: typeof AuthenticatedAdminDemandesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/commissions': {
+      id: '/_authenticated/admin/commissions'
+      path: '/commissions'
+      fullPath: '/admin/commissions'
+      preLoaderRoute: typeof AuthenticatedAdminCommissionsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/commandes': {
@@ -744,6 +917,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAvisRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/annonces-vendeurs': {
+      id: '/_authenticated/admin/annonces-vendeurs'
+      path: '/annonces-vendeurs'
+      fullPath: '/admin/annonces-vendeurs'
+      preLoaderRoute: typeof AuthenticatedAdminAnnoncesVendeursRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/analytics': {
       id: '/_authenticated/admin/analytics'
       path: '/analytics'
@@ -763,14 +943,18 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAnalyticsRoute: typeof AuthenticatedAdminAnalyticsRoute
+  AuthenticatedAdminAnnoncesVendeursRoute: typeof AuthenticatedAdminAnnoncesVendeursRoute
   AuthenticatedAdminAvisRoute: typeof AuthenticatedAdminAvisRoute
   AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute
   AuthenticatedAdminCodesPromoRoute: typeof AuthenticatedAdminCodesPromoRoute
   AuthenticatedAdminCommandesRoute: typeof AuthenticatedAdminCommandesRoute
+  AuthenticatedAdminCommissionsRoute: typeof AuthenticatedAdminCommissionsRoute
   AuthenticatedAdminDemandesRoute: typeof AuthenticatedAdminDemandesRoute
   AuthenticatedAdminPointsRetraitRoute: typeof AuthenticatedAdminPointsRetraitRoute
   AuthenticatedAdminProduitsRoute: typeof AuthenticatedAdminProduitsRoute
+  AuthenticatedAdminQuestionsRoute: typeof AuthenticatedAdminQuestionsRoute
   AuthenticatedAdminRetoursRoute: typeof AuthenticatedAdminRetoursRoute
+  AuthenticatedAdminRetraitsRoute: typeof AuthenticatedAdminRetraitsRoute
   AuthenticatedAdminSessionsRoute: typeof AuthenticatedAdminSessionsRoute
   AuthenticatedAdminVendeursRoute: typeof AuthenticatedAdminVendeursRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
@@ -778,14 +962,19 @@ interface AuthenticatedAdminRouteChildren {
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAnalyticsRoute: AuthenticatedAdminAnalyticsRoute,
+  AuthenticatedAdminAnnoncesVendeursRoute:
+    AuthenticatedAdminAnnoncesVendeursRoute,
   AuthenticatedAdminAvisRoute: AuthenticatedAdminAvisRoute,
   AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
   AuthenticatedAdminCodesPromoRoute: AuthenticatedAdminCodesPromoRoute,
   AuthenticatedAdminCommandesRoute: AuthenticatedAdminCommandesRoute,
+  AuthenticatedAdminCommissionsRoute: AuthenticatedAdminCommissionsRoute,
   AuthenticatedAdminDemandesRoute: AuthenticatedAdminDemandesRoute,
   AuthenticatedAdminPointsRetraitRoute: AuthenticatedAdminPointsRetraitRoute,
   AuthenticatedAdminProduitsRoute: AuthenticatedAdminProduitsRoute,
+  AuthenticatedAdminQuestionsRoute: AuthenticatedAdminQuestionsRoute,
   AuthenticatedAdminRetoursRoute: AuthenticatedAdminRetoursRoute,
+  AuthenticatedAdminRetraitsRoute: AuthenticatedAdminRetraitsRoute,
   AuthenticatedAdminSessionsRoute: AuthenticatedAdminSessionsRoute,
   AuthenticatedAdminVendeursRoute: AuthenticatedAdminVendeursRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
@@ -834,14 +1023,24 @@ const AuthenticatedMonCompteRouteWithChildren =
   )
 
 interface AuthenticatedVendeurRouteChildren {
+  AuthenticatedVendeurAnnoncesRoute: typeof AuthenticatedVendeurAnnoncesRoute
+  AuthenticatedVendeurBoutiqueRoute: typeof AuthenticatedVendeurBoutiqueRoute
+  AuthenticatedVendeurCodesPromoRoute: typeof AuthenticatedVendeurCodesPromoRoute
   AuthenticatedVendeurCommandesRoute: typeof AuthenticatedVendeurCommandesRoute
   AuthenticatedVendeurProduitsRoute: typeof AuthenticatedVendeurProduitsRoute
+  AuthenticatedVendeurQuestionsRoute: typeof AuthenticatedVendeurQuestionsRoute
+  AuthenticatedVendeurRevenusRoute: typeof AuthenticatedVendeurRevenusRoute
   AuthenticatedVendeurTableauDeBordRoute: typeof AuthenticatedVendeurTableauDeBordRoute
 }
 
 const AuthenticatedVendeurRouteChildren: AuthenticatedVendeurRouteChildren = {
+  AuthenticatedVendeurAnnoncesRoute: AuthenticatedVendeurAnnoncesRoute,
+  AuthenticatedVendeurBoutiqueRoute: AuthenticatedVendeurBoutiqueRoute,
+  AuthenticatedVendeurCodesPromoRoute: AuthenticatedVendeurCodesPromoRoute,
   AuthenticatedVendeurCommandesRoute: AuthenticatedVendeurCommandesRoute,
   AuthenticatedVendeurProduitsRoute: AuthenticatedVendeurProduitsRoute,
+  AuthenticatedVendeurQuestionsRoute: AuthenticatedVendeurQuestionsRoute,
+  AuthenticatedVendeurRevenusRoute: AuthenticatedVendeurRevenusRoute,
   AuthenticatedVendeurTableauDeBordRoute:
     AuthenticatedVendeurTableauDeBordRoute,
 }

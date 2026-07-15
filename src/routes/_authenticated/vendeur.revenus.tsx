@@ -5,7 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyVendors } from "@/lib/vendor";
-import { formatFCFA } from "@/lib/format";
+import { formatFcfa } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -70,10 +70,10 @@ function VendorRevenues() {
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-        <Card label="Ventes brutes (payées)" value={summary ? formatFCFA(summary.gross) : "…"} />
-        <Card label="Commission Winstorr" value={summary ? formatFCFA(summary.commission) : "…"} />
-        <Card label="Net perçu" value={summary ? formatFCFA(summary.net) : "…"} />
-        <Card label="Solde disponible" value={summary ? formatFCFA(summary.available) : "…"} highlight />
+        <Card label="Ventes brutes (payées)" value={summary ? formatFcfa(summary.gross) : "…"} />
+        <Card label="Commission Winstorr" value={summary ? formatFcfa(summary.commission) : "…"} />
+        <Card label="Net perçu" value={summary ? formatFcfa(summary.net) : "…"} />
+        <Card label="Solde disponible" value={summary ? formatFcfa(summary.available) : "…"} highlight />
       </div>
 
       <section>
@@ -93,7 +93,7 @@ function VendorRevenues() {
               {withdrawals.map((w) => (
                 <tr key={w.id}>
                   <td className="p-3 text-xs">{new Date(w.created_at).toLocaleDateString("fr-FR")}</td>
-                  <td className="p-3 font-medium">{formatFCFA(Number(w.amount_requested))}</td>
+                  <td className="p-3 font-medium">{formatFcfa(Number(w.amount_requested))}</td>
                   <td className="p-3 text-xs">{w.payout_method}<div className="text-muted-foreground">{w.payout_details}</div></td>
                   <td className="p-3">
                     <span className={`inline-block rounded-full px-2 py-0.5 text-xs ${
@@ -156,7 +156,7 @@ function WithdrawDialog({ vendorId, available, onClose, onDone }: {
     onSuccess: (res) => {
       if (res && res.ok === false) {
         toast.error(res.reason === "insufficient_balance"
-          ? `Solde insuffisant. Disponible : ${formatFCFA(Number(res.available ?? 0))}`
+          ? `Solde insuffisant. Disponible : ${formatFcfa(Number(res.available ?? 0))}`
           : "Impossible de créer la demande.");
         return;
       }
@@ -171,7 +171,7 @@ function WithdrawDialog({ vendorId, available, onClose, onDone }: {
       <DialogContent>
         <DialogHeader><DialogTitle>Demander un retrait</DialogTitle></DialogHeader>
         <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">Solde disponible : <span className="font-semibold text-foreground">{formatFCFA(available)}</span></p>
+          <p className="text-sm text-muted-foreground">Solde disponible : <span className="font-semibold text-foreground">{formatFcfa(available)}</span></p>
           <div><Label>Montant (FCFA) *</Label><Input type="number" min={100} max={available} value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
           <div>
             <Label>Méthode *</Label>
