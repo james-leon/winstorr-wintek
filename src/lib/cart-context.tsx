@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCartTiers, resolveUnitPrice, type PriceTier } from "@/lib/tiers";
 
 export type CartItem = {
   productId: string;
@@ -26,6 +27,8 @@ type CartCtx = {
   coupon: AppliedCoupon | null;
   setCoupon: (c: AppliedCoupon | null) => void;
   discount: number;
+  tiersMap: Record<string, PriceTier[]>;
+  effectiveUnit: (productId: string, basePrice: number, quantity: number) => number;
 };
 
 const Ctx = createContext<CartCtx | null>(null);
@@ -58,7 +61,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const setCoupon = (c: AppliedCoupon | null) => setCouponState(c);
 
-  const subtotal = items.reduce((n, i) => n + i.price * i.quantity, 0);
+  const { data: tiersMap } = useCartTiers(items.map((i) => i.productId));
+  const tiers = tiersMap ?? {};
+
+  const effectiveUnit = (productId: string, basePrice: number, quantity: number): number =>
+    resolveUnitPrice(tiers[productId], quantity, basePrice) ?? basePrice;
+
+  const subtotal = items.reduce(
+    (n, i) => n + effectiveUnit(i.productId, i.price, i.quantity) * i.quantity,
+    0,
+  );
   const discount = coupon ? Math.min(coupon.discountAmount, subtotal) : 0;
 
   const value = useMemo<CartCtx>(
@@ -85,8 +97,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       coupon,
       setCoupon,
       discount,
+      tiersMap: tiers,
+      effectiveUnit,
     }),
-    [items, coupon, subtotal, discount],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [items, coupon, subtotal, discount, tiers],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
