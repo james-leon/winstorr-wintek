@@ -101,14 +101,18 @@ export const createOrder = createServerFn({ method: "POST" })
       };
     });
 
+    const deliveryMode = hasPhysical ? data.delivery_mode : "none";
 
-    if (hasPhysical && !data.shipping_address) {
-      throw new Error("Adresse de livraison requise pour les articles physiques.");
+    if (hasPhysical && deliveryMode === "home_delivery" && !data.shipping_address) {
+      throw new Error("Adresse de livraison requise pour la livraison à domicile.");
+    }
+    if (hasPhysical && deliveryMode === "pickup" && !data.pickup_point_id) {
+      throw new Error("Point de retrait requis.");
     }
 
-    // Shipping fee lookup
+    // Shipping fee lookup — 0 for pickup
     let shipping = 0;
-    if (hasPhysical) {
+    if (hasPhysical && deliveryMode === "home_delivery") {
       const { data: setting } = await supabaseAdmin
         .from("app_settings")
         .select("value")
@@ -119,6 +123,7 @@ export const createOrder = createServerFn({ method: "POST" })
       shipping = Number(fees[city] ?? fees.autre ?? 0);
     }
     const total_before_discount = subtotal + shipping;
+
 
     // Attach customer_id if the caller is signed in (bearer forwarded by middleware).
     let customerId: string | null = null;
