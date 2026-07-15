@@ -62,7 +62,7 @@ async function logAudit(
     entity_type: "vendor_invitation",
     entity_id: entityId,
     actor_id: actorId,
-    metadata,
+    metadata: metadata as never,
   });
 }
 
