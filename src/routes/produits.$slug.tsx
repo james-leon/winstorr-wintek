@@ -360,6 +360,7 @@ function PhysicalActions({
   p, tiers, qty, setQty,
 }: { p: Product; tiers: PriceTier[]; qty: number; setQty: (updater: (q: number) => number) => void }) {
   const { add } = useCart();
+  const nav = useNavigate();
   const stock = p.stock_quantity ?? 0;
   const stockLabel =
     stock <= 0 ? { text: "Rupture de stock", cls: "text-destructive" }
@@ -368,8 +369,13 @@ function PhysicalActions({
   const unit = resolveUnitPrice(tiers, qty, p.price);
   void tiers;
 
+  const addToCart = () => {
+    if (p.price == null) return;
+    add({ productId: p.id, slug: p.slug, name: p.name, price: p.price, image: p.images[0] ?? null }, qty);
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className={`flex items-center gap-2 text-sm font-medium ${stockLabel.cls}`}>
         <Package className="h-4 w-4" /> {stockLabel.text}
       </div>
@@ -385,10 +391,20 @@ function PhysicalActions({
         className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
         disabled={stock <= 0 || unit == null}
         onClick={() => {
-          if (p.price == null) return;
-          add({ productId: p.id, slug: p.slug, name: p.name, price: p.price, image: p.images[0] ?? null }, qty);
+          addToCart();
+          nav({ to: "/commande" });
+        }}
+      >
+        Acheter maintenant
+      </Button>
+      <Button
+        size="lg"
+        variant="outline"
+        className="w-full"
+        disabled={stock <= 0 || unit == null}
+        onClick={() => {
+          addToCart();
           toast.success(`${p.name} ajouté au panier`);
-
         }}
       >
         Ajouter au panier
@@ -396,6 +412,7 @@ function PhysicalActions({
     </div>
   );
 }
+
 
 
 /* ----- digital ----- */
