@@ -706,8 +706,8 @@ function Home() {
       <CircleRow cats={cats} />
 
       {/* Les mieux notés + Spotlight */}
-      <section className="mx-auto max-w-7xl px-4 pt-6 grid gap-3 md:grid-cols-[1fr_minmax(0,380px)]">
-        <div>
+      <section className="mx-auto max-w-7xl px-4 pt-6 grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,380px)]">
+        <div className="min-w-0">
           <SectionHeader title="Les mieux notés" to="/catalogue" search={{ sort: "rating" }} />
           <Shelf items={data.topRated} />
         </div>
