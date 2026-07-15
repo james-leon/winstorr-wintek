@@ -137,7 +137,7 @@ type FormState = {
   short_description: string; description: string;
   price: string; price_type: "fixed" | "starting_at" | "quote_only";
   stock_quantity: string; featured: boolean;
-  images: string;
+  images: string[];
   quality_verified: boolean;
   warranty_duration: string;
   source_type: string;
