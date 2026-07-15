@@ -1,12 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CheckCircle2, XCircle, Loader2, Package, Download } from "lucide-react";
+import { XCircle, Loader2, Package, Download, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { formatFcfa } from "@/lib/format";
 import { initiatePayment, mockConfirmPayment } from "@/lib/orders.functions";
 import { toast } from "sonner";
+import { SuccessCheckmark } from "@/components/success-checkmark";
+import { TrustStrip } from "@/components/trust-strip";
+import { useAuth } from "@/lib/auth-context";
+import { useState } from "react";
+
 
 export const Route = createFileRoute("/commande/$orderNumber/confirmation")({
   head: () => ({ meta: [{ title: "Confirmation de commande — Winstorr" }] }),
