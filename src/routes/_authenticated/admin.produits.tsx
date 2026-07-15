@@ -350,14 +350,19 @@ function AdminProducts() {
                       ) : <span className="text-xs text-muted-foreground">—</span>}
                     </td>
                     <td className="p-2">
-                      <span className={cn("inline-block rounded-full px-2 py-0.5 text-xs",
-                        r.status === "active" ? "bg-success/15 text-success" :
-                        r.status === "draft" ? "bg-secondary/15 text-secondary" : "bg-muted text-muted-foreground")}>
-                        {r.status}
-                      </span>
+                      {(() => {
+                        const meta = STATUS_META[r.status] ?? { label: r.status, cls: "bg-muted text-muted-foreground" };
+                        return <span className={cn("inline-block rounded-full px-2 py-0.5 text-xs", meta.cls)}>{meta.label}</span>;
+                      })()}
                     </td>
                     <td className="p-2">
                       <div className="flex justify-end gap-1">
+                        {r.status === "pending_review" && (
+                          <>
+                            <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => reviewOne.mutate({ id: r.id, status: "active" })}>Approuver</Button>
+                            <Button variant="outline" size="sm" className="h-7 px-2 text-xs text-destructive" onClick={() => { setRejectFor(r); setRejectReason(""); }}>Rejeter</Button>
+                          </>
+                        )}
                         <button
                           onClick={() => setQuickEditId(isQE ? null : r.id)}
                           className="text-xs text-primary hover:underline"
@@ -370,6 +375,14 @@ function AdminProducts() {
                         </Button>
                       </div>
                     </td>
+                  </tr>
+                  {r.status === "rejected" && r.rejection_reason && (
+                    <tr key={`rej-${r.id}`} className="bg-destructive/5">
+                      <td colSpan={10} className="px-3 py-2 text-xs text-destructive">
+                        <strong>Motif du rejet :</strong> {r.rejection_reason}
+                      </td>
+                    </tr>
+                  )}
                   </tr>
                   {isQE && (
                     <QuickEditRow
