@@ -36,19 +36,23 @@ export function SiteHeader() {
   const [cat, setCat] = useState<CatSel>("all");
 
   const { data: topCategories = [] } = useQuery({
-    queryKey: ["header-top-categories"],
+    queryKey: ["header-top-categories-v2"],
     queryFn: async () => {
+      // Only truly top-level "department" categories (display_order >= 20)
+      // — excludes legacy subcategory-like entries (Téléphones, Logiciels, etc.)
       const { data } = await supabase
         .from("categories")
         .select("id,name,slug,product_type,parent_id,display_order,status")
         .is("parent_id", null)
         .eq("status", "active")
+        .gte("display_order", 20)
         .order("display_order", { ascending: true })
         .limit(8);
       return data ?? [];
     },
     staleTime: 5 * 60_000,
   });
+
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
