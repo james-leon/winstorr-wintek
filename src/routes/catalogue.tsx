@@ -4,12 +4,15 @@ import { useState } from "react";
 import { SlidersHorizontal, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductCard, type ProductCardData } from "@/components/product-card";
+import { ProductCardSkeletonGrid } from "@/components/product-card-skeleton";
+import { EmptyState } from "@/components/empty-state";
 import { StarRating } from "@/components/star-rating";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PRODUCT_TYPE_LABELS, type ProductType } from "@/lib/format";
 import { cn } from "@/lib/utils";
+
 
 type SortKey = "recent" | "price_asc" | "price_desc" | "rating";
 type CatalogueSearch = {
