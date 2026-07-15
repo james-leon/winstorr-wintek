@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { XCircle, Loader2, Package, Download, UserPlus } from "lucide-react";
+import { XCircle, Loader2, Package, Download, UserPlus, Wallet, Store, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { formatFcfa } from "@/lib/format";
