@@ -274,7 +274,7 @@ export function SiteHeader() {
               </Link>
             ))}
             {topCategories.length > 3 && (
-              <details className="relative">
+              <details ref={moreDetailsRef} className="relative">
                 <summary className="cursor-pointer list-none px-3 py-1.5 text-xs text-white/75 hover:text-white hover:bg-white/10 whitespace-nowrap inline-flex items-center gap-1">
                   Plus <ChevronDown className="h-3 w-3" />
                 </summary>
