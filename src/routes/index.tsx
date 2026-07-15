@@ -163,15 +163,44 @@ const homeShelvesQuery = queryOptions({
 
     const spotlight = verified[0] ?? topRated[0] ?? null;
 
+    const bannersRes = await supabase
+      .from("homepage_banners")
+      .select("id, type, title, subtitle, image_url, cta_label, link_url, background_color, category_id, display_order, is_active, starts_at, ends_at")
+      .eq("is_active", true)
+      .order("display_order");
+    const now = Date.now();
+    const banners = ((bannersRes.data ?? []) as DbBanner[]).filter((b) => {
+      if (b.starts_at && new Date(b.starts_at).getTime() > now) return false;
+      if (b.ends_at && new Date(b.ends_at).getTime() < now) return false;
+      return true;
+    });
+
     return {
       rootsWithProducts,
       nouveautes: normalize(nouveautes.data ?? []),
       topRated,
       verified,
       spotlight,
+      banners,
     };
   },
 });
+
+type DbBanner = {
+  id: string;
+  type: "hero_slide" | "promo_tile" | "category_tile";
+  title: string;
+  subtitle: string | null;
+  image_url: string | null;
+  cta_label: string | null;
+  link_url: string | null;
+  background_color: string | null;
+  category_id: string | null;
+  display_order: number;
+  is_active: boolean;
+  starts_at: string | null;
+  ends_at: string | null;
+};
 
 /* -------------------- route -------------------- */
 
