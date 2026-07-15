@@ -383,7 +383,6 @@ function AdminProducts() {
                       </td>
                     </tr>
                   )}
-                  </tr>
                   {isQE && (
                     <QuickEditRow
                       key={`qe-${r.id}`}
