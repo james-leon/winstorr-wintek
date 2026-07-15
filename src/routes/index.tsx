@@ -163,15 +163,44 @@ const homeShelvesQuery = queryOptions({
 
     const spotlight = verified[0] ?? topRated[0] ?? null;
 
+    const bannersRes = await supabase
+      .from("homepage_banners")
+      .select("id, type, title, subtitle, image_url, cta_label, link_url, background_color, category_id, display_order, is_active, starts_at, ends_at")
+      .eq("is_active", true)
+      .order("display_order");
+    const now = Date.now();
+    const banners = ((bannersRes.data ?? []) as DbBanner[]).filter((b) => {
+      if (b.starts_at && new Date(b.starts_at).getTime() > now) return false;
+      if (b.ends_at && new Date(b.ends_at).getTime() < now) return false;
+      return true;
+    });
+
     return {
       rootsWithProducts,
       nouveautes: normalize(nouveautes.data ?? []),
       topRated,
       verified,
       spotlight,
+      banners,
     };
   },
 });
+
+type DbBanner = {
+  id: string;
+  type: "hero_slide" | "promo_tile" | "category_tile";
+  title: string;
+  subtitle: string | null;
+  image_url: string | null;
+  cta_label: string | null;
+  link_url: string | null;
+  background_color: string | null;
+  category_id: string | null;
+  display_order: number;
+  is_active: boolean;
+  starts_at: string | null;
+  ends_at: string | null;
+};
 
 /* -------------------- route -------------------- */
 
@@ -377,8 +406,9 @@ const SLIDES: Slide[] = [
   },
 ];
 
-function Hero() {
+function Hero({ dbSlides }: { dbSlides: DbBanner[] }) {
   const autoplay = useRef(Autoplay({ delay: 5500, stopOnInteraction: true }));
+  const useDb = dbSlides.length > 0;
   return (
     <section className="bg-primary">
       <Carousel
@@ -387,33 +417,69 @@ function Hero() {
         className="relative"
       >
         <CarouselContent>
-          {SLIDES.map((s, i) => (
-            <CarouselItem key={i}>
-              <Link
-                to={s.to}
-                search={s.search as never}
-                className={cn(
-                  "relative flex min-h-[220px] md:min-h-[300px] w-full items-center bg-gradient-to-br px-4 md:px-10 no-link-color",
-                  s.bg,
-                )}
-              >
-                <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 py-8 text-primary-foreground md:py-12">
-                  <div className="text-[11px] uppercase tracking-[0.16em] text-primary-foreground/75">
-                    {s.eyebrow}
-                  </div>
-                  <h2 className="max-w-2xl text-2xl font-bold leading-tight md:text-4xl">
-                    {s.title}
-                  </h2>
-                  <p className="max-w-xl text-sm text-primary-foreground/85 md:text-base">
-                    {s.sub}
-                  </p>
-                  <span className="mt-2 inline-flex w-max items-center gap-1.5 rounded-sm bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground shadow-sm">
-                    {s.cta} <ArrowRight className="h-4 w-4" />
-                  </span>
-                </div>
-              </Link>
-            </CarouselItem>
-          ))}
+          {useDb
+            ? dbSlides.map((s) => (
+                <CarouselItem key={s.id}>
+                  <Link
+                    to={s.link_url ?? "/catalogue"}
+                    className={cn(
+                      "relative flex min-h-[220px] md:min-h-[300px] w-full items-center overflow-hidden px-4 md:px-10 no-link-color",
+                      !s.image_url && "bg-gradient-to-br from-[#0D2C54] via-[#123f7a] to-[#1A6BB5]",
+                    )}
+                    style={s.background_color && !s.image_url ? { background: s.background_color } : undefined}
+                  >
+                    {s.image_url && (
+                      <>
+                        <img
+                          src={s.image_url}
+                          alt=""
+                          className="absolute inset-0 h-full w-full object-cover"
+                          loading="eager"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
+                      </>
+                    )}
+                    <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-3 py-8 text-primary-foreground md:py-12">
+                      <h2 className="max-w-2xl text-2xl font-bold leading-tight md:text-4xl">{s.title}</h2>
+                      {s.subtitle && (
+                        <p className="max-w-xl text-sm text-primary-foreground/85 md:text-base">{s.subtitle}</p>
+                      )}
+                      {s.cta_label && (
+                        <span className="mt-2 inline-flex w-max items-center gap-1.5 rounded-sm bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground shadow-sm">
+                          {s.cta_label} <ArrowRight className="h-4 w-4" />
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                </CarouselItem>
+              ))
+            : SLIDES.map((s, i) => (
+                <CarouselItem key={i}>
+                  <Link
+                    to={s.to}
+                    search={s.search as never}
+                    className={cn(
+                      "relative flex min-h-[220px] md:min-h-[300px] w-full items-center bg-gradient-to-br px-4 md:px-10 no-link-color",
+                      s.bg,
+                    )}
+                  >
+                    <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 py-8 text-primary-foreground md:py-12">
+                      <div className="text-[11px] uppercase tracking-[0.16em] text-primary-foreground/75">
+                        {s.eyebrow}
+                      </div>
+                      <h2 className="max-w-2xl text-2xl font-bold leading-tight md:text-4xl">
+                        {s.title}
+                      </h2>
+                      <p className="max-w-xl text-sm text-primary-foreground/85 md:text-base">
+                        {s.sub}
+                      </p>
+                      <span className="mt-2 inline-flex w-max items-center gap-1.5 rounded-sm bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground shadow-sm">
+                        {s.cta} <ArrowRight className="h-4 w-4" />
+                      </span>
+                    </div>
+                  </Link>
+                </CarouselItem>
+              ))}
         </CarouselContent>
         <CarouselPrevious className="left-2 md:left-4 bg-background/80 hover:bg-background text-foreground border-border" />
         <CarouselNext className="right-2 md:right-4 bg-background/80 hover:bg-background text-foreground border-border" />
@@ -458,32 +524,56 @@ type PromoTile = {
   search?: Record<string, unknown>;
 };
 
-function PromoTiles({ tiles }: { tiles: PromoTile[] }) {
+function PromoTiles({ tiles, dbTiles = [] }: { tiles: PromoTile[]; dbTiles?: DbBanner[] }) {
+  const useDb = dbTiles.length > 0;
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-      {tiles.map((t) => (
-        <Link
-          key={t.title}
-          to={t.to}
-          search={t.search as never}
-          className={cn(
-            "group flex min-h-[140px] flex-col justify-between rounded-sm border p-3.5 no-link-color transition-colors",
-            t.tint,
-            t.ring,
-          )}
-        >
-          <div className={cn("grid h-9 w-9 place-items-center rounded-sm", t.iconTint)}>
-            <t.Icon className="h-4 w-4" strokeWidth={2.5} />
-          </div>
-          <div>
-            <div className="text-sm font-bold text-foreground leading-tight">{t.title}</div>
-            <div className="mt-0.5 text-xs text-muted-foreground leading-snug">{t.sub}</div>
-            <div className="mt-2 inline-flex items-center gap-0.5 text-xs font-medium text-secondary">
-              Découvrir <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-            </div>
-          </div>
-        </Link>
-      ))}
+      {useDb
+        ? dbTiles.map((t) => (
+            <Link
+              key={t.id}
+              to={t.link_url ?? "/catalogue"}
+              className="group relative flex min-h-[140px] flex-col justify-end overflow-hidden rounded-sm border border-border p-3.5 no-link-color"
+              style={t.background_color && !t.image_url ? { background: t.background_color } : undefined}
+            >
+              {t.image_url && (
+                <>
+                  <img src={t.image_url} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                </>
+              )}
+              <div className="relative text-white">
+                <div className="text-sm font-bold leading-tight drop-shadow">{t.title}</div>
+                {t.subtitle && <div className="mt-0.5 text-xs leading-snug opacity-90 drop-shadow">{t.subtitle}</div>}
+                <div className="mt-2 inline-flex items-center gap-0.5 text-xs font-medium text-accent">
+                  {t.cta_label ?? "Découvrir"} <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                </div>
+              </div>
+            </Link>
+          ))
+        : tiles.map((t) => (
+            <Link
+              key={t.title}
+              to={t.to}
+              search={t.search as never}
+              className={cn(
+                "group flex min-h-[140px] flex-col justify-between rounded-sm border p-3.5 no-link-color transition-colors",
+                t.tint,
+                t.ring,
+              )}
+            >
+              <div className={cn("grid h-9 w-9 place-items-center rounded-sm", t.iconTint)}>
+                <t.Icon className="h-4 w-4" strokeWidth={2.5} />
+              </div>
+              <div>
+                <div className="text-sm font-bold text-foreground leading-tight">{t.title}</div>
+                <div className="mt-0.5 text-xs text-muted-foreground leading-snug">{t.sub}</div>
+                <div className="mt-2 inline-flex items-center gap-0.5 text-xs font-medium text-secondary">
+                  Découvrir <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                </div>
+              </div>
+            </Link>
+          ))}
     </div>
   );
 }
@@ -533,7 +623,43 @@ const PRIMARY_PROMO: PromoTile[] = [
 
 /* Category mosaic — dynamic tiles from top-level categories with products */
 
-function CategoryMosaic({ cats }: { cats: RootCategory[] }) {
+function CategoryMosaic({ cats, dbTiles = [] }: { cats: RootCategory[]; dbTiles?: DbBanner[] }) {
+  if (dbTiles.length > 0) {
+    return (
+      <section className="mx-auto max-w-7xl px-4 pt-6">
+        <SectionHeader title="Explorez Winstorr" />
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+          {dbTiles.map((t) => (
+            <Link
+              key={t.id}
+              to={t.link_url ?? "/catalogue"}
+              className="group relative flex min-h-[140px] flex-col justify-end overflow-hidden rounded-sm no-link-color"
+              style={t.background_color && !t.image_url ? { background: t.background_color } : undefined}
+            >
+              {t.image_url ? (
+                <>
+                  <img src={t.image_url} alt="" className="absolute inset-0 h-full w-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
+                </>
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-br from-primary to-secondary" />
+              )}
+              <div className="relative p-3 text-white">
+                <div className="text-[13px] font-bold leading-tight drop-shadow">{t.title}</div>
+                <div className="mt-0.5 inline-flex items-center gap-0.5 text-[11px] font-medium opacity-90">
+                  {t.cta_label ?? "Explorer"} <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+    );
+  }
+  return CategoryMosaicFallback({ cats });
+}
+
+function CategoryMosaicFallback({ cats }: { cats: RootCategory[] }) {
   if (cats.length === 0) return null;
   // First tile is featured (spans 2x2 on md+), remainder are standard cells.
   const [featured, ...rest] = cats;
@@ -674,18 +800,24 @@ function Home() {
     .slice()
     .sort((a, b) => b.products.length - a.products.length);
 
+  const banners = data.banners ?? [];
+  const heroSlides = banners.filter((b) => b.type === "hero_slide");
+  const dbPromo = banners.filter((b) => b.type === "promo_tile");
+  const dbCategoryTiles = banners.filter((b) => b.type === "category_tile");
+
   return (
     <div className="bg-background">
-      <Hero />
+      <Hero dbSlides={heroSlides} />
       <TrustStrip />
 
       {/* Primary promo mosaic */}
       <section className="mx-auto max-w-7xl px-4 pt-5">
-        <PromoTiles tiles={PRIMARY_PROMO} />
+        <PromoTiles tiles={PRIMARY_PROMO} dbTiles={dbPromo} />
       </section>
 
       {/* Category mosaic — dynamic */}
-      <CategoryMosaic cats={cats} />
+      <CategoryMosaic cats={cats} dbTiles={dbCategoryTiles} />
+
 
       {/* Nouveautés */}
       <section className="mx-auto max-w-7xl px-4 pt-6">

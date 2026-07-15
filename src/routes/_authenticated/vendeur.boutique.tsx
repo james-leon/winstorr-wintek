@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { BannerImageUploader } from "@/components/banner-image-uploader";
 
 export const Route = createFileRoute("/_authenticated/vendeur/boutique")({
   component: VendorStorefrontEditor,
@@ -77,11 +78,15 @@ function VendorStorefrontEditor() {
       </p>
 
       <div className="space-y-4 rounded-sm border border-border bg-card p-5">
-        <div>
-          <Label>Bannière (URL image)</Label>
-          <Input value={banner} onChange={(e) => setBanner(e.target.value)} placeholder="https://…" />
-          {banner && <img src={banner} alt="" className="mt-2 aspect-[16/5] w-full rounded-sm object-cover" />}
-        </div>
+        <BannerImageUploader
+          label="Bannière de la boutique"
+          width={1600}
+          height={400}
+          folder="storefront-banners"
+          value={banner || null}
+          onChange={(v) => setBanner(v ?? "")}
+        />
+
 
         <div>
           <Label>Description (« À propos »)</Label>

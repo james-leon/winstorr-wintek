@@ -369,6 +369,68 @@ export type Database = {
           },
         ]
       }
+      homepage_banners: {
+        Row: {
+          background_color: string | null
+          category_id: string | null
+          created_at: string
+          cta_label: string | null
+          display_order: number
+          ends_at: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          link_url: string | null
+          starts_at: string | null
+          subtitle: string | null
+          title: string
+          type: Database["public"]["Enums"]["homepage_banner_type"]
+          updated_at: string
+        }
+        Insert: {
+          background_color?: string | null
+          category_id?: string | null
+          created_at?: string
+          cta_label?: string | null
+          display_order?: number
+          ends_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          link_url?: string | null
+          starts_at?: string | null
+          subtitle?: string | null
+          title: string
+          type: Database["public"]["Enums"]["homepage_banner_type"]
+          updated_at?: string
+        }
+        Update: {
+          background_color?: string | null
+          category_id?: string | null
+          created_at?: string
+          cta_label?: string | null
+          display_order?: number
+          ends_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          link_url?: string | null
+          starts_at?: string | null
+          subtitle?: string | null
+          title?: string
+          type?: Database["public"]["Enums"]["homepage_banner_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homepage_banners_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           commission_amount: number
@@ -1682,6 +1744,7 @@ export type Database = {
       coupon_discount_type: "percentage" | "fixed_amount"
       coupon_status: "active" | "paused" | "expired"
       delivery_type: "file_download" | "license_key" | "access_link"
+      homepage_banner_type: "hero_slide" | "promo_tile" | "category_tile"
       order_status:
         | "pending_payment"
         | "paid"
@@ -1875,6 +1938,7 @@ export const Constants = {
       coupon_discount_type: ["percentage", "fixed_amount"],
       coupon_status: ["active", "paused", "expired"],
       delivery_type: ["file_download", "license_key", "access_link"],
+      homepage_banner_type: ["hero_slide", "promo_tile", "category_tile"],
       order_status: [
         "pending_payment",
         "paid",
