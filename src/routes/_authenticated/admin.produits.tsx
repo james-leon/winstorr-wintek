@@ -131,12 +131,21 @@ function AdminProducts() {
     else setSelected(new Set(filtered.map((r) => r.id)));
   };
 
+  const [rejectFor, setRejectFor] = useState<Row | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+
   const bulkUpdate = useMutation({
-    mutationFn: async (action: "active" | "archived" | "delete") => {
+    mutationFn: async (action: "active" | "archived" | "delete" | "approve" | "reject", reason?: string) => {
       const ids = Array.from(selected);
       if (ids.length === 0) return;
       if (action === "delete") {
         const { error } = await supabase.from("products").delete().in("id", ids);
+        if (error) throw error;
+      } else if (action === "approve") {
+        const { error } = await supabase.from("products").update({ status: "active", rejection_reason: null }).in("id", ids);
+        if (error) throw error;
+      } else if (action === "reject") {
+        const { error } = await supabase.from("products").update({ status: "rejected", rejection_reason: reason ?? null }).in("id", ids);
         if (error) throw error;
       } else {
         const { error } = await supabase.from("products").update({ status: action }).in("id", ids);
@@ -146,6 +155,22 @@ function AdminProducts() {
     onSuccess: () => {
       toast.success("Action appliquée.");
       setSelected(new Set());
+      qc.invalidateQueries({ queryKey: ["admin-products"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const reviewOne = useMutation({
+    mutationFn: async ({ id, status, reason }: { id: string; status: "active" | "rejected"; reason?: string | null }) => {
+      const patch: Record<string, unknown> = { status };
+      if (status === "active") patch.rejection_reason = null;
+      if (status === "rejected") patch.rejection_reason = reason ?? null;
+      const { error } = await supabase.from("products").update(patch).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Action appliquée.");
+      setRejectFor(null); setRejectReason("");
       qc.invalidateQueries({ queryKey: ["admin-products"] });
     },
     onError: (e: Error) => toast.error(e.message),
