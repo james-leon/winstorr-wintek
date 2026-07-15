@@ -1,5 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { RecentlyViewedShelf } from "@/components/recently-viewed-shelf";
+import { supabase as supabaseClient } from "@/integrations/supabase/client";
+import { Store as StoreIcon, ShieldCheck as ShieldCheckIcon } from "lucide-react";
+
 
 import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useRef } from "react";
@@ -715,12 +718,16 @@ function Home() {
       </section>
 
       {/* Qualité vérifiée */}
-      <section className="mx-auto max-w-7xl px-4 pt-6 pb-10">
+      <section className="mx-auto max-w-7xl px-4 pt-6">
         <SectionHeader title="Qualité vérifiée par Wintek" to="/catalogue" search={{ verified: true }} />
         <Shelf items={data.verified} />
       </section>
 
-      <div className="mx-auto max-w-7xl px-4">
+      {/* Boutiques populaires — gated ≥6 vendors with products */}
+      <PopularStoresShelf />
+
+      <div className="mx-auto max-w-7xl px-4 pt-8">
+
         <RecentlyViewedShelf />
       </div>
     </div>
