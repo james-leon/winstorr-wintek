@@ -639,16 +639,13 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
             </TabsContent>
 
             <TabsContent value="inventory" className="space-y-3 mt-0">
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <div><Label>SKU</Label><Input value={f.sku} onChange={(e) => setF({ ...f, sku: e.target.value })} /></div>
                 {f.type === "physical" && (
                   <div><Label>Stock</Label><Input type="number" min="0" value={f.stock_quantity} onChange={(e) => setF({ ...f, stock_quantity: e.target.value })} /></div>
                 )}
-                <div>
-                  <Label>Quantité min. par commande</Label>
-                  <Input type="number" min="1" value={f.min_order_quantity} onChange={(e) => setF({ ...f, min_order_quantity: e.target.value })} placeholder="1" />
-                </div>
               </div>
+
               {f.type === "physical" && (
                 <p className="text-xs text-muted-foreground">
                   Statut stock : {(Number(f.stock_quantity) || 0) === 0 ? <span className="text-destructive">Rupture</span> : (Number(f.stock_quantity) || 0) <= 5 ? <span className="text-accent">Stock faible</span> : <span className="text-success">En stock</span>}
