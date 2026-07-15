@@ -66,6 +66,8 @@ function ConfirmationPage() {
   const isPaid = order.payment_status === "paid";
   const isFailed = order.payment_status === "failed";
   const isPending = order.payment_status === "pending";
+  const isCash = (order as any).payment_method === "cash_on_pickup";
+  const isPickup = (order as any).delivery_mode === "pickup";
 
   const { user } = useAuth();
   const [dismissedNudge, setDismissedNudge] = useState(false);
