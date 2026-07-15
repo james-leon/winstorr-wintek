@@ -2,7 +2,7 @@ import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-r
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, ShoppingCart, Undo2, Wrench, GraduationCap,
-  Package, FolderTree, Star, Tag, Store, BarChart3, MapPin,
+  Package, FolderTree, Star, Tag, Store, BarChart3, MapPin, Image,
   Menu, ChevronDown,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
