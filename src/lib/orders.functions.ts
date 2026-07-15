@@ -157,6 +157,7 @@ export const createOrder = createServerFn({ method: "POST" })
     }
     const total = Math.max(0, total_before_discount - discountAmount);
 
+    const isCash = data.payment_method === "cash_on_pickup";
     const { data: order, error: oErr } = await supabaseAdmin
       .from("orders")
       .insert({
@@ -170,7 +171,10 @@ export const createOrder = createServerFn({ method: "POST" })
         coupon_code: couponCode,
         total,
         has_physical_items: hasPhysical,
-        shipping_address: data.shipping_address ?? null,
+        shipping_address: deliveryMode === "home_delivery" ? (data.shipping_address ?? null) : null,
+        delivery_mode: deliveryMode,
+        pickup_point_id: deliveryMode === "pickup" ? (data.pickup_point_id ?? null) : null,
+        payment_method: isCash ? "cash_on_pickup" : null,
       })
       .select("id, order_number")
       .single();
@@ -182,7 +186,8 @@ export const createOrder = createServerFn({ method: "POST" })
       .insert(itemsRows.map((r) => ({ ...r, order_id: order.id })));
     if (iErr) throw new Error(iErr.message);
 
-    return { orderId: order.id, orderNumber: order.order_number, total, hasPhysical };
+    return { orderId: order.id, orderNumber: order.order_number, total, hasPhysical, isCash };
+
   });
 
 export const initiatePayment = createServerFn({ method: "POST" })
