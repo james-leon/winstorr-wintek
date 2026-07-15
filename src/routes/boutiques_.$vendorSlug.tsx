@@ -110,7 +110,7 @@ const storefrontQuery = (vendorSlug: string) =>
 
 /* -------------------- route -------------------- */
 
-export const Route = createFileRoute("/boutiques/$vendorSlug")({
+export const Route = createFileRoute("/boutiques_/$vendorSlug")({
   loader: ({ params, context }) =>
     context.queryClient.ensureQueryData(storefrontQuery(params.vendorSlug)),
   head: ({ loaderData }) => {
