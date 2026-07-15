@@ -406,8 +406,9 @@ const SLIDES: Slide[] = [
   },
 ];
 
-function Hero() {
+function Hero({ dbSlides }: { dbSlides: DbBanner[] }) {
   const autoplay = useRef(Autoplay({ delay: 5500, stopOnInteraction: true }));
+  const useDb = dbSlides.length > 0;
   return (
     <section className="bg-primary">
       <Carousel
@@ -416,33 +417,69 @@ function Hero() {
         className="relative"
       >
         <CarouselContent>
-          {SLIDES.map((s, i) => (
-            <CarouselItem key={i}>
-              <Link
-                to={s.to}
-                search={s.search as never}
-                className={cn(
-                  "relative flex min-h-[220px] md:min-h-[300px] w-full items-center bg-gradient-to-br px-4 md:px-10 no-link-color",
-                  s.bg,
-                )}
-              >
-                <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 py-8 text-primary-foreground md:py-12">
-                  <div className="text-[11px] uppercase tracking-[0.16em] text-primary-foreground/75">
-                    {s.eyebrow}
-                  </div>
-                  <h2 className="max-w-2xl text-2xl font-bold leading-tight md:text-4xl">
-                    {s.title}
-                  </h2>
-                  <p className="max-w-xl text-sm text-primary-foreground/85 md:text-base">
-                    {s.sub}
-                  </p>
-                  <span className="mt-2 inline-flex w-max items-center gap-1.5 rounded-sm bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground shadow-sm">
-                    {s.cta} <ArrowRight className="h-4 w-4" />
-                  </span>
-                </div>
-              </Link>
-            </CarouselItem>
-          ))}
+          {useDb
+            ? dbSlides.map((s) => (
+                <CarouselItem key={s.id}>
+                  <Link
+                    to={s.link_url ?? "/catalogue"}
+                    className={cn(
+                      "relative flex min-h-[220px] md:min-h-[300px] w-full items-center overflow-hidden px-4 md:px-10 no-link-color",
+                      !s.image_url && "bg-gradient-to-br from-[#0D2C54] via-[#123f7a] to-[#1A6BB5]",
+                    )}
+                    style={s.background_color && !s.image_url ? { background: s.background_color } : undefined}
+                  >
+                    {s.image_url && (
+                      <>
+                        <img
+                          src={s.image_url}
+                          alt=""
+                          className="absolute inset-0 h-full w-full object-cover"
+                          loading="eager"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
+                      </>
+                    )}
+                    <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-3 py-8 text-primary-foreground md:py-12">
+                      <h2 className="max-w-2xl text-2xl font-bold leading-tight md:text-4xl">{s.title}</h2>
+                      {s.subtitle && (
+                        <p className="max-w-xl text-sm text-primary-foreground/85 md:text-base">{s.subtitle}</p>
+                      )}
+                      {s.cta_label && (
+                        <span className="mt-2 inline-flex w-max items-center gap-1.5 rounded-sm bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground shadow-sm">
+                          {s.cta_label} <ArrowRight className="h-4 w-4" />
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                </CarouselItem>
+              ))
+            : SLIDES.map((s, i) => (
+                <CarouselItem key={i}>
+                  <Link
+                    to={s.to}
+                    search={s.search as never}
+                    className={cn(
+                      "relative flex min-h-[220px] md:min-h-[300px] w-full items-center bg-gradient-to-br px-4 md:px-10 no-link-color",
+                      s.bg,
+                    )}
+                  >
+                    <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 py-8 text-primary-foreground md:py-12">
+                      <div className="text-[11px] uppercase tracking-[0.16em] text-primary-foreground/75">
+                        {s.eyebrow}
+                      </div>
+                      <h2 className="max-w-2xl text-2xl font-bold leading-tight md:text-4xl">
+                        {s.title}
+                      </h2>
+                      <p className="max-w-xl text-sm text-primary-foreground/85 md:text-base">
+                        {s.sub}
+                      </p>
+                      <span className="mt-2 inline-flex w-max items-center gap-1.5 rounded-sm bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground shadow-sm">
+                        {s.cta} <ArrowRight className="h-4 w-4" />
+                      </span>
+                    </div>
+                  </Link>
+                </CarouselItem>
+              ))}
         </CarouselContent>
         <CarouselPrevious className="left-2 md:left-4 bg-background/80 hover:bg-background text-foreground border-border" />
         <CarouselNext className="right-2 md:right-4 bg-background/80 hover:bg-background text-foreground border-border" />
