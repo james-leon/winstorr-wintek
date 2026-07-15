@@ -1,9 +1,11 @@
 import { useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Star, Trash2, Plus, Link as LinkIcon } from "lucide-react";
+import { ArrowLeft, ArrowRight, Star, Trash2, Plus, Link as LinkIcon, Upload, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { uploadProductImage } from "@/lib/image-upload";
 
 type Props = {
   value: string[];
@@ -24,7 +26,31 @@ type Props = {
  */
 export function ImageGalleryManager({ value, onChange }: Props) {
   const [urlInput, setUrlInput] = useState("");
+  const [uploading, setUploading] = useState(0);
+  const [dragOver, setDragOver] = useState(false);
   const dragIdx = useRef<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const uploadFiles = async (files: FileList | File[]) => {
+    const list = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    if (!list.length) return;
+    setUploading((n) => n + list.length);
+    const uploaded: string[] = [];
+    for (const f of list) {
+      try {
+        const url = await uploadProductImage(f);
+        uploaded.push(url);
+      } catch (e) {
+        toast.error(`Échec de l'envoi : ${(e as Error).message}`);
+      } finally {
+        setUploading((n) => n - 1);
+      }
+    }
+    if (uploaded.length) {
+      onChange([...value, ...uploaded]);
+      toast.success(`${uploaded.length} image${uploaded.length > 1 ? "s" : ""} ajoutée${uploaded.length > 1 ? "s" : ""}.`);
+    }
+  };
 
   const add = () => {
     const items = urlInput
@@ -61,9 +87,53 @@ export function ImageGalleryManager({ value, onChange }: Props) {
         </span>
       </div>
 
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragOver(true);
+        }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragOver(false);
+          if (e.dataTransfer.files?.length) uploadFiles(e.dataTransfer.files);
+        }}
+        onClick={() => fileInputRef.current?.click()}
+        role="button"
+        tabIndex={0}
+        className={cn(
+          "flex cursor-pointer flex-col items-center justify-center gap-1 rounded-sm border-2 border-dashed px-3 py-4 text-center text-xs transition",
+          dragOver ? "border-secondary bg-secondary/5" : "border-border bg-muted/40 hover:bg-muted",
+        )}
+      >
+        {uploading > 0 ? (
+          <>
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            <span className="text-muted-foreground">Envoi de {uploading} image{uploading > 1 ? "s" : ""}…</span>
+          </>
+        ) : (
+          <>
+            <Upload className="h-5 w-5 text-muted-foreground" />
+            <span className="font-medium text-foreground">Glissez-déposez vos images ici ou cliquez pour parcourir</span>
+            <span className="text-muted-foreground">JPG, PNG, WEBP — redimensionnées automatiquement en carré (1000×1000)</span>
+          </>
+        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={(e) => {
+            if (e.target.files?.length) uploadFiles(e.target.files);
+            e.target.value = "";
+          }}
+        />
+      </div>
+
       {value.length === 0 && (
-        <p className="rounded-sm border border-dashed border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-          Ajoutez plusieurs photos pour rassurer vos clients — angles différents, emballage, détails. 3 à 4 photos minimum recommandées.
+        <p className="text-xs text-muted-foreground">
+          Astuce : 3 à 4 photos minimum (angles différents, emballage, détails).
         </p>
       )}
 
@@ -146,7 +216,7 @@ export function ImageGalleryManager({ value, onChange }: Props) {
 
       <div className="flex items-end gap-2 pt-1">
         <div className="flex-1">
-          <Label className="text-xs text-muted-foreground">Ajouter une ou plusieurs URLs (une par ligne ou séparées par un espace)</Label>
+          <Label className="text-xs text-muted-foreground">Ou coller une URL externe (une par ligne)</Label>
           <div className="relative">
             <LinkIcon className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
