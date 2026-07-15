@@ -740,18 +740,24 @@ function Home() {
     .slice()
     .sort((a, b) => b.products.length - a.products.length);
 
+  const banners = data.banners ?? [];
+  const heroSlides = banners.filter((b) => b.type === "hero_slide");
+  const dbPromo = banners.filter((b) => b.type === "promo_tile");
+  const dbCategoryTiles = banners.filter((b) => b.type === "category_tile");
+
   return (
     <div className="bg-background">
-      <Hero />
+      <Hero dbSlides={heroSlides} />
       <TrustStrip />
 
       {/* Primary promo mosaic */}
       <section className="mx-auto max-w-7xl px-4 pt-5">
-        <PromoTiles tiles={PRIMARY_PROMO} />
+        <PromoTiles tiles={PRIMARY_PROMO} dbTiles={dbPromo} />
       </section>
 
       {/* Category mosaic — dynamic */}
-      <CategoryMosaic cats={cats} />
+      <CategoryMosaic cats={cats} dbTiles={dbCategoryTiles} />
+
 
       {/* Nouveautés */}
       <section className="mx-auto max-w-7xl px-4 pt-6">
