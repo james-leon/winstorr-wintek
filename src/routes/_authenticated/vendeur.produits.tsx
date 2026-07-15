@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { TypeBadge } from "@/components/type-badge";
 import { displayPrice, slugify, PRODUCT_TYPE_LABELS, type ProductType } from "@/lib/format";
+import { ImageGalleryManager } from "@/components/image-gallery-manager";
 import { useMyVendors } from "@/lib/vendor";
 
 export const Route = createFileRoute("/_authenticated/vendeur/produits")({
@@ -123,7 +124,7 @@ type FormState = {
   short_description: string; description: string;
   price: string; price_type: "fixed" | "starting_at" | "quote_only";
   stock_quantity: string; featured: boolean;
-  images: string;
+  images: string[];
   warranty_duration: string;
   source_type: string;
   delivery_type: string; service_area: string; estimated_duration: string; delivery_mode: string;
@@ -137,7 +138,7 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
     short_description: "", description: "",
     price: row?.price?.toString() ?? "", price_type: row?.price_type ?? "fixed",
     stock_quantity: row?.stock_quantity?.toString() ?? "", featured: row?.featured ?? false,
-    images: "",
+    images: [],
     warranty_duration: "",
     source_type: "",
     delivery_type: "", service_area: "", estimated_duration: "", delivery_mode: "",
@@ -151,7 +152,7 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
         ...prev,
         short_description: data.short_description ?? "",
         description: data.description ?? "",
-        images: Array.isArray(data.images) ? (data.images as string[]).join("\n") : "",
+        images: Array.isArray(data.images) ? (data.images as string[]) : [],
         warranty_duration: data.warranty_duration ?? "",
         source_type: data.source_type ?? "",
         delivery_type: data.delivery_type ?? "",
@@ -176,7 +177,7 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
         price_type: f.price_type,
         stock_quantity: f.type === "physical" && f.stock_quantity ? Number(f.stock_quantity) : null,
         featured: f.featured,
-        images: f.images.split("\n").map((s) => s.trim()).filter(Boolean),
+        images: f.images.map((s) => s.trim()).filter(Boolean),
         warranty_duration: f.type === "physical" && f.warranty_duration ? f.warranty_duration : null,
         source_type: f.type === "physical" && f.source_type ? (f.source_type as "direct_import" | "authorized_wholesaler" | "other") : null,
         delivery_type: f.type === "digital" && f.delivery_type ? (f.delivery_type as "file_download" | "license_key" | "access_link") : null,
@@ -241,7 +242,7 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
 
           <div><Label>Description courte</Label><Input value={f.short_description} onChange={(e) => setF({ ...f, short_description: e.target.value })} /></div>
           <div><Label>Description complète</Label><Textarea rows={4} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></div>
-          <div><Label>Images (une URL par ligne)</Label><Textarea rows={3} value={f.images} onChange={(e) => setF({ ...f, images: e.target.value })} placeholder="https://..." /></div>
+          <ImageGalleryManager value={f.images} onChange={(next) => setF({ ...f, images: next })} />
 
           <div className="grid gap-3 sm:grid-cols-3">
             <div>
