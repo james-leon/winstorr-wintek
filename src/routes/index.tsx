@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { RecentlyViewedShelf } from "@/components/recently-viewed-shelf";
+
 import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useRef } from "react";
 import Autoplay from "embla-carousel-autoplay";
@@ -756,8 +758,12 @@ function Home() {
           ))}
         </div>
       </section>
+      <div className="mx-auto max-w-7xl px-4">
+        <RecentlyViewedShelf />
+      </div>
     </div>
   );
+
 }
 
 /* Silence unused imports typecheck (kept for potential reuse) */
