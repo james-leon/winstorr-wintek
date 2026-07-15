@@ -116,7 +116,14 @@ function AdminOrdersPage() {
                 <td className="p-2">{o.customer_name}<div className="text-xs text-muted-foreground">{o.customer_phone}</div></td>
                 <td className="p-2 font-bold text-accent">{formatFcfa(Number(o.total))}</td>
                 <td className="p-2"><span className={cn("rounded-sm px-2 py-0.5 text-xs", o.status === "paid" || o.status === "delivered" ? "bg-success/10 text-success" : o.status === "payment_failed" || o.status === "cancelled" ? "bg-destructive/10 text-destructive" : "bg-muted")}>{STATUS_LABEL[o.status]}</span></td>
-                <td className="p-2 text-xs">{o.payment_status}</td>
+                <td className="p-2 text-xs">
+                  {o.payment_status}
+                  {o.payment_method === "cash_on_pickup" && (
+                    <span className="ml-1 inline-flex items-center gap-0.5 rounded-sm bg-accent/10 text-accent px-1 py-0.5 text-[10px] font-medium">
+                      <Wallet className="h-2.5 w-2.5" /> espèces
+                    </span>
+                  )}
+                </td>
                 <td className="p-2 text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("fr-FR")}</td>
                 <td className="p-2"><Button size="sm" variant="outline" onClick={() => { setSelected(o); setNewStatus(o.status); setNotes(o.notes || ""); }}>Détails</Button></td>
               </tr>
