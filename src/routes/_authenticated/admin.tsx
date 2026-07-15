@@ -36,6 +36,10 @@ const NAV_GROUPS: NavGroup[] = [
   ]},
   { label: "Vendeurs", items: [
     { to: "/admin/vendeurs", label: "Tous les vendeurs", icon: Store },
+    { to: "/admin/commissions", label: "Commissions", icon: Tag },
+    { to: "/admin/retraits", label: "Retraits", icon: BarChart3 },
+    { to: "/admin/annonces-vendeurs", label: "Annonces", icon: Star },
+    { to: "/admin/questions", label: "Questions produits", icon: FolderTree },
   ]},
   { label: "Analytique", items: [
     { to: "/admin/analytics", label: "Rapports", icon: BarChart3 },
