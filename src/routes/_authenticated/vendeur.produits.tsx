@@ -256,10 +256,13 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="draft">Brouillon</SelectItem>
-                  <SelectItem value="active">Actif</SelectItem>
+                  <SelectItem value="active">Soumettre pour validation</SelectItem>
                   <SelectItem value="archived">Archivé</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Les produits soumis passent en revue par l'équipe Winstorr avant publication.
+              </p>
             </div>
             <div className="flex items-end gap-2">
               <input id="feat" type="checkbox" checked={f.featured} onChange={(e) => setF({ ...f, featured: e.target.checked })} />
