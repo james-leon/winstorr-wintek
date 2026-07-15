@@ -1,6 +1,9 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { pushRecentlyViewed } from "@/lib/recently-viewed";
+import { RecentlyViewedShelf } from "@/components/recently-viewed-shelf";
+
 import { toast } from "sonner";
 import { ChevronLeft, MapPin, Calendar, Clock, Package, Download, ShieldCheck, Truck, BadgeCheck, Heart } from "lucide-react";
 import { useWishlistIds, useToggleWishlist } from "@/lib/wishlist";
@@ -156,8 +159,13 @@ function ProductDetail() {
   const { data: p } = useSuspenseQuery(productQuery(slug));
   const [activeImg, setActiveImg] = useState(0);
 
+  useEffect(() => {
+    if (p?.id) pushRecentlyViewed(p.id);
+  }, [p?.id]);
+
   return (
     <div className="mx-auto max-w-6xl px-3 py-4">
+
       <Link to="/catalogue" className="mb-3 inline-flex items-center gap-1 text-xs text-secondary hover:underline">
         <ChevronLeft className="h-3.5 w-3.5" /> Retour au catalogue
       </Link>
