@@ -247,6 +247,8 @@ function ProductDetail() {
       </div>
 
       <ReviewsSection productId={p.id} rating={Number(p.rating_average)} count={p.rating_count} />
+      <RecentlyViewedShelf excludeId={p.id} />
+
     </div>
   );
 }
