@@ -11,6 +11,11 @@ const TABS = [
   { to: "/vendeur/tableau-de-bord", label: "Tableau de bord" },
   { to: "/vendeur/produits", label: "Produits" },
   { to: "/vendeur/commandes", label: "Commandes" },
+  { to: "/vendeur/boutique", label: "Ma boutique" },
+  { to: "/vendeur/revenus", label: "Revenus" },
+  { to: "/vendeur/codes-promo", label: "Codes promo" },
+  { to: "/vendeur/questions", label: "Questions" },
+  { to: "/vendeur/annonces", label: "Annonces" },
 ];
 
 function VendorLayout() {
