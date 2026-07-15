@@ -18,7 +18,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProduitsSlugRouteImport } from './routes/produits.$slug'
-import { Route as BoutiquesVendorSlugRouteImport } from './routes/boutiques.$vendorSlug'
+import { Route as BoutiquesVendorSlugRouteImport } from './routes/boutiques_.$vendorSlug'
 import { Route as AuthenticatedVendeurRouteImport } from './routes/_authenticated/vendeur'
 import { Route as AuthenticatedMonCompteRouteImport } from './routes/_authenticated/mon-compte'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -101,9 +101,9 @@ const ProduitsSlugRoute = ProduitsSlugRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const BoutiquesVendorSlugRoute = BoutiquesVendorSlugRouteImport.update({
-  id: '/$vendorSlug',
-  path: '/$vendorSlug',
-  getParentRoute: () => BoutiquesRoute,
+  id: '/boutiques_/$vendorSlug',
+  path: '/boutiques/$vendorSlug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedVendeurRoute = AuthenticatedVendeurRouteImport.update({
   id: '/vendeur',
@@ -319,7 +319,7 @@ const AuthenticatedMonCompteCommandesOrderNumberRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/boutiques': typeof BoutiquesRouteWithChildren
+  '/boutiques': typeof BoutiquesRoute
   '/catalogue': typeof CatalogueRoute
   '/commande': typeof CommandeRouteWithChildren
   '/panier': typeof PanierRoute
@@ -366,7 +366,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/boutiques': typeof BoutiquesRouteWithChildren
+  '/boutiques': typeof BoutiquesRoute
   '/catalogue': typeof CatalogueRoute
   '/commande': typeof CommandeRouteWithChildren
   '/panier': typeof PanierRoute
@@ -413,7 +413,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/boutiques': typeof BoutiquesRouteWithChildren
+  '/boutiques': typeof BoutiquesRoute
   '/catalogue': typeof CatalogueRoute
   '/commande': typeof CommandeRouteWithChildren
   '/panier': typeof PanierRoute
@@ -421,7 +421,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/mon-compte': typeof AuthenticatedMonCompteRouteWithChildren
   '/_authenticated/vendeur': typeof AuthenticatedVendeurRouteWithChildren
-  '/boutiques/$vendorSlug': typeof BoutiquesVendorSlugRoute
+  '/boutiques_/$vendorSlug': typeof BoutiquesVendorSlugRoute
   '/produits/$slug': typeof ProduitsSlugRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/admin/annonces-vendeurs': typeof AuthenticatedAdminAnnoncesVendeursRoute
@@ -563,7 +563,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/mon-compte'
     | '/_authenticated/vendeur'
-    | '/boutiques/$vendorSlug'
+    | '/boutiques_/$vendorSlug'
     | '/produits/$slug'
     | '/_authenticated/admin/analytics'
     | '/_authenticated/admin/annonces-vendeurs'
@@ -604,11 +604,12 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
-  BoutiquesRoute: typeof BoutiquesRouteWithChildren
+  BoutiquesRoute: typeof BoutiquesRoute
   CatalogueRoute: typeof CatalogueRoute
   CommandeRoute: typeof CommandeRouteWithChildren
   PanierRoute: typeof PanierRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  BoutiquesVendorSlugRoute: typeof BoutiquesVendorSlugRoute
   ProduitsSlugRoute: typeof ProduitsSlugRoute
   ApiPublicCinetpayWebhookRoute: typeof ApiPublicCinetpayWebhookRoute
   VendeurInvitationTokenRoute: typeof VendeurInvitationTokenRoute
@@ -679,12 +680,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProduitsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/boutiques/$vendorSlug': {
-      id: '/boutiques/$vendorSlug'
-      path: '/$vendorSlug'
+    '/boutiques_/$vendorSlug': {
+      id: '/boutiques_/$vendorSlug'
+      path: '/boutiques/$vendorSlug'
       fullPath: '/boutiques/$vendorSlug'
       preLoaderRoute: typeof BoutiquesVendorSlugRouteImport
-      parentRoute: typeof BoutiquesRoute
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/vendeur': {
       id: '/_authenticated/vendeur'
@@ -1063,18 +1064,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
-interface BoutiquesRouteChildren {
-  BoutiquesVendorSlugRoute: typeof BoutiquesVendorSlugRoute
-}
-
-const BoutiquesRouteChildren: BoutiquesRouteChildren = {
-  BoutiquesVendorSlugRoute: BoutiquesVendorSlugRoute,
-}
-
-const BoutiquesRouteWithChildren = BoutiquesRoute._addFileChildren(
-  BoutiquesRouteChildren,
-)
-
 interface CommandeRouteChildren {
   CommandeOrderNumberConfirmationRoute: typeof CommandeOrderNumberConfirmationRoute
 }
@@ -1091,11 +1080,12 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
-  BoutiquesRoute: BoutiquesRouteWithChildren,
+  BoutiquesRoute: BoutiquesRoute,
   CatalogueRoute: CatalogueRoute,
   CommandeRoute: CommandeRouteWithChildren,
   PanierRoute: PanierRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  BoutiquesVendorSlugRoute: BoutiquesVendorSlugRoute,
   ProduitsSlugRoute: ProduitsSlugRoute,
   ApiPublicCinetpayWebhookRoute: ApiPublicCinetpayWebhookRoute,
   VendeurInvitationTokenRoute: VendeurInvitationTokenRoute,
@@ -1103,3 +1093,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
