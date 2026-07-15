@@ -97,7 +97,7 @@ function ConfirmationPage() {
               </p>
               <div className="mt-2 flex gap-2">
                 <Button asChild size="sm" variant="outline" className="h-8">
-                  <Link to="/auth" search={{ email: order.customer_email ?? undefined } as never}>Créer mon compte</Link>
+                  <Link to="/auth">Créer mon compte</Link>
                 </Button>
                 <Button size="sm" variant="ghost" className="h-8" onClick={() => setDismissedNudge(true)}>
                   Plus tard
