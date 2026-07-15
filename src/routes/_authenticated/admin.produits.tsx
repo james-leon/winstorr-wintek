@@ -419,7 +419,7 @@ type FormState = {
   vendor_id: string; category_id: string;
   short_description: string; description: string;
   price: string; price_type: "fixed" | "starting_at" | "quote_only";
-  stock_quantity: string; sku: string; min_order_quantity: string; featured: boolean;
+  stock_quantity: string; sku: string; featured: boolean;
   images: string[];
   quality_verified: boolean;
   warranty_duration: string;
@@ -438,7 +438,7 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
     category_id: row?.category_id ?? "none",
     short_description: "", description: "",
     price: row?.price?.toString() ?? "", price_type: row?.price_type ?? "fixed",
-    stock_quantity: row?.stock_quantity?.toString() ?? "", sku: row?.sku ?? "", min_order_quantity: "",
+    stock_quantity: row?.stock_quantity?.toString() ?? "", sku: row?.sku ?? "",
     featured: row?.featured ?? false,
     images: row?.images ?? [],
     quality_verified: row?.quality_verified ?? false,
@@ -458,7 +458,6 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
         description: data.description ?? "",
         images: Array.isArray(data.images) ? (data.images as string[]) : [],
         sku: data.sku ?? "",
-        min_order_quantity: data.min_order_quantity?.toString() ?? "",
         warranty_duration: data.warranty_duration ?? "",
         source_type: data.source_type ?? "",
         delivery_type: data.delivery_type ?? "",
@@ -496,7 +495,6 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
         price_type: f.price_type,
         stock_quantity: f.type === "physical" && f.stock_quantity ? Number(f.stock_quantity) : null,
         sku: f.sku.trim() || null,
-        min_order_quantity: f.min_order_quantity ? Number(f.min_order_quantity) : null,
         featured: f.featured,
         images: f.images.map((s) => s.trim()).filter(Boolean),
         quality_verified: f.quality_verified,
