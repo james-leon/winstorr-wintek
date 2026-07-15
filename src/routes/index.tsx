@@ -1,5 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { RecentlyViewedShelf } from "@/components/recently-viewed-shelf";
+import { supabase as supabaseClient } from "@/integrations/supabase/client";
+import { Store as StoreIcon, ShieldCheck as ShieldCheckIcon } from "lucide-react";
+
 
 import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useRef } from "react";
@@ -715,17 +718,105 @@ function Home() {
       </section>
 
       {/* Qualité vérifiée */}
-      <section className="mx-auto max-w-7xl px-4 pt-6 pb-10">
+      <section className="mx-auto max-w-7xl px-4 pt-6">
         <SectionHeader title="Qualité vérifiée par Wintek" to="/catalogue" search={{ verified: true }} />
         <Shelf items={data.verified} />
       </section>
 
-      <div className="mx-auto max-w-7xl px-4">
+      {/* Boutiques populaires — gated ≥6 vendors with products */}
+      <PopularStoresShelf />
+
+      <div className="mx-auto max-w-7xl px-4 pt-8">
+
         <RecentlyViewedShelf />
       </div>
     </div>
   );
 }
+
+/* Popular stores shelf — gated to ≥6 vendors with active products.
+   Uses a separate lightweight query so it doesn't block the main homepage. */
+const popularStoresQuery = queryOptions({
+  queryKey: ["home-popular-stores-v1"],
+  queryFn: async () => {
+    const [vendorsRes, productsRes] = await Promise.all([
+      supabaseClient
+        .from("vendors")
+        .select("id, slug, name, type, logo_url, description, boost_score, pinned_until, created_at")
+        .eq("status", "active"),
+      supabaseClient.from("products").select("vendor_id, rating_count, rating_average").eq("status", "active"),
+    ]);
+    if (vendorsRes.error) throw vendorsRes.error;
+    if (productsRes.error) throw productsRes.error;
+    const stats = new Map<string, { count: number; ratingSum: number; ratingCountSum: number }>();
+    for (const p of productsRes.data ?? []) {
+      if (!p.vendor_id) continue;
+      const s = stats.get(p.vendor_id) ?? { count: 0, ratingSum: 0, ratingCountSum: 0 };
+      s.count += 1;
+      const rc = Number(p.rating_count ?? 0);
+      s.ratingSum += Number(p.rating_average ?? 0) * rc;
+      s.ratingCountSum += rc;
+      stats.set(p.vendor_id, s);
+    }
+    const withProducts = (vendorsRes.data ?? []).filter((v) => (stats.get(v.id)?.count ?? 0) > 0);
+    return withProducts
+      .map((v) => {
+        const s = stats.get(v.id)!;
+        return {
+          id: v.id,
+          slug: v.slug,
+          name: v.name,
+          type: v.type as "internal" | "external",
+          logo_url: v.logo_url as string | null,
+          description: v.description as string | null,
+          boost_score: Number(v.boost_score ?? 0),
+          product_count: s.count,
+          rating: s.ratingCountSum > 0 ? (s.ratingSum + 5 * 3.5) / (s.ratingCountSum + 5) : 3.5,
+        };
+      })
+      .sort((a, b) => b.boost_score - a.boost_score)
+      .slice(0, 10);
+  },
+  staleTime: 5 * 60_000,
+});
+
+function PopularStoresShelf() {
+  const { data = [] } = useQuery(popularStoresQuery);
+  if (data.length < 6) return null;
+  return (
+    <section className="mx-auto max-w-7xl px-4 pt-6">
+      <SectionHeader title="Boutiques populaires" to="/boutiques" />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        {data.map((v) => (
+          <Link
+            key={v.id}
+            to="/boutiques/$vendorSlug"
+            params={{ vendorSlug: v.slug }}
+            className="group flex items-center gap-3 rounded-sm border border-border bg-card p-3 no-link-color hover:border-secondary/60"
+          >
+            <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-sm border border-border bg-background text-primary">
+              {v.logo_url ? (
+                <img src={v.logo_url} alt="" className="h-full w-full object-cover" loading="lazy" />
+              ) : (
+                <StoreIcon className="h-5 w-5" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1">
+                <div className="truncate text-sm font-bold text-foreground group-hover:text-secondary">{v.name}</div>
+                {v.type === "internal" && <ShieldCheckIcon className="h-3 w-3 shrink-0 text-secondary" />}
+              </div>
+              <div className="mt-0.5 text-[11px] text-muted-foreground">
+                ★ {v.rating.toFixed(1)} · {v.product_count} produit{v.product_count > 1 ? "s" : ""}
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 
 /* Silence unused imports typecheck (kept for potential reuse) */
 void formatFcfa;

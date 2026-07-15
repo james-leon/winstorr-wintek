@@ -13,10 +13,12 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as PanierRouteImport } from './routes/panier'
 import { Route as CommandeRouteImport } from './routes/commande'
 import { Route as CatalogueRouteImport } from './routes/catalogue'
+import { Route as BoutiquesRouteImport } from './routes/boutiques'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProduitsSlugRouteImport } from './routes/produits.$slug'
+import { Route as BoutiquesVendorSlugRouteImport } from './routes/boutiques.$vendorSlug'
 import { Route as AuthenticatedVendeurRouteImport } from './routes/_authenticated/vendeur'
 import { Route as AuthenticatedMonCompteRouteImport } from './routes/_authenticated/mon-compte'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -65,6 +67,11 @@ const CatalogueRoute = CatalogueRouteImport.update({
   path: '/catalogue',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BoutiquesRoute = BoutiquesRouteImport.update({
+  id: '/boutiques',
+  path: '/boutiques',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -83,6 +90,11 @@ const ProduitsSlugRoute = ProduitsSlugRouteImport.update({
   id: '/produits/$slug',
   path: '/produits/$slug',
   getParentRoute: () => rootRouteImport,
+} as any)
+const BoutiquesVendorSlugRoute = BoutiquesVendorSlugRouteImport.update({
+  id: '/$vendorSlug',
+  path: '/$vendorSlug',
+  getParentRoute: () => BoutiquesRoute,
 } as any)
 const AuthenticatedVendeurRoute = AuthenticatedVendeurRouteImport.update({
   id: '/vendeur',
@@ -244,6 +256,7 @@ const AuthenticatedMonCompteCommandesOrderNumberRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/boutiques': typeof BoutiquesRouteWithChildren
   '/catalogue': typeof CatalogueRoute
   '/commande': typeof CommandeRouteWithChildren
   '/panier': typeof PanierRoute
@@ -251,6 +264,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/mon-compte': typeof AuthenticatedMonCompteRouteWithChildren
   '/vendeur': typeof AuthenticatedVendeurRouteWithChildren
+  '/boutiques/$vendorSlug': typeof BoutiquesVendorSlugRoute
   '/produits/$slug': typeof ProduitsSlugRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/avis': typeof AuthenticatedAdminAvisRoute
@@ -280,11 +294,13 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/boutiques': typeof BoutiquesRouteWithChildren
   '/catalogue': typeof CatalogueRoute
   '/commande': typeof CommandeRouteWithChildren
   '/panier': typeof PanierRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vendeur': typeof AuthenticatedVendeurRouteWithChildren
+  '/boutiques/$vendorSlug': typeof BoutiquesVendorSlugRoute
   '/produits/$slug': typeof ProduitsSlugRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/avis': typeof AuthenticatedAdminAvisRoute
@@ -316,6 +332,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/boutiques': typeof BoutiquesRouteWithChildren
   '/catalogue': typeof CatalogueRoute
   '/commande': typeof CommandeRouteWithChildren
   '/panier': typeof PanierRoute
@@ -323,6 +340,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/mon-compte': typeof AuthenticatedMonCompteRouteWithChildren
   '/_authenticated/vendeur': typeof AuthenticatedVendeurRouteWithChildren
+  '/boutiques/$vendorSlug': typeof BoutiquesVendorSlugRoute
   '/produits/$slug': typeof ProduitsSlugRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/admin/avis': typeof AuthenticatedAdminAvisRoute
@@ -354,6 +372,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/boutiques'
     | '/catalogue'
     | '/commande'
     | '/panier'
@@ -361,6 +380,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/mon-compte'
     | '/vendeur'
+    | '/boutiques/$vendorSlug'
     | '/produits/$slug'
     | '/admin/analytics'
     | '/admin/avis'
@@ -390,11 +410,13 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/boutiques'
     | '/catalogue'
     | '/commande'
     | '/panier'
     | '/sitemap.xml'
     | '/vendeur'
+    | '/boutiques/$vendorSlug'
     | '/produits/$slug'
     | '/admin/analytics'
     | '/admin/avis'
@@ -425,6 +447,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/boutiques'
     | '/catalogue'
     | '/commande'
     | '/panier'
@@ -432,6 +455,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/mon-compte'
     | '/_authenticated/vendeur'
+    | '/boutiques/$vendorSlug'
     | '/produits/$slug'
     | '/_authenticated/admin/analytics'
     | '/_authenticated/admin/avis'
@@ -463,6 +487,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  BoutiquesRoute: typeof BoutiquesRouteWithChildren
   CatalogueRoute: typeof CatalogueRoute
   CommandeRoute: typeof CommandeRouteWithChildren
   PanierRoute: typeof PanierRoute
@@ -502,6 +527,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CatalogueRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/boutiques': {
+      id: '/boutiques'
+      path: '/boutiques'
+      fullPath: '/boutiques'
+      preLoaderRoute: typeof BoutiquesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -529,6 +561,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/produits/$slug'
       preLoaderRoute: typeof ProduitsSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/boutiques/$vendorSlug': {
+      id: '/boutiques/$vendorSlug'
+      path: '/$vendorSlug'
+      fullPath: '/boutiques/$vendorSlug'
+      preLoaderRoute: typeof BoutiquesVendorSlugRouteImport
+      parentRoute: typeof BoutiquesRoute
     }
     '/_authenticated/vendeur': {
       id: '/_authenticated/vendeur'
@@ -825,6 +864,18 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface BoutiquesRouteChildren {
+  BoutiquesVendorSlugRoute: typeof BoutiquesVendorSlugRoute
+}
+
+const BoutiquesRouteChildren: BoutiquesRouteChildren = {
+  BoutiquesVendorSlugRoute: BoutiquesVendorSlugRoute,
+}
+
+const BoutiquesRouteWithChildren = BoutiquesRoute._addFileChildren(
+  BoutiquesRouteChildren,
+)
+
 interface CommandeRouteChildren {
   CommandeOrderNumberConfirmationRoute: typeof CommandeOrderNumberConfirmationRoute
 }
@@ -841,6 +892,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  BoutiquesRoute: BoutiquesRouteWithChildren,
   CatalogueRoute: CatalogueRoute,
   CommandeRoute: CommandeRouteWithChildren,
   PanierRoute: PanierRoute,

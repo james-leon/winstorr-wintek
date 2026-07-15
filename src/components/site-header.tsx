@@ -239,7 +239,14 @@ export function SiteHeader() {
               {n.label}
             </Link>
           ))}
+          <Link
+            to="/boutiques"
+            className="px-3 py-1.5 text-xs font-medium text-background/85 hover:text-background hover:bg-background/10 no-link-color whitespace-nowrap"
+          >
+            Nos boutiques
+          </Link>
           <span className="mx-1 h-4 w-px bg-background/20" />
+
           {topCategories.slice(0, 6).map((c) => (
             <Link
               key={c.id}
@@ -275,9 +282,17 @@ export function SiteHeader() {
               {n.label}
             </Link>
           ))}
+          <Link
+            to="/boutiques"
+            onClick={() => setMobileOpen(false)}
+            className="rounded-sm px-3 py-2 text-sm hover:bg-background/10 no-link-color"
+          >
+            Nos boutiques
+          </Link>
           {topCategories.length > 0 && (
             <>
               <div className="mt-2 px-3 text-[10px] font-semibold uppercase tracking-wide text-background/60">Catégories</div>
+
               {topCategories.map((c) => (
                 <Link
                   key={c.id}

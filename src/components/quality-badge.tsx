@@ -1,4 +1,5 @@
 import { ShieldCheck, Store } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 
 /**
@@ -30,20 +31,38 @@ export function QualityBadge({
 
 export function VendorLine({
   name,
+  slug,
   internal,
   className,
 }: {
   name: string;
+  slug?: string;
   internal?: boolean;
   className?: string;
 }) {
-  return (
-    <div className={cn("inline-flex items-center gap-1.5 text-xs text-muted-foreground", className)}>
+  const inner = (
+    <>
       <Store className="h-3.5 w-3.5" />
       <span>
-        Vendu par <span className="font-medium text-foreground">{name}</span>
+        Vendu par{" "}
+        <span className={cn("font-medium", slug ? "text-secondary group-hover:underline" : "text-foreground")}>
+          {name}
+        </span>
         {internal && <span className="ml-1 text-secondary">· Officiel</span>}
       </span>
-    </div>
+    </>
   );
+  const base = "inline-flex items-center gap-1.5 text-xs text-muted-foreground";
+  if (slug) {
+    return (
+      <Link
+        to="/boutiques/$vendorSlug"
+        params={{ vendorSlug: slug }}
+        className={cn(base, "group no-link-color", className)}
+      >
+        {inner}
+      </Link>
+    );
+  }
+  return <div className={cn(base, className)}>{inner}</div>;
 }
