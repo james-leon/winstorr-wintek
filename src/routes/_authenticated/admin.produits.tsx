@@ -32,6 +32,16 @@ type Row = {
   rating_average: number; rating_count: number;
   images: string[] | null; sku: string | null;
   created_at: string;
+  rejection_reason: string | null;
+  reviewed_at: string | null;
+};
+
+const STATUS_META: Record<string, { label: string; cls: string }> = {
+  draft:          { label: "Brouillon",  cls: "bg-secondary/15 text-secondary" },
+  pending_review: { label: "En attente", cls: "bg-accent/15 text-accent" },
+  active:         { label: "Actif",      cls: "bg-success/15 text-success" },
+  rejected:       { label: "Rejeté",     cls: "bg-destructive/15 text-destructive" },
+  archived:       { label: "Archivé",    cls: "bg-muted text-muted-foreground" },
 };
 
 type SortKey = "name" | "price" | "stock_quantity" | "status" | "created_at";
