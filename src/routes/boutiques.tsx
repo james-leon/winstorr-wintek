@@ -5,12 +5,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
 
 /* -------------------- types & search -------------------- */
 
 type SortKey = "popular" | "rating" | "recent" | "name";
+
+const searchSchema = z.object({
+  q: z.string().trim().min(1).optional().catch(undefined),
+  sort: z.enum(["popular", "rating", "recent", "name"]).optional().catch(undefined),
+  page: z.coerce.number().int().min(1).optional().catch(undefined),
+});
+type BoutiquesSearch = z.infer<typeof searchSchema>;
+
 
 const searchSchema = z.object({
   q: z.string().trim().min(1).optional().catch(undefined),
