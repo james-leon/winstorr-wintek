@@ -242,19 +242,24 @@ function Catalogue() {
         <div className={cn("md:block", filtersOpen ? "block" : "hidden")}>{Sidebar}</div>
         <div>
           {isLoading ? (
-            <div className="py-12 text-center text-sm text-muted-foreground">Chargement…</div>
+            <ProductCardSkeletonGrid count={10} />
           ) : products.length === 0 ? (
-            <div className="rounded-sm border border-dashed border-border bg-muted/30 p-10 text-center">
-              <p className="text-sm text-muted-foreground">Aucun produit ne correspond à ces filtres.</p>
-              <Button variant="link" onClick={clear} asChild>
-                <Link to="/catalogue">Voir tous les produits</Link>
-              </Button>
-            </div>
+            <EmptyState
+              icon={SlidersHorizontal}
+              title="Aucun produit ne correspond à ces filtres"
+              description="Essayez d'élargir votre recherche ou de réinitialiser les filtres."
+              action={
+                <Button variant="outline" onClick={clear}>
+                  Réinitialiser les filtres
+                </Button>
+              }
+            />
           ) : (
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {products.map((p) => <ProductCard key={p.id} p={p} />)}
             </div>
           )}
+
         </div>
       </div>
     </div>
