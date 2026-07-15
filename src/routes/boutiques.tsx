@@ -124,7 +124,7 @@ const directoryQuery = queryOptions({
 /* -------------------- route -------------------- */
 
 export const Route = createFileRoute("/boutiques")({
-  validateSearch: zodValidator(searchSchema),
+  validateSearch: (raw: Record<string, unknown>): BoutiquesSearch => searchSchema.parse(raw),
   loader: ({ context }) => context.queryClient.ensureQueryData(directoryQuery),
   head: () => {
     const title = "Nos boutiques — Vendeurs vérifiés du marketplace Winstorr";
@@ -147,13 +147,14 @@ export const Route = createFileRoute("/boutiques")({
       <EmptyState
         title="Impossible de charger les boutiques"
         description={error.message}
-        icon={<StoreIcon className="h-8 w-8" />}
+        icon={StoreIcon}
+
       />
     </div>
   ),
   notFoundComponent: () => (
     <div className="mx-auto max-w-3xl p-8">
-      <EmptyState title="Aucune boutique" icon={<StoreIcon className="h-8 w-8" />} />
+      <EmptyState title="Aucune boutique" icon={StoreIcon} />
     </div>
   ),
 });
@@ -219,7 +220,7 @@ function BoutiquesDirectory() {
   const setSearch = (patch: Partial<{ q: string | undefined; sort: SortKey | undefined; page: number | undefined }>) => {
     void navigate({
       to: "/boutiques",
-      search: (prev) => {
+      search: (prev: Record<string, unknown>) => {
         const next: Record<string, unknown> = { ...prev, ...patch };
         // Reset page whenever filter/sort changes
         if ("q" in patch || "sort" in patch) delete next.page;
@@ -290,7 +291,7 @@ function BoutiquesDirectory() {
           <EmptyState
             title="Aucune boutique ne correspond"
             description="Essayez d’autres mots-clés ou changez de tri."
-            icon={<StoreIcon className="h-8 w-8" />}
+            icon={StoreIcon}
           />
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
