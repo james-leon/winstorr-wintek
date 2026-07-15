@@ -153,7 +153,7 @@ function ConfirmationPage() {
           </div>
         )}
 
-        {isPending && (
+        {isPending && !isCash && (
           <div className="mt-4 space-y-2">
             <p className="text-sm text-muted-foreground">Nous vérifions votre paiement automatiquement. Cette page se met à jour toute seule.</p>
             {import.meta.env.DEV && (
