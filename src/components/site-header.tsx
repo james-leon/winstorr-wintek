@@ -36,19 +36,23 @@ export function SiteHeader() {
   const [cat, setCat] = useState<CatSel>("all");
 
   const { data: topCategories = [] } = useQuery({
-    queryKey: ["header-top-categories"],
+    queryKey: ["header-top-categories-v2"],
     queryFn: async () => {
+      // Only truly top-level "department" categories (display_order >= 20)
+      // — excludes legacy subcategory-like entries (Téléphones, Logiciels, etc.)
       const { data } = await supabase
         .from("categories")
         .select("id,name,slug,product_type,parent_id,display_order,status")
         .is("parent_id", null)
         .eq("status", "active")
+        .gte("display_order", 20)
         .order("display_order", { ascending: true })
         .limit(8);
       return data ?? [];
     },
     staleTime: 5 * 60_000,
   });
+
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -240,7 +244,7 @@ export function SiteHeader() {
             </Link>
             <span className="mx-1 h-4 w-px bg-white/20" />
 
-            {topCategories.slice(0, 6).map((c) => (
+            {topCategories.slice(0, 3).map((c) => (
               <Link
                 key={c.id}
                 to="/catalogue"
@@ -250,9 +254,29 @@ export function SiteHeader() {
                 {c.name}
               </Link>
             ))}
+            {topCategories.length > 3 && (
+              <details className="relative">
+                <summary className="cursor-pointer list-none px-3 py-1.5 text-xs text-white/75 hover:text-white hover:bg-white/10 whitespace-nowrap inline-flex items-center gap-1">
+                  Plus <ChevronDown className="h-3 w-3" />
+                </summary>
+                <div className="absolute right-0 top-full z-50 mt-0.5 min-w-[200px] rounded-sm border border-border bg-card p-1 shadow-lg">
+                  {topCategories.slice(3).map((c) => (
+                    <Link
+                      key={c.id}
+                      to="/catalogue"
+                      search={{ type: c.product_type as ProductType } as never}
+                      className="block rounded-sm px-3 py-1.5 text-xs text-foreground hover:bg-muted no-link-color whitespace-nowrap"
+                    >
+                      {c.name}
+                    </Link>
+                  ))}
+                </div>
+              </details>
+            )}
           </nav>
         </div>
       </header>
+
 
       <NavigationDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
     </>

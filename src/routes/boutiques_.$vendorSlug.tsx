@@ -200,9 +200,14 @@ function Storefront() {
 
   return (
     <div className="bg-background">
-      {/* Banner */}
-      <section className="relative border-b border-border">
-        <div className="relative aspect-[16/5] min-h-[160px] w-full overflow-hidden bg-gradient-to-br from-primary via-secondary to-primary md:aspect-[16/4]">
+      {/* Banner — fixed height, tasteful default when empty */}
+      <section className="border-b border-border">
+        <div
+          className="relative h-[130px] w-full overflow-hidden md:h-[220px]"
+          style={{
+            background: storefront?.banner_url ? undefined : "var(--gradient-winstorr, linear-gradient(135deg, #F2994A, #EB5757))",
+          }}
+        >
           {storefront?.banner_url ? (
             <img
               src={storefront.banner_url}
@@ -211,110 +216,120 @@ function Storefront() {
               loading="eager"
               fetchPriority="high"
             />
-          ) : null}
-          <div className="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent" />
-        </div>
-
-        {/* Header card overlapping banner */}
-        <div className="mx-auto max-w-7xl px-4">
-          <div className="-mt-14 rounded-sm border border-border bg-card p-4 shadow-sm md:-mt-16 md:p-5">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-6">
-              <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-sm border border-border bg-background text-primary md:h-20 md:w-20">
+          ) : (
+            <div className="absolute inset-0 grid place-items-center">
+              <div className="grid h-16 w-16 place-items-center rounded-full bg-white/15 text-white ring-4 ring-white/20 backdrop-blur-sm md:h-20 md:w-20">
                 {vendor.logo_url ? (
-                  <img src={vendor.logo_url} alt={vendor.name} className="h-full w-full object-cover" />
+                  <img src={vendor.logo_url} alt="" className="h-full w-full rounded-full object-cover" />
                 ) : (
-                  <StoreIcon className="h-8 w-8" />
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="font-display text-2xl text-foreground md:text-3xl">{vendor.name}</h1>
-                  {vendor.type === "internal" && (
-                    <span className="inline-flex items-center gap-1 rounded-sm bg-secondary/10 px-1.5 py-0.5 text-[11px] font-semibold text-secondary">
-                      <ShieldCheck className="h-3 w-3" /> Officiel Wintek
-                    </span>
-                  )}
-                </div>
-                <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                  <span className="inline-flex items-center gap-1 text-foreground">
-                    <Star className="h-3.5 w-3.5 fill-accent text-accent" />
-                    <span className="font-semibold">{weighted_rating.toFixed(1)}</span>
-                    {total_reviews > 0 && <span className="text-muted-foreground">· {total_reviews} avis</span>}
-                  </span>
-                  <span className="inline-flex items-center gap-1">
-                    <Package className="h-3.5 w-3.5" /> {products.length} produit{products.length > 1 ? "s" : ""}
-                  </span>
-                  <span className="inline-flex items-center gap-1">
-                    <Users className="h-3.5 w-3.5" /> {followers} abonné{followers > 1 ? "s" : ""}
-                  </span>
-                </div>
-                {(storefront?.description || vendor.description) && (
-                  <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-                    {storefront?.description ?? vendor.description}
-                  </p>
-                )}
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                {user ? (
-                  <Button
-                    variant={following ? "outline" : "default"}
-                    size="sm"
-                    disabled={toggle.isPending}
-                    onClick={() => toggle.mutate({ vendorId: vendor.id, following })}
-                    className={cn(!following && "bg-accent text-accent-foreground hover:bg-accent/90")}
-                  >
-                    <Heart className={cn("mr-1.5 h-4 w-4", following && "fill-current")} />
-                    {following ? "Suivi(e)" : "Suivre cette boutique"}
-                  </Button>
-                ) : (
-                  <Link
-                    to="/auth"
-                    className="inline-flex items-center gap-1.5 rounded-sm bg-accent px-3 py-2 text-xs font-semibold text-accent-foreground no-link-color hover:brightness-95"
-                  >
-                    <Heart className="h-4 w-4" /> Suivre — Se connecter
-                  </Link>
+                  <span className="font-display text-2xl md:text-3xl">{vendor.name.charAt(0).toUpperCase()}</span>
                 )}
               </div>
             </div>
+          )}
+        </div>
 
-            {/* Social & policies row */}
-            {(socialEntries.length > 0 || storefront?.policies) && (
-              <div className="mt-4 grid gap-3 border-t border-border pt-3 md:grid-cols-2">
-                {socialEntries.length > 0 && (
-                  <div>
-                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      Réseaux
-                    </div>
-                    <div className="mt-1 flex flex-wrap gap-2">
-                      {socialEntries.map(([k, v]) => (
-                        <a
-                          key={k}
-                          href={v}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 rounded-sm border border-border bg-background px-2 py-1 text-xs text-foreground hover:border-secondary/60"
-                        >
-                          <ExternalLink className="h-3 w-3" /> {k}
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {storefront?.policies && (
-                  <div>
-                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      Politiques
-                    </div>
-                    <p className="mt-1 text-xs text-muted-foreground whitespace-pre-line">
-                      {storefront.policies}
-                    </p>
-                  </div>
+        {/* Store header row — sits cleanly below the banner */}
+        <div className="mx-auto max-w-7xl px-4 py-4 md:py-5">
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:gap-5">
+            <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full border border-border bg-background text-primary md:h-20 md:w-20">
+              {vendor.logo_url ? (
+                <img src={vendor.logo_url} alt={vendor.name} className="h-full w-full object-cover" />
+              ) : (
+                <span className="font-display text-xl text-primary md:text-2xl">{vendor.name.charAt(0).toUpperCase()}</span>
+              )}
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="font-display text-2xl text-foreground md:text-3xl">{vendor.name}</h1>
+                {vendor.type === "internal" && (
+                  <span className="inline-flex items-center gap-1 rounded-sm bg-secondary/10 px-1.5 py-0.5 text-[11px] font-semibold text-secondary">
+                    <ShieldCheck className="h-3 w-3" /> Officiel Wintek
+                  </span>
                 )}
               </div>
-            )}
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1 text-foreground">
+                  <Star className="h-3.5 w-3.5 fill-accent text-accent" />
+                  <span className="font-semibold">{weighted_rating.toFixed(1)}</span>
+                  {total_reviews > 0 && <span className="text-muted-foreground">· {total_reviews} avis</span>}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <Package className="h-3.5 w-3.5" /> {products.length} produit{products.length > 1 ? "s" : ""}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <Users className="h-3.5 w-3.5" /> {followers} abonné{followers > 1 ? "s" : ""}
+                </span>
+              </div>
+              {(storefront?.description || vendor.description) && (
+                <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+                  {storefront?.description ?? vendor.description}
+                </p>
+              )}
+            </div>
+
+            <div className="shrink-0 md:pt-1">
+              {user ? (
+                <Button
+                  variant={following ? "outline" : "default"}
+                  size="sm"
+                  disabled={toggle.isPending}
+                  onClick={() => toggle.mutate({ vendorId: vendor.id, following })}
+                  className={cn("w-full md:w-auto", !following && "bg-accent text-accent-foreground hover:bg-accent/90")}
+                >
+                  <Heart className={cn("mr-1.5 h-4 w-4", following && "fill-current")} />
+                  {following ? "Suivi(e)" : "Suivre cette boutique"}
+                </Button>
+              ) : (
+                <Link
+                  to="/auth"
+                  className="inline-flex w-full items-center justify-center gap-1.5 rounded-sm bg-accent px-3 py-2 text-xs font-semibold text-accent-foreground no-link-color hover:brightness-95 md:w-auto"
+                >
+                  <Heart className="h-4 w-4" /> Suivre — Se connecter
+                </Link>
+              )}
+            </div>
           </div>
+
+          {/* Social & policies row */}
+          {(socialEntries.length > 0 || storefront?.policies) && (
+            <div className="mt-4 grid gap-3 border-t border-border pt-3 md:grid-cols-2">
+              {socialEntries.length > 0 && (
+                <div>
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Réseaux
+                  </div>
+                  <div className="mt-1 flex flex-wrap gap-2">
+                    {socialEntries.map(([k, v]) => (
+                      <a
+                        key={k}
+                        href={v}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 rounded-sm border border-border bg-background px-2 py-1 text-xs text-foreground hover:border-secondary/60"
+                      >
+                        <ExternalLink className="h-3 w-3" /> {k}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {storefront?.policies && (
+                <div>
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Politiques
+                  </div>
+                  <p className="mt-1 whitespace-pre-line text-xs text-muted-foreground">
+                    {storefront.policies}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </section>
+
 
       {/* Products */}
       <section className="mx-auto max-w-7xl px-4 py-6">
