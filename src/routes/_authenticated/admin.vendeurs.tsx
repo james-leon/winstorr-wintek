@@ -146,42 +146,141 @@ function AdminVendors() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-lg font-semibold">Invitations</h2>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">Invitations</h2>
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">Filtrer :</span>
+            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
+              <SelectTrigger className="h-8 w-40"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes</SelectItem>
+                <SelectItem value="pending">En attente</SelectItem>
+                <SelectItem value="accepted">Acceptées</SelectItem>
+                <SelectItem value="revoked">Révoquées</SelectItem>
+                <SelectItem value="expired">Expirées</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
         <div className="rounded-sm border border-border bg-card overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-muted text-left">
               <tr>
-                <th className="p-3">Email</th><th className="p-3">Vendeur</th>
-                <th className="p-3">Statut</th><th className="p-3">Expire</th><th className="p-3">Lien</th><th className="p-3"></th>
+                <th className="p-3">Email</th>
+                <th className="p-3">Vendeur</th>
+                <th className="p-3">Statut</th>
+                <th className="p-3">Email</th>
+                <th className="p-3">Créée</th>
+                <th className="p-3">Expire</th>
+                <th className="p-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {invitations.map((i) => {
+              {filteredInvitations.map((i) => {
                 const link = typeof window !== "undefined" ? `${window.location.origin}/vendeur/invitation/${i.token}` : `/vendeur/invitation/${i.token}`;
+                const expiredByDate = new Date(i.expires_at) < new Date();
+                const effectiveStatus = i.status === "pending" && expiredByDate ? "expired" : i.status;
+                const isPending = i.status === "pending" && !expiredByDate;
+                const isAccepted = i.status === "accepted";
+                const canDelete = (i.status === "revoked" || i.status === "expired" || (i.status === "pending" && expiredByDate));
+                const referenceDate = i.status === "revoked"
+                  ? (i.revoked_at ?? i.created_at)
+                  : i.expires_at;
+                const eligibleForDelete = canDelete && Date.now() - new Date(referenceDate).getTime() >= 7 * 24 * 60 * 60 * 1000;
+                const vendorLabel = i.vendor_id
+                  ? (vendorNameById.get(i.vendor_id) ?? "existant")
+                  : (i.proposed_vendor_name ?? "—");
                 return (
-                  <tr key={i.id}>
-                    <td className="p-3">{i.email}</td>
-                    <td className="p-3 text-xs">{i.proposed_vendor_name ?? (i.vendor_id ? "existant" : "—")}</td>
+                  <tr key={i.id} className="align-top">
                     <td className="p-3">
-                      <span className={`inline-block rounded-full px-2 py-0.5 text-xs ${i.status === "pending" ? "bg-accent/10 text-accent" : i.status === "accepted" ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>
-                        {i.status}
+                      <div className="font-medium">{i.email}</div>
+                    </td>
+                    <td className="p-3 text-xs">
+                      {isAccepted && i.vendor_id ? (
+                        <Link to="/admin/vendeurs" className="text-primary underline-offset-2 hover:underline">
+                          {vendorLabel}
+                        </Link>
+                      ) : vendorLabel}
+                    </td>
+                    <td className="p-3">
+                      <span className={`inline-block rounded-full px-2 py-0.5 text-xs ${
+                        effectiveStatus === "pending" ? "bg-accent/10 text-accent"
+                        : effectiveStatus === "accepted" ? "bg-success/15 text-success"
+                        : effectiveStatus === "revoked" ? "bg-destructive/10 text-destructive"
+                        : "bg-muted text-muted-foreground"
+                      }`}>
+                        {effectiveStatus}
                       </span>
                     </td>
+                    <td className="p-3 text-xs">
+                      {i.last_email_status === "sent" && (
+                        <span className="inline-flex items-center gap-1 text-success"><CheckCircle2 className="h-3 w-3" /> envoyé</span>
+                      )}
+                      {i.last_email_status === "mocked" && (
+                        <span className="inline-flex items-center gap-1 text-muted-foreground"><Mail className="h-3 w-3" /> non configuré</span>
+                      )}
+                      {i.last_email_status === "failed" && (
+                        <span className="inline-flex items-center gap-1 text-destructive" title={i.last_email_error ?? undefined}>
+                          <AlertCircle className="h-3 w-3" /> échec
+                        </span>
+                      )}
+                      {!i.last_email_status && <span className="text-muted-foreground">—</span>}
+                      {i.last_email_sent_at && (
+                        <div className="text-[10px] text-muted-foreground">{new Date(i.last_email_sent_at).toLocaleString("fr-FR")}</div>
+                      )}
+                    </td>
+                    <td className="p-3 text-xs text-muted-foreground">{new Date(i.created_at).toLocaleDateString("fr-FR")}</td>
                     <td className="p-3 text-xs">{new Date(i.expires_at).toLocaleDateString("fr-FR")}</td>
                     <td className="p-3">
-                      <Button size="sm" variant="ghost" onClick={() => { navigator.clipboard.writeText(link); toast.success("Lien copié"); }}>
-                        <Copy className="h-3.5 w-3.5" />
-                      </Button>
-                    </td>
-                    <td className="p-3 text-right">
-                      {i.status === "pending" && (
-                        <Button size="sm" variant="outline" onClick={() => revoke.mutate(i.id)}>Révoquer</Button>
-                      )}
+                      <div className="flex flex-wrap justify-end gap-1.5">
+                        {isPending && (
+                          <>
+                            <Button size="sm" variant="ghost" title="Copier le lien"
+                              onClick={() => { navigator.clipboard.writeText(link); toast.success("Lien copié"); }}>
+                              <Copy className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button size="sm" variant="outline" disabled={resend.isPending}
+                              onClick={() => resend.mutate(i.id)}>
+                              <RotateCw className="mr-1 h-3.5 w-3.5" /> Renvoyer
+                            </Button>
+                            <ConfirmDialog
+                              trigger={<Button size="sm" variant="outline"><XCircle className="mr-1 h-3.5 w-3.5" /> Révoquer</Button>}
+                              title="Révoquer cette invitation ?"
+                              description={`Le lien envoyé à ${i.email} deviendra invalide. L'invitation restera visible pour l'audit.`}
+                              confirmLabel="Révoquer"
+                              onConfirm={() => revoke.mutate(i.id)}
+                            />
+                          </>
+                        )}
+                        {i.status === "expired" && (
+                          <Button size="sm" variant="outline" disabled={resend.isPending}
+                            onClick={() => resend.mutate(i.id)}>
+                            <RotateCw className="mr-1 h-3.5 w-3.5" /> Réactiver
+                          </Button>
+                        )}
+                        {isAccepted && (
+                          <span className="text-xs text-muted-foreground">Lecture seule</span>
+                        )}
+                        {canDelete && (
+                          <ConfirmDialog
+                            trigger={
+                              <Button size="sm" variant="outline" disabled={!eligibleForDelete}
+                                title={eligibleForDelete ? "Supprimer définitivement" : "Disponible 7 jours après révocation/expiration"}>
+                                <Trash2 className="mr-1 h-3.5 w-3.5" /> Supprimer
+                              </Button>
+                            }
+                            title="Supprimer définitivement ?"
+                            description={`L'invitation pour ${i.email} sera supprimée sans possibilité de restauration.`}
+                            confirmLabel="Supprimer"
+                            onConfirm={() => del.mutate(i.id)}
+                          />
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
               })}
-              {invitations.length === 0 && <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">Aucune invitation.</td></tr>}
+              {filteredInvitations.length === 0 && <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">Aucune invitation.</td></tr>}
             </tbody>
           </table>
         </div>
