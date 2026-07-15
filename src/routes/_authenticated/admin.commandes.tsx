@@ -181,8 +181,18 @@ function AdminOrdersPage() {
               </div>
             </div>
           )}
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setSelected(null)}>Annuler</Button>
+            {selected?.payment_method === "cash_on_pickup" && selected?.payment_status !== "paid" && (
+              <Button
+                variant="outline"
+                className="border-success text-success hover:bg-success/10"
+                onClick={() => cashMut.mutate(selected.id)}
+                disabled={cashMut.isPending}
+              >
+                <Wallet className="h-4 w-4 mr-1" /> Marquer payée (espèces)
+              </Button>
+            )}
             <Button onClick={() => mut.mutate()} disabled={mut.isPending}>Enregistrer</Button>
           </DialogFooter>
         </DialogContent>
