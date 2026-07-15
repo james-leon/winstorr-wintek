@@ -410,6 +410,7 @@ function AdminProducts() {
           onClose={() => setEditing(null)}
           onSaved={() => { setEditing(null); qc.invalidateQueries({ queryKey: ["admin-products"] }); }}
         />
+      )}
       {rejectFor && (
         <Dialog open onOpenChange={(o) => !o && setRejectFor(null)}>
           <DialogContent>
