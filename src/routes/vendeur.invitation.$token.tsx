@@ -73,8 +73,8 @@ function InvitationPage() {
             {inv.status === "accepted"
               ? "Cette invitation a déjà été acceptée."
               : inv.status === "revoked"
-              ? "Cette invitation a été révoquée."
-              : "Cette invitation a expiré."}
+              ? "Cette invitation n'est plus valide, contactez Wintek."
+              : "Cette invitation a expiré. Contactez Wintek pour en recevoir une nouvelle."}
           </p>
         )}
 
