@@ -143,11 +143,11 @@ function AdminProducts() {
 
   const quickSave = useMutation({
     mutationFn: async (data: { id: string; price: string; stock_quantity: string; status: string }) => {
-      const patch: Record<string, unknown> = {
-        status: data.status,
+      const patch = {
+        status: data.status as "draft" | "active" | "archived",
         price: data.price ? Number(data.price) : null,
+        ...(data.stock_quantity !== "" ? { stock_quantity: Number(data.stock_quantity) } : {}),
       };
-      if (data.stock_quantity !== "") patch.stock_quantity = Number(data.stock_quantity);
       const { error } = await supabase.from("products").update(patch).eq("id", data.id);
       if (error) throw error;
     },
