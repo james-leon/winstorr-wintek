@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { BannerImageUploader } from "@/components/banner-image-uploader";
-import { ConfirmDialog } from "@/components/confirm-dialog";
+
 
 export const Route = createFileRoute("/_authenticated/admin/banieres")({
   component: AdminBannersPage,
