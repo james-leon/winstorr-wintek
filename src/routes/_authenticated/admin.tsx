@@ -33,6 +33,7 @@ const NAV_GROUPS: NavGroup[] = [
   ]},
   { label: "Marketing", items: [
     { to: "/admin/codes-promo", label: "Codes promo", icon: Tag },
+    { to: "/admin/banieres", label: "Bannières & tuiles", icon: Image },
   ]},
   { label: "Vendeurs", items: [
     { to: "/admin/vendeurs", label: "Tous les vendeurs", icon: Store },
