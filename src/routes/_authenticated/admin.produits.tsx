@@ -410,6 +410,22 @@ function AdminProducts() {
           onClose={() => setEditing(null)}
           onSaved={() => { setEditing(null); qc.invalidateQueries({ queryKey: ["admin-products"] }); }}
         />
+      {rejectFor && (
+        <Dialog open onOpenChange={(o) => !o && setRejectFor(null)}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Rejeter : {rejectFor.name}</DialogTitle></DialogHeader>
+            <div className="space-y-2">
+              <Label>Motif du rejet</Label>
+              <Textarea rows={4} value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Ex : Photos de mauvaise qualité, description incomplète…" />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setRejectFor(null)}>Annuler</Button>
+              <Button variant="destructive" onClick={() => reviewOne.mutate({ id: rejectFor.id, status: "rejected", reason: rejectReason.trim() || null })} disabled={reviewOne.isPending}>
+                Confirmer le rejet
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
