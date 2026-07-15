@@ -70,7 +70,7 @@ function AdminProducts() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, slug, name, type, status, price, price_type, stock_quantity, featured, quality_verified, vendor_id, category_id, rating_average, rating_count, images, sku, created_at")
+        .select("id, slug, name, type, status, price, price_type, stock_quantity, featured, quality_verified, vendor_id, category_id, rating_average, rating_count, images, sku, created_at, rejection_reason, reviewed_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as Row[];
@@ -208,11 +208,13 @@ function AdminProducts() {
           </SelectContent>
         </Select>
         <Select value={statusF} onValueChange={setStatusF}>
-          <SelectTrigger className="h-9 w-[140px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-9 w-[160px]"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tous statuts</SelectItem>
-            <SelectItem value="draft">Brouillon</SelectItem>
+            <SelectItem value="pending_review">En attente</SelectItem>
             <SelectItem value="active">Actif</SelectItem>
+            <SelectItem value="draft">Brouillon</SelectItem>
+            <SelectItem value="rejected">Rejeté</SelectItem>
             <SelectItem value="archived">Archivé</SelectItem>
           </SelectContent>
         </Select>
