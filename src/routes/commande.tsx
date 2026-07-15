@@ -45,7 +45,7 @@ type DeliveryMode = "home_delivery" | "pickup";
 type PaymentMethod = "cinetpay" | "cash_on_pickup";
 
 function CheckoutPage() {
-  const { items, subtotal, coupon, discount, clear } = useCart();
+  const { items, subtotal, coupon, discount, clear, effectiveUnit } = useCart();
   const { user } = useAuth();
   const nav = useNavigate();
   const createFn = useServerFn(createOrder);
@@ -397,7 +397,7 @@ function CheckoutPage() {
             {items.map((i) => (
               <li key={i.productId} className="flex justify-between gap-2 text-sm">
                 <span className="line-clamp-1">{i.name} × {i.quantity}</span>
-                <span className="font-medium whitespace-nowrap">{formatFcfa(i.price * i.quantity)}</span>
+                <span className="font-medium whitespace-nowrap">{formatFcfa(effectiveUnit(i.productId, i.price, i.quantity) * i.quantity)}</span>
               </li>
             ))}
           </ul>
