@@ -26,7 +26,31 @@ type Props = {
  */
 export function ImageGalleryManager({ value, onChange }: Props) {
   const [urlInput, setUrlInput] = useState("");
+  const [uploading, setUploading] = useState(0);
+  const [dragOver, setDragOver] = useState(false);
   const dragIdx = useRef<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const uploadFiles = async (files: FileList | File[]) => {
+    const list = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    if (!list.length) return;
+    setUploading((n) => n + list.length);
+    const uploaded: string[] = [];
+    for (const f of list) {
+      try {
+        const url = await uploadProductImage(f);
+        uploaded.push(url);
+      } catch (e) {
+        toast.error(`Échec de l'envoi : ${(e as Error).message}`);
+      } finally {
+        setUploading((n) => n - 1);
+      }
+    }
+    if (uploaded.length) {
+      onChange([...value, ...uploaded]);
+      toast.success(`${uploaded.length} image${uploaded.length > 1 ? "s" : ""} ajoutée${uploaded.length > 1 ? "s" : ""}.`);
+    }
+  };
 
   const add = () => {
     const items = urlInput
