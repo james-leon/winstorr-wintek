@@ -33,7 +33,7 @@ function AdminWithdrawals() {
         .select("id, vendor_id, amount_requested, available_balance_at_request, status, payout_method, payout_details, staff_notes, created_at, processed_at, vendors:vendor_id(name, slug)")
         .order("created_at", { ascending: false })
         .limit(200);
-      const { data, error } = filter === "all" ? await q : await q.eq("status", filter);
+      const { data, error } = filter === "all" ? await q : await q.eq("status", filter as "pending" | "approved" | "paid" | "rejected");
       if (error) throw error;
       return (data ?? []) as unknown as W[];
     },
@@ -44,7 +44,7 @@ function AdminWithdrawals() {
       const { error } = await supabase
         .from("vendor_withdrawal_requests")
         .update({
-          status,
+          status: status as "pending" | "approved" | "paid" | "rejected",
           staff_notes: notes ?? null,
           processed_at: status === "pending" ? null : new Date().toISOString(),
         })

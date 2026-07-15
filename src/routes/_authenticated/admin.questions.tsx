@@ -21,7 +21,7 @@ function AdminQuestions() {
         .select("id, question, answer, status, created_at, product_id, products:product_id(name, slug, vendor_id, vendors:vendor_id(name))")
         .order("created_at", { ascending: false })
         .limit(200);
-      const { data, error } = filter === "all" ? await q : await q.eq("status", filter);
+      const { data, error } = filter === "all" ? await q : await q.eq("status", filter as "pending" | "answered" | "hidden");
       if (error) throw error;
       return data ?? [];
     },
@@ -29,7 +29,7 @@ function AdminQuestions() {
 
   const setStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase.from("product_questions").update({ status }).eq("id", id);
+      const { error } = await supabase.from("product_questions").update({ status: status as "pending" | "answered" | "hidden" }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => { toast.success("Mis à jour"); qc.invalidateQueries({ queryKey: ["admin-questions"] }); },
