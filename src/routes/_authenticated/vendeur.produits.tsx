@@ -138,7 +138,7 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
     short_description: "", description: "",
     price: row?.price?.toString() ?? "", price_type: row?.price_type ?? "fixed",
     stock_quantity: row?.stock_quantity?.toString() ?? "", featured: row?.featured ?? false,
-    images: "",
+    images: [],
     warranty_duration: "",
     source_type: "",
     delivery_type: "", service_area: "", estimated_duration: "", delivery_mode: "",
