@@ -23,7 +23,12 @@ const checkoutSchema = z.object({
   }),
   shipping_address: addressSchema.nullable().optional(),
   couponCode: z.string().trim().min(1).max(60).optional().nullable(),
+  delivery_mode: z.enum(["home_delivery", "pickup", "none"]).default("home_delivery"),
+  pickup_point_id: z.string().uuid().nullable().optional(),
+  payment_method: z.enum(["cinetpay", "cash_on_pickup"]).default("cinetpay"),
 });
+
+
 
 
 export const createOrder = createServerFn({ method: "POST" })
