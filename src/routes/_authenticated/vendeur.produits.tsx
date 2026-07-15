@@ -25,6 +25,15 @@ type Row = {
   stock_quantity: number | null; featured: boolean;
   quality_verified: boolean; vendor_id: string;
   rating_average: number; rating_count: number;
+  rejection_reason: string | null;
+};
+
+const STATUS_META: Record<string, { label: string; cls: string }> = {
+  draft:          { label: "Brouillon",                cls: "bg-muted text-muted-foreground" },
+  pending_review: { label: "En attente de validation", cls: "bg-accent/15 text-accent" },
+  active:         { label: "Actif",                    cls: "bg-success/15 text-success" },
+  rejected:       { label: "Rejeté",                   cls: "bg-destructive/15 text-destructive" },
+  archived:       { label: "Archivé",                  cls: "bg-muted text-muted-foreground" },
 };
 
 function VendorProducts() {
@@ -39,7 +48,7 @@ function VendorProducts() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, slug, name, type, status, price, price_type, stock_quantity, featured, quality_verified, vendor_id, rating_average, rating_count")
+        .select("id, slug, name, type, status, price, price_type, stock_quantity, featured, quality_verified, vendor_id, rating_average, rating_count, rejection_reason")
         .eq("vendor_id", vendorId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -76,7 +85,10 @@ function VendorProducts() {
           </thead>
           <tbody>
             {isLoading && <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">Chargement...</td></tr>}
-            {rows.map((r) => (
+            {rows.map((r) => {
+              const meta = STATUS_META[r.status] ?? { label: r.status, cls: "bg-muted text-muted-foreground" };
+              return (
+              <>
               <tr key={r.id} className="border-t border-border">
                 <td className="p-3 font-medium">
                   {r.name}
@@ -87,20 +99,35 @@ function VendorProducts() {
                 <td className="p-3 text-xs">{r.stock_quantity ?? "—"}</td>
                 <td className="p-3 text-xs">{r.rating_count > 0 ? `${Number(r.rating_average).toFixed(1)} (${r.rating_count})` : "—"}</td>
                 <td className="p-3">
-                  <span className={`inline-block rounded-full px-2 py-0.5 text-xs ${r.status === "active" ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>
-                    {r.status}
+                  <span className={`inline-block rounded-full px-2 py-0.5 text-xs ${meta.cls}`}>
+                    {meta.label}
                   </span>
                 </td>
                 <td className="p-3">
                   <div className="flex justify-end gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => setEditing(r)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => confirm(`Supprimer ${r.name} ?`) && del.mutate(r.id)}>
+                    <Button variant="ghost" size="icon" onClick={() => setEditing(r)} aria-label="Modifier"><Pencil className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => confirm(`Supprimer ${r.name} ?`) && del.mutate(r.id)} aria-label="Supprimer">
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </div>
                 </td>
               </tr>
-            ))}
+              {r.status === "rejected" && r.rejection_reason && (
+                <tr key={`rej-${r.id}`} className="border-t border-destructive/20 bg-destructive/5">
+                  <td colSpan={7} className="px-3 py-2 text-xs text-destructive">
+                    <strong>Motif du rejet :</strong> {r.rejection_reason}
+                    <button
+                      onClick={() => setEditing(r)}
+                      className="ml-3 rounded border border-destructive/40 px-2 py-0.5 text-xs font-medium hover:bg-destructive/10"
+                    >
+                      Modifier et resoumettre
+                    </button>
+                  </td>
+                </tr>
+              )}
+              </>
+              );
+            })}
             {!isLoading && rows.length === 0 && (
               <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">Aucun produit. Créez le premier.</td></tr>
             )}
@@ -229,10 +256,13 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="draft">Brouillon</SelectItem>
-                  <SelectItem value="active">Actif</SelectItem>
+                  <SelectItem value="active">Soumettre pour validation</SelectItem>
                   <SelectItem value="archived">Archivé</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Les produits soumis passent en revue par l'équipe Winstorr avant publication.
+              </p>
             </div>
             <div className="flex items-end gap-2">
               <input id="feat" type="checkbox" checked={f.featured} onChange={(e) => setF({ ...f, featured: e.target.checked })} />

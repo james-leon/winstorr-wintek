@@ -846,8 +846,11 @@ export type Database = {
           quality_verified: boolean
           rating_average: number
           rating_count: number
+          rejection_reason: string | null
           requires_diagnostic: boolean | null
           requires_shipping: boolean | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           service_area: Database["public"]["Enums"]["service_area"] | null
           short_description: string | null
           sku: string | null
@@ -879,8 +882,11 @@ export type Database = {
           quality_verified?: boolean
           rating_average?: number
           rating_count?: number
+          rejection_reason?: string | null
           requires_diagnostic?: boolean | null
           requires_shipping?: boolean | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           service_area?: Database["public"]["Enums"]["service_area"] | null
           short_description?: string | null
           sku?: string | null
@@ -912,8 +918,11 @@ export type Database = {
           quality_verified?: boolean
           rating_average?: number
           rating_count?: number
+          rejection_reason?: string | null
           requires_diagnostic?: boolean | null
           requires_shipping?: boolean | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           service_area?: Database["public"]["Enums"]["service_area"] | null
           short_description?: string | null
           sku?: string | null
@@ -933,6 +942,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1758,7 +1774,12 @@ export type Database = {
       payment_method: "mtn_momo" | "orange_money" | "card" | "cash_on_pickup"
       payment_status: "pending" | "paid" | "failed" | "refunded"
       price_type: "fixed" | "starting_at" | "quote_only"
-      product_status: "draft" | "active" | "archived"
+      product_status:
+        | "draft"
+        | "active"
+        | "archived"
+        | "pending_review"
+        | "rejected"
       product_type: "physical" | "digital" | "service" | "training"
       question_status: "pending" | "answered" | "hidden"
       return_reason:
@@ -1953,7 +1974,13 @@ export const Constants = {
       payment_method: ["mtn_momo", "orange_money", "card", "cash_on_pickup"],
       payment_status: ["pending", "paid", "failed", "refunded"],
       price_type: ["fixed", "starting_at", "quote_only"],
-      product_status: ["draft", "active", "archived"],
+      product_status: [
+        "draft",
+        "active",
+        "archived",
+        "pending_review",
+        "rejected",
+      ],
       product_type: ["physical", "digital", "service", "training"],
       question_status: ["pending", "answered", "hidden"],
       return_reason: [

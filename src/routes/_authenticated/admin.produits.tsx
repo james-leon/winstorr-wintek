@@ -32,6 +32,16 @@ type Row = {
   rating_average: number; rating_count: number;
   images: string[] | null; sku: string | null;
   created_at: string;
+  rejection_reason: string | null;
+  reviewed_at: string | null;
+};
+
+const STATUS_META: Record<string, { label: string; cls: string }> = {
+  draft:          { label: "Brouillon",  cls: "bg-secondary/15 text-secondary" },
+  pending_review: { label: "En attente", cls: "bg-accent/15 text-accent" },
+  active:         { label: "Actif",      cls: "bg-success/15 text-success" },
+  rejected:       { label: "Rejeté",     cls: "bg-destructive/15 text-destructive" },
+  archived:       { label: "Archivé",    cls: "bg-muted text-muted-foreground" },
 };
 
 type SortKey = "name" | "price" | "stock_quantity" | "status" | "created_at";
@@ -60,7 +70,7 @@ function AdminProducts() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, slug, name, type, status, price, price_type, stock_quantity, featured, quality_verified, vendor_id, category_id, rating_average, rating_count, images, sku, created_at")
+        .select("id, slug, name, type, status, price, price_type, stock_quantity, featured, quality_verified, vendor_id, category_id, rating_average, rating_count, images, sku, created_at, rejection_reason, reviewed_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as Row[];
@@ -121,12 +131,21 @@ function AdminProducts() {
     else setSelected(new Set(filtered.map((r) => r.id)));
   };
 
+  const [rejectFor, setRejectFor] = useState<Row | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+
   const bulkUpdate = useMutation({
-    mutationFn: async (action: "active" | "archived" | "delete") => {
+    mutationFn: async ({ action, reason }: { action: "active" | "archived" | "delete" | "approve" | "reject"; reason?: string }) => {
       const ids = Array.from(selected);
       if (ids.length === 0) return;
       if (action === "delete") {
         const { error } = await supabase.from("products").delete().in("id", ids);
+        if (error) throw error;
+      } else if (action === "approve") {
+        const { error } = await supabase.from("products").update({ status: "active", rejection_reason: null }).in("id", ids);
+        if (error) throw error;
+      } else if (action === "reject") {
+        const { error } = await supabase.from("products").update({ status: "rejected", rejection_reason: reason ?? null }).in("id", ids);
         if (error) throw error;
       } else {
         const { error } = await supabase.from("products").update({ status: action }).in("id", ids);
@@ -136,6 +155,20 @@ function AdminProducts() {
     onSuccess: () => {
       toast.success("Action appliquée.");
       setSelected(new Set());
+      qc.invalidateQueries({ queryKey: ["admin-products"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const reviewOne = useMutation({
+    mutationFn: async ({ id, status, reason }: { id: string; status: "active" | "rejected"; reason?: string | null }) => {
+      const patch = { status, rejection_reason: status === "rejected" ? (reason ?? null) : null };
+      const { error } = await supabase.from("products").update(patch).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Action appliquée.");
+      setRejectFor(null); setRejectReason("");
       qc.invalidateQueries({ queryKey: ["admin-products"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -198,11 +231,13 @@ function AdminProducts() {
           </SelectContent>
         </Select>
         <Select value={statusF} onValueChange={setStatusF}>
-          <SelectTrigger className="h-9 w-[140px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-9 w-[160px]"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tous statuts</SelectItem>
-            <SelectItem value="draft">Brouillon</SelectItem>
+            <SelectItem value="pending_review">En attente</SelectItem>
             <SelectItem value="active">Actif</SelectItem>
+            <SelectItem value="draft">Brouillon</SelectItem>
+            <SelectItem value="rejected">Rejeté</SelectItem>
             <SelectItem value="archived">Archivé</SelectItem>
           </SelectContent>
         </Select>
@@ -231,9 +266,11 @@ function AdminProducts() {
         <div className="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
           <span className="font-medium">{selected.size} sélectionné(s)</span>
           <div className="ml-auto flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => bulkUpdate.mutate("active")}>Activer</Button>
-            <Button size="sm" variant="outline" onClick={() => bulkUpdate.mutate("archived")}>Archiver</Button>
-            <Button size="sm" variant="outline" className="text-destructive" onClick={() => confirm(`Supprimer ${selected.size} produit(s) ?`) && bulkUpdate.mutate("delete")}>
+            <Button size="sm" variant="outline" onClick={() => bulkUpdate.mutate({ action: "approve" })}>Approuver</Button>
+            <Button size="sm" variant="outline" onClick={() => { const r = prompt("Motif du rejet (facultatif) :") ?? undefined; bulkUpdate.mutate({ action: "reject", reason: r }); }}>Rejeter</Button>
+            <Button size="sm" variant="outline" onClick={() => bulkUpdate.mutate({ action: "active" })}>Activer</Button>
+            <Button size="sm" variant="outline" onClick={() => bulkUpdate.mutate({ action: "archived" })}>Archiver</Button>
+            <Button size="sm" variant="outline" className="text-destructive" onClick={() => confirm(`Supprimer ${selected.size} produit(s) ?`) && bulkUpdate.mutate({ action: "delete" })}>
               Supprimer
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>Annuler</Button>
@@ -313,14 +350,19 @@ function AdminProducts() {
                       ) : <span className="text-xs text-muted-foreground">—</span>}
                     </td>
                     <td className="p-2">
-                      <span className={cn("inline-block rounded-full px-2 py-0.5 text-xs",
-                        r.status === "active" ? "bg-success/15 text-success" :
-                        r.status === "draft" ? "bg-secondary/15 text-secondary" : "bg-muted text-muted-foreground")}>
-                        {r.status}
-                      </span>
+                      {(() => {
+                        const meta = STATUS_META[r.status] ?? { label: r.status, cls: "bg-muted text-muted-foreground" };
+                        return <span className={cn("inline-block rounded-full px-2 py-0.5 text-xs", meta.cls)}>{meta.label}</span>;
+                      })()}
                     </td>
                     <td className="p-2">
                       <div className="flex justify-end gap-1">
+                        {r.status === "pending_review" && (
+                          <>
+                            <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => reviewOne.mutate({ id: r.id, status: "active" })}>Approuver</Button>
+                            <Button variant="outline" size="sm" className="h-7 px-2 text-xs text-destructive" onClick={() => { setRejectFor(r); setRejectReason(""); }}>Rejeter</Button>
+                          </>
+                        )}
                         <button
                           onClick={() => setQuickEditId(isQE ? null : r.id)}
                           className="text-xs text-primary hover:underline"
@@ -334,6 +376,13 @@ function AdminProducts() {
                       </div>
                     </td>
                   </tr>
+                  {r.status === "rejected" && r.rejection_reason && (
+                    <tr key={`rej-${r.id}`} className="bg-destructive/5">
+                      <td colSpan={10} className="px-3 py-2 text-xs text-destructive">
+                        <strong>Motif du rejet :</strong> {r.rejection_reason}
+                      </td>
+                    </tr>
+                  )}
                   {isQE && (
                     <QuickEditRow
                       key={`qe-${r.id}`}
@@ -361,6 +410,23 @@ function AdminProducts() {
           onClose={() => setEditing(null)}
           onSaved={() => { setEditing(null); qc.invalidateQueries({ queryKey: ["admin-products"] }); }}
         />
+      )}
+      {rejectFor && (
+        <Dialog open onOpenChange={(o) => !o && setRejectFor(null)}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Rejeter : {rejectFor.name}</DialogTitle></DialogHeader>
+            <div className="space-y-2">
+              <Label>Motif du rejet</Label>
+              <Textarea rows={4} value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Ex : Photos de mauvaise qualité, description incomplète…" />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setRejectFor(null)}>Annuler</Button>
+              <Button variant="destructive" onClick={() => reviewOne.mutate({ id: rejectFor.id, status: "rejected", reason: rejectReason.trim() || null })} disabled={reviewOne.isPending}>
+                Confirmer le rejet
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
