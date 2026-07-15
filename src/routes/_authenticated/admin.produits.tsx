@@ -135,7 +135,7 @@ function AdminProducts() {
   const [rejectReason, setRejectReason] = useState("");
 
   const bulkUpdate = useMutation({
-    mutationFn: async (action: "active" | "archived" | "delete" | "approve" | "reject", reason?: string) => {
+    mutationFn: async ({ action, reason }: { action: "active" | "archived" | "delete" | "approve" | "reject"; reason?: string }) => {
       const ids = Array.from(selected);
       if (ids.length === 0) return;
       if (action === "delete") {
