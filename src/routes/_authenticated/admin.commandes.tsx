@@ -3,13 +3,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatFcfa } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { updateOrderStatus } from "@/lib/orders.functions";
+import { updateOrderStatus, confirmCashPayment } from "@/lib/orders.functions";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/_authenticated/admin/commandes")({
   component: AdminOrdersPage,

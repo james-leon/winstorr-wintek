@@ -20,7 +20,9 @@ const TABS = [
   { to: "/admin/demandes", label: "Demandes" },
   { to: "/admin/vendeurs", label: "Vendeurs" },
   { to: "/admin/codes-promo", label: "Codes promo" },
+  { to: "/admin/points-retrait", label: "Points retrait" },
 ];
+
 
 
 function AdminLayout() {
