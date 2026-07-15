@@ -296,7 +296,7 @@ export const confirmCashPayment = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: res, error } = await supabaseAdmin.rpc("confirm_cash_payment", {
       _order_id: data.orderId,
-      _notes: data.notes ?? null,
+      _notes: data.notes ?? undefined,
     });
     if (error) throw new Error(error.message);
     const { notifyOrderEvent } = await import("./notifications.server");
