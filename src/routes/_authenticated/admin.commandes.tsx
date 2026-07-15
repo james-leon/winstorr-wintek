@@ -141,7 +141,15 @@ function AdminOrdersPage() {
           {selected && (
             <div className="space-y-3 text-sm">
               <div><strong>Client :</strong> {selected.customer_name} — {selected.customer_phone}</div>
-              {selected.has_physical_items && selected.shipping_address && (
+              <div className="flex flex-wrap gap-2 text-xs">
+                <span className="rounded-sm bg-muted px-2 py-0.5">Mode : {selected.delivery_mode === "pickup" ? "Retrait" : selected.delivery_mode === "home_delivery" ? "Livraison" : "—"}</span>
+                {selected.payment_method === "cash_on_pickup" && (
+                  <span className="inline-flex items-center gap-1 rounded-sm bg-accent/10 text-accent px-2 py-0.5">
+                    <Wallet className="h-3 w-3" /> Paiement à la réception
+                  </span>
+                )}
+              </div>
+              {selected.delivery_mode === "home_delivery" && selected.shipping_address && (
                 <div>
                   <strong>Livraison :</strong> {selected.shipping_address.quartier}, {selected.shipping_address.ville}
                   {selected.shipping_address.landmark && <> — {selected.shipping_address.landmark}</>}
