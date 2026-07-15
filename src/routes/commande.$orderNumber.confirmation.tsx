@@ -180,11 +180,18 @@ function ConfirmationPage() {
           </ul>
         </div>
 
+        {isPaid && (
+          <div className="mt-6 rounded-sm border border-border bg-muted/30 p-3">
+            <TrustStrip />
+          </div>
+        )}
+
         <div className="mt-6 flex gap-2">
           <Button asChild variant="outline"><Link to="/catalogue">Continuer mes achats</Link></Button>
           <Button asChild variant="ghost"><Link to="/mon-compte/commandes">Mes commandes</Link></Button>
         </div>
       </div>
     </div>
+
   );
 }
