@@ -47,8 +47,16 @@
   --ease-out: cubic-bezier(0.2, 0, 0, 1);
   --dur-fast: 150ms;
   --dur-med: 200ms;
+  /* Header (near-black) — pulled to match the real Winstorr logo's black
+     wordmark. Distinct from body Navy which stays #0D2C54. */
+  --color-header: #14161A;
+  --color-header-alt: #1F2229;
 
+  /* Signature orange-red gradient sampled from the uploaded logo icon. */
+  --gradient-winstorr: linear-gradient(135deg, #FF7A18 0%, #FF3A2E 100%);
+  --gradient-winstorr-hover: linear-gradient(135deg, #FF8C33 0%, #FF4D3F 100%);
 }
+
 
 :root {
   /* 4px base radius — tight marketplace feel */

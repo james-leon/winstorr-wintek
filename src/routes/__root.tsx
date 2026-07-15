@@ -71,7 +71,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { property: "og:locale", content: "fr_FR" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "theme-color", content: "#0D2C54" },
+      { name: "theme-color", content: "#14161A" },
       { name: "twitter:title", content: "Winstorr — Marketplace de confiance au Cameroun | Électronique, Services, Formations" },
       { name: "twitter:description", content: "Winstorr par Wintek : achetez du matériel électronique, des produits numériques, réservez un service technique ou inscrivez-vous à nos formations. Qualité vérifiée, paiement MoMo & Orange Money." },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/21f209cc-79ce-4a2b-90c2-2a53dc8c2ca0" },
@@ -79,7 +79,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.png", type: "image/png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Russo+One&display=swap" },
@@ -93,7 +93,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           name: "Winstorr",
           alternateName: "Wintek — Winner Technology",
           url: "/",
-          logo: "/favicon.ico",
+          logo: "/favicon.png",
           description: "Marketplace tech du Cameroun opérée par Wintek : électronique, produits numériques, services techniques et formations.",
           areaServed: "CM",
           contactPoint: {
