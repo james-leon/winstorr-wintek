@@ -20,7 +20,15 @@ import {
   Headphones,
   Camera,
   Star,
+  Shirt,
+  Apple,
+  Home as HomeIcon,
+  Baby,
+  Dumbbell,
+  Hammer,
+  Package,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Carousel,
@@ -50,6 +58,20 @@ type MiniProduct = {
   category_id?: string | null;
 };
 
+type CategoryRow = {
+  id: string;
+  name: string;
+  slug: string;
+  product_type: ProductType | null;
+  parent_id: string | null;
+  display_order: number | null;
+};
+
+type RootCategory = CategoryRow & {
+  descendantIds: string[];
+  products: MiniProduct[];
+};
+
 const BASE_SELECT =
   "id, slug, name, images, price, price_type, rating_average, rating_count, quality_verified, type, category_id";
 
@@ -61,7 +83,7 @@ function normalize(rows: unknown[]): MiniProduct[] {
 }
 
 const homeShelvesQuery = queryOptions({
-  queryKey: ["home-shelves-v2"],
+  queryKey: ["home-shelves-v3"],
   queryFn: async () => {
     const cats = await supabase
       .from("categories")
@@ -70,66 +92,79 @@ const homeShelvesQuery = queryOptions({
       .order("display_order");
     if (cats.error) throw cats.error;
 
-    const catBySlug = new Map<string, { id: string; name: string }>();
-    for (const c of cats.data ?? []) catBySlug.set(c.slug, { id: c.id, name: c.name });
+    const catRows = (cats.data ?? []) as CategoryRow[];
+    const byParent = new Map<string | null, CategoryRow[]>();
+    for (const c of catRows) {
+      const key = c.parent_id;
+      const arr = byParent.get(key) ?? [];
+      arr.push(c);
+      byParent.set(key, arr);
+    }
 
-    const phonesId = catBySlug.get("telephones")?.id;
-    const laptopsId = catBySlug.get("ordinateurs")?.id;
+    const collectDescendants = (rootId: string): string[] => {
+      const out: string[] = [rootId];
+      const stack = [rootId];
+      while (stack.length) {
+        const id = stack.pop()!;
+        const kids = byParent.get(id) ?? [];
+        for (const k of kids) {
+          out.push(k.id);
+          stack.push(k.id);
+        }
+      }
+      return out;
+    };
 
-    const results = await Promise.all([
-      // Nouveautés
-      supabase.from("products").select(BASE_SELECT).eq("status", "active")
-        .order("created_at", { ascending: false }).limit(12),
-      // Mieux notés
-      supabase.from("products").select(BASE_SELECT).eq("status", "active")
-        .gt("rating_count", 0)
-        .order("rating_average", { ascending: false })
-        .order("rating_count", { ascending: false }).limit(12),
-      // Qualité vérifiée
-      supabase.from("products").select(BASE_SELECT).eq("status", "active")
-        .eq("quality_verified", true)
-        .order("rating_count", { ascending: false }).limit(12),
-      // Téléphones
-      phonesId
-        ? supabase.from("products").select(BASE_SELECT).eq("status", "active").eq("category_id", phonesId)
-            .order("rating_count", { ascending: false }).order("created_at", { ascending: false }).limit(12)
-        : Promise.resolve({ data: [], error: null } as never),
-      // Ordinateurs
-      laptopsId
-        ? supabase.from("products").select(BASE_SELECT).eq("status", "active").eq("category_id", laptopsId)
-            .order("rating_count", { ascending: false }).order("created_at", { ascending: false }).limit(12)
-        : Promise.resolve({ data: [], error: null } as never),
-      // Formations à venir — training products, most recent
-      supabase.from("products").select(BASE_SELECT).eq("status", "active").eq("type", "training")
-        .order("created_at", { ascending: false }).limit(12),
-      // Categories full list (for mosaic + circular)
-      Promise.resolve({ data: cats.data, error: null }),
-    ]);
+    // All active products (used for grouping + generic shelves)
+    const allProducts = await supabase
+      .from("products")
+      .select(BASE_SELECT)
+      .eq("status", "active")
+      .order("rating_count", { ascending: false })
+      .order("rating_average", { ascending: false })
+      .order("created_at", { ascending: false });
+    if (allProducts.error) throw allProducts.error;
+    const products = normalize(allProducts.data ?? []);
 
-    for (const r of results) if ("error" in r && r.error) throw r.error;
+    const roots = (byParent.get(null) ?? []).slice().sort((a, b) => {
+      const da = a.display_order ?? 999;
+      const db = b.display_order ?? 999;
+      if (da !== db) return da - db;
+      return a.name.localeCompare(b.name);
+    });
 
-    const [nouv, topRated, verified, phones, laptops, trainings] = results;
+    const rootCats: RootCategory[] = roots.map((r) => {
+      const descendantIds = collectDescendants(r.id);
+      const set = new Set(descendantIds);
+      const rootProducts = products.filter((p) => p.category_id && set.has(p.category_id));
+      return { ...r, descendantIds, products: rootProducts };
+    });
 
-    // Spotlight = first quality_verified with highest rating, else first top-rated
-    const verifiedList = normalize(verified.data ?? []);
-    const topList = normalize(topRated.data ?? []);
-    const spotlight =
-      verifiedList.find((p) => (p.rating_count ?? 0) > 0) ??
-      verifiedList[0] ??
-      topList[0] ??
-      null;
+    const rootsWithProducts = rootCats.filter((c) => c.products.length > 0);
+
+    // Generic shelves
+    const nouveautes = await supabase
+      .from("products")
+      .select(BASE_SELECT)
+      .eq("status", "active")
+      .order("created_at", { ascending: false })
+      .limit(12);
+    if (nouveautes.error) throw nouveautes.error;
+
+    const topRated = products
+      .filter((p) => (p.rating_count ?? 0) > 0)
+      .sort((a, b) => (b.rating_average ?? 0) - (a.rating_average ?? 0))
+      .slice(0, 12);
+
+    const verified = products.filter((p) => p.quality_verified).slice(0, 12);
+
+    const spotlight = verified[0] ?? topRated[0] ?? null;
 
     return {
-      categories: (cats.data ?? []) as {
-        id: string; name: string; slug: string; product_type: ProductType;
-        parent_id: string | null; display_order: number;
-      }[],
-      nouveautes: normalize(nouv.data ?? []),
-      topRated: topList,
-      verified: verifiedList,
-      phones: normalize(phones.data ?? []),
-      laptops: normalize(laptops.data ?? []),
-      trainings: normalize(trainings.data ?? []),
+      rootsWithProducts,
+      nouveautes: normalize(nouveautes.data ?? []),
+      topRated,
+      verified,
       spotlight,
     };
   },
@@ -156,6 +191,67 @@ export const Route = createFileRoute("/")({
   },
   component: Home,
 });
+
+/* -------------------- category styling -------------------- */
+
+const CATEGORY_ICON: Record<string, LucideIcon> = {
+  telephones: Smartphone,
+  ordinateurs: Laptop,
+  audio: Headphones,
+  securite: ShieldCheck,
+  "installation-securite": Wrench,
+  reparation: Wrench,
+  "formations-pro": GraduationCap,
+  "acces-saas": Download,
+  "e-books": Download,
+  logiciels: Cpu,
+  "mode-chaussures": Shirt,
+  "beaute-cheveux": Sparkles,
+  alimentaire: Apple,
+  "maison-entretien": HomeIcon,
+  "bebe-enfant": Baby,
+  "sport-loisirs": Dumbbell,
+  "bricolage-outillage": Hammer,
+};
+
+const CATEGORY_TINT: Record<string, { tile: string; icon: string }> = {
+  telephones: { tile: "bg-gradient-to-br from-primary to-secondary text-primary-foreground", icon: "bg-primary/10 text-primary" },
+  ordinateurs: { tile: "bg-gradient-to-br from-secondary to-primary text-primary-foreground", icon: "bg-secondary/15 text-secondary" },
+  audio: { tile: "bg-gradient-to-br from-[#1a3a6e] to-[#0f4f66] text-primary-foreground", icon: "bg-primary/10 text-primary" },
+  securite: { tile: "bg-gradient-to-br from-success/85 to-success text-primary-foreground", icon: "bg-success/15 text-success" },
+  "installation-securite": { tile: "bg-gradient-to-br from-primary to-[#1A6BB5] text-primary-foreground", icon: "bg-primary/10 text-primary" },
+  reparation: { tile: "bg-gradient-to-br from-[#123f7a] to-[#1A6BB5] text-primary-foreground", icon: "bg-secondary/15 text-secondary" },
+  "formations-pro": { tile: "bg-gradient-to-br from-accent/90 to-accent text-accent-foreground", icon: "bg-accent/15 text-accent" },
+  "acces-saas": { tile: "bg-gradient-to-br from-success/85 to-success text-primary-foreground", icon: "bg-success/15 text-success" },
+  "e-books": { tile: "bg-gradient-to-br from-secondary to-[#0f4f66] text-primary-foreground", icon: "bg-secondary/15 text-secondary" },
+  logiciels: { tile: "bg-gradient-to-br from-primary to-secondary text-primary-foreground", icon: "bg-primary/10 text-primary" },
+  "mode-chaussures": { tile: "bg-gradient-to-br from-accent/80 to-[#F58B1F] text-accent-foreground", icon: "bg-accent/15 text-accent" },
+  "beaute-cheveux": { tile: "bg-gradient-to-br from-[#c9497f] to-[#8b3a63] text-primary-foreground", icon: "bg-accent/15 text-accent" },
+  alimentaire: { tile: "bg-gradient-to-br from-success/85 to-[#2a8f42] text-primary-foreground", icon: "bg-success/15 text-success" },
+  "maison-entretien": { tile: "bg-gradient-to-br from-[#0f4f66] to-secondary text-primary-foreground", icon: "bg-secondary/15 text-secondary" },
+  "bebe-enfant": { tile: "bg-gradient-to-br from-[#F2994A] to-accent text-accent-foreground", icon: "bg-accent/15 text-accent" },
+  "sport-loisirs": { tile: "bg-gradient-to-br from-secondary to-success/80 text-primary-foreground", icon: "bg-secondary/15 text-secondary" },
+  "bricolage-outillage": { tile: "bg-gradient-to-br from-primary to-[#1a3a6e] text-primary-foreground", icon: "bg-primary/10 text-primary" },
+};
+
+function iconFor(slug: string): LucideIcon {
+  return CATEGORY_ICON[slug] ?? Package;
+}
+
+function tintFor(slug: string) {
+  return (
+    CATEGORY_TINT[slug] ?? {
+      tile: "bg-gradient-to-br from-primary to-secondary text-primary-foreground",
+      icon: "bg-primary/10 text-primary",
+    }
+  );
+}
+
+function searchFor(cat: RootCategory): Record<string, unknown> {
+  return cat.product_type
+    ? { type: cat.product_type, category: cat.slug }
+    : { category: cat.slug };
+}
 
 /* -------------------- primitives -------------------- */
 
@@ -351,7 +447,7 @@ function TrustStrip() {
 type PromoTile = {
   title: string;
   sub: string;
-  Icon: typeof Tag;
+  Icon: LucideIcon;
   tint: string;
   ring: string;
   iconTint: string;
@@ -432,137 +528,59 @@ const PRIMARY_PROMO: PromoTile[] = [
   },
 ];
 
-const SECONDARY_PROMO: PromoTile[] = [
-  {
-    title: "Nouveau : Installation Starlink",
-    sub: "Devis rapide, intervention sous 72 h.",
-    Icon: Sparkles,
-    tint: "bg-secondary/5",
-    ring: "border-secondary/30 hover:border-secondary/60",
-    iconTint: "bg-secondary/15 text-secondary",
-    to: "/catalogue",
-    search: { type: "service" as ProductType, category: "installation-securite" },
-  },
-  {
-    title: "Ordinateurs & bureau",
-    sub: "Laptops i5/i7, périphériques certifiés.",
-    Icon: Laptop,
-    tint: "bg-primary/5",
-    ring: "border-primary/25 hover:border-primary/50",
-    iconTint: "bg-primary/10 text-primary",
-    to: "/catalogue",
-    search: { type: "physical" as ProductType, category: "ordinateurs" },
-  },
-  {
-    title: "Logiciels & abonnements",
-    sub: "Antivirus, SaaS, licences officielles.",
-    Icon: Download,
-    tint: "bg-success/5",
-    ring: "border-success/30 hover:border-success/60",
-    iconTint: "bg-success/15 text-success",
-    to: "/catalogue",
-    search: { type: "digital" as ProductType },
-  },
-];
+/* Category mosaic — dynamic tiles from top-level categories with products */
 
-/* Category mosaic — 4 large type tiles + smaller subcategory tiles */
-
-const TYPE_TILES: {
-  type: ProductType; label: string; Icon: typeof Cpu; className: string;
-}[] = [
-  { type: "physical", label: "Produits physiques", Icon: Cpu, className: "col-span-2 row-span-2 bg-gradient-to-br from-primary to-secondary text-primary-foreground" },
-  { type: "training", label: "Formations", Icon: GraduationCap, className: "col-span-2 bg-gradient-to-br from-accent/90 to-accent text-accent-foreground" },
-  { type: "digital", label: "Numérique", Icon: Download, className: "bg-gradient-to-br from-success/85 to-success text-primary-foreground" },
-  { type: "service", label: "Services", Icon: Wrench, className: "bg-gradient-to-br from-secondary to-primary text-primary-foreground" },
-];
-
-const SUB_TILES: { slug: string; label: string; Icon: typeof Smartphone; type: ProductType }[] = [
-  { slug: "telephones", label: "Téléphones", Icon: Smartphone, type: "physical" },
-  { slug: "ordinateurs", label: "Ordinateurs", Icon: Laptop, type: "physical" },
-  { slug: "audio", label: "Audio", Icon: Headphones, type: "physical" },
-  { slug: "securite", label: "Sécurité", Icon: Camera, type: "physical" },
-];
-
-function CategoryMosaic() {
+function CategoryMosaic({ cats }: { cats: RootCategory[] }) {
+  if (cats.length === 0) return null;
+  // First tile is featured (spans 2x2 on md+), remainder are standard cells.
+  const [featured, ...rest] = cats;
+  const featuredTint = tintFor(featured.slug);
+  const FeaturedIcon = iconFor(featured.slug);
   return (
     <section className="mx-auto max-w-7xl px-4 pt-6">
       <SectionHeader title="Explorez Winstorr" />
       <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:auto-rows-[130px]">
-        {TYPE_TILES.map((t) => (
-          <Link
-            key={t.type}
-            to="/catalogue"
-            search={{ type: t.type }}
-            className={cn(
-              "group relative flex flex-col justify-between rounded-sm p-4 no-link-color overflow-hidden",
-              t.className,
-            )}
-          >
-            <t.Icon className="h-6 w-6 opacity-90" strokeWidth={2} />
-            <div>
-              <div className="text-base font-bold leading-tight">{t.label}</div>
-              <div className="mt-1 inline-flex items-center gap-1 text-xs font-medium opacity-90">
-                Explorer <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+        <Link
+          to="/catalogue"
+          search={searchFor(featured) as never}
+          className={cn(
+            "group relative col-span-2 row-span-2 flex flex-col justify-between rounded-sm p-4 no-link-color overflow-hidden",
+            featuredTint.tile,
+          )}
+        >
+          <FeaturedIcon className="h-6 w-6 opacity-90" strokeWidth={2} />
+          <div>
+            <div className="text-base font-bold leading-tight">{featured.name}</div>
+            <div className="mt-1 inline-flex items-center gap-1 text-xs font-medium opacity-90">
+              Explorer <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+            </div>
+          </div>
+        </Link>
+        {rest.map((c) => {
+          const Icon = iconFor(c.slug);
+          const tint = tintFor(c.slug);
+          return (
+            <Link
+              key={c.id}
+              to="/catalogue"
+              search={searchFor(c) as never}
+              className={cn(
+                "group flex flex-col justify-between rounded-sm p-3 no-link-color overflow-hidden",
+                tint.tile,
+              )}
+            >
+              <Icon className="h-5 w-5 opacity-90" strokeWidth={2} />
+              <div>
+                <div className="text-[13px] font-bold leading-tight">{c.name}</div>
+                <div className="mt-0.5 inline-flex items-center gap-0.5 text-[11px] font-medium opacity-90">
+                  Explorer <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                </div>
               </div>
-            </div>
-          </Link>
-        ))}
-        {SUB_TILES.map((s) => (
-          <Link
-            key={s.slug}
-            to="/catalogue"
-            search={{ type: s.type, category: s.slug }}
-            className="group flex items-center gap-2.5 rounded-sm border border-border bg-card px-3 py-3 no-link-color hover:border-secondary/60"
-          >
-            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-sm bg-muted text-primary">
-              <s.Icon className="h-4 w-4" strokeWidth={2} />
-            </div>
-            <div className="min-w-0">
-              <div className="text-[13px] font-semibold text-foreground truncate">{s.label}</div>
-              <div className="text-[11px] text-muted-foreground">Voir la catégorie</div>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          );
+        })}
       </div>
     </section>
-  );
-}
-
-/* Subcategory 2x2 grid block */
-
-function SubcategoryBlock({
-  title,
-  type,
-  entries,
-}: {
-  title: string;
-  type: ProductType;
-  entries: { slug: string; label: string; Icon: typeof Smartphone }[];
-}) {
-  return (
-    <div className="rounded-sm border border-border bg-card p-3.5">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <h3 className="text-sm font-bold text-foreground">{title}</h3>
-        <Link to="/catalogue" search={{ type }} className="text-xs font-medium text-secondary hover:underline inline-flex items-center gap-0.5">
-          Voir plus <ArrowRight className="h-3 w-3" />
-        </Link>
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        {entries.map((e) => (
-          <Link
-            key={e.slug}
-            to="/catalogue"
-            search={{ type, category: e.slug }}
-            className="group flex flex-col items-start gap-1.5 rounded-sm border border-border bg-background p-2.5 no-link-color hover:border-secondary/60"
-          >
-            <div className="grid h-10 w-10 place-items-center rounded-sm bg-muted text-primary">
-              <e.Icon className="h-5 w-5" />
-            </div>
-            <div className="text-[12px] font-medium text-foreground leading-snug">{e.label}</div>
-          </Link>
-        ))}
-      </div>
-    </div>
   );
 }
 
@@ -611,38 +629,31 @@ function Spotlight({ p }: { p: MiniProduct | null }) {
   );
 }
 
-/* Circular category row */
+/* Circular category row — dynamic from top-level categories with products */
 
-const CIRCLE_CATS: { slug?: string; type: ProductType; label: string; Icon: typeof Cpu }[] = [
-  { type: "physical", label: "Électronique", Icon: Cpu },
-  { type: "physical", slug: "telephones", label: "Téléphones", Icon: Smartphone },
-  { type: "physical", slug: "ordinateurs", label: "Ordinateurs", Icon: Laptop },
-  { type: "physical", slug: "audio", label: "Audio", Icon: Headphones },
-  { type: "physical", slug: "securite", label: "Sécurité", Icon: Camera },
-  { type: "digital", label: "Numérique", Icon: Download },
-  { type: "service", label: "Services", Icon: Wrench },
-  { type: "training", label: "Formations", Icon: GraduationCap },
-];
-
-function CircleRow() {
+function CircleRow({ cats }: { cats: RootCategory[] }) {
+  if (cats.length === 0) return null;
   return (
     <section className="mx-auto max-w-7xl px-4 pt-6">
       <div className="rounded-sm border border-border bg-[color-mix(in_oklab,var(--accent)_5%,var(--background))] p-4">
-        <SectionHeader title="Vendu et garanti par Wintek" />
+        <SectionHeader title="Nos catégories" />
         <div className="-mx-1 flex gap-4 overflow-x-auto scrollbar-thin px-1 pb-1">
-          {CIRCLE_CATS.map((c) => (
-            <Link
-              key={`${c.type}-${c.slug ?? "root"}`}
-              to="/catalogue"
-              search={c.slug ? { type: c.type, category: c.slug } : { type: c.type }}
-              className="group flex w-[86px] shrink-0 flex-col items-center gap-1.5 no-link-color"
-            >
-              <div className="grid h-[72px] w-[72px] place-items-center rounded-full bg-background border-2 border-border text-primary transition-colors group-hover:border-secondary">
-                <c.Icon className="h-6 w-6" strokeWidth={2} />
-              </div>
-              <div className="text-[11px] font-medium text-foreground text-center leading-tight">{c.label}</div>
-            </Link>
-          ))}
+          {cats.map((c) => {
+            const Icon = iconFor(c.slug);
+            return (
+              <Link
+                key={c.id}
+                to="/catalogue"
+                search={searchFor(c) as never}
+                className="group flex w-[92px] shrink-0 flex-col items-center gap-1.5 no-link-color"
+              >
+                <div className="grid h-[72px] w-[72px] place-items-center rounded-full bg-background border-2 border-border text-primary transition-colors group-hover:border-secondary">
+                  <Icon className="h-6 w-6" strokeWidth={2} />
+                </div>
+                <div className="text-[11px] font-medium text-foreground text-center leading-tight">{c.name}</div>
+              </Link>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -653,6 +664,12 @@ function CircleRow() {
 
 function Home() {
   const { data } = useSuspenseQuery(homeShelvesQuery);
+  const cats = data.rootsWithProducts;
+
+  // Order shelves: put larger categories first for immediate density.
+  const catShelves = cats
+    .slice()
+    .sort((a, b) => b.products.length - a.products.length);
 
   return (
     <div className="bg-background">
@@ -664,106 +681,50 @@ function Home() {
         <PromoTiles tiles={PRIMARY_PROMO} />
       </section>
 
-      {/* Category mosaic */}
-      <CategoryMosaic />
+      {/* Category mosaic — dynamic */}
+      <CategoryMosaic cats={cats} />
 
-      {/* Shelf 1 — Téléphones */}
-      <section className="mx-auto max-w-7xl px-4 pt-6">
-        <SectionHeader
-          title="Meilleures ventes — Téléphones"
-          to="/catalogue"
-          search={{ type: "physical", category: "telephones" }}
-        />
-        <Shelf items={data.phones} />
-      </section>
-
-      {/* Shelf 2 — Nouveautés */}
+      {/* Nouveautés */}
       <section className="mx-auto max-w-7xl px-4 pt-6">
         <SectionHeader title="Nouveautés" to="/catalogue" search={{ sort: "recent" }} />
         <Shelf items={data.nouveautes} />
       </section>
 
-      {/* Subcategory grid + Spotlight side by side */}
-      <section className="mx-auto max-w-7xl px-4 pt-6 grid gap-3 md:grid-cols-2">
-        <SubcategoryBlock
-          title="Explorez Électronique"
-          type="physical"
-          entries={[
-            { slug: "telephones", label: "Téléphones", Icon: Smartphone },
-            { slug: "ordinateurs", label: "Ordinateurs", Icon: Laptop },
-            { slug: "audio", label: "Audio", Icon: Headphones },
-            { slug: "securite", label: "Sécurité", Icon: Camera },
-          ]}
-        />
+      {/* Per-category best sellers — one shelf per top-level category with products */}
+      {catShelves.map((c) => (
+        <section key={c.id} className="mx-auto max-w-7xl px-4 pt-6">
+          <SectionHeader
+            title={`Meilleures ventes — ${c.name}`}
+            to="/catalogue"
+            search={searchFor(c)}
+          />
+          <Shelf items={c.products.slice(0, 12)} />
+        </section>
+      ))}
+
+      {/* Circular category row */}
+      <CircleRow cats={cats} />
+
+      {/* Les mieux notés + Spotlight */}
+      <section className="mx-auto max-w-7xl px-4 pt-6 grid gap-3 md:grid-cols-[1fr_minmax(0,380px)]">
+        <div>
+          <SectionHeader title="Les mieux notés" to="/catalogue" search={{ sort: "rating" }} />
+          <Shelf items={data.topRated} />
+        </div>
         <Spotlight p={data.spotlight} />
       </section>
 
-      {/* Shelf 3 — Ordinateurs */}
-      <section className="mx-auto max-w-7xl px-4 pt-6">
-        <SectionHeader
-          title="Meilleures ventes — Ordinateurs"
-          to="/catalogue"
-          search={{ type: "physical", category: "ordinateurs" }}
-        />
-        <Shelf items={data.laptops} />
-      </section>
-
-      {/* Shelf 4 — Les mieux notés */}
-      <section className="mx-auto max-w-7xl px-4 pt-6">
-        <SectionHeader title="Les mieux notés" to="/catalogue" search={{ sort: "rating" }} />
-        <Shelf items={data.topRated} />
-      </section>
-
-      {/* Circular category row */}
-      <CircleRow />
-
-      {/* Shelf 5 — Qualité vérifiée */}
-      <section className="mx-auto max-w-7xl px-4 pt-6">
+      {/* Qualité vérifiée */}
+      <section className="mx-auto max-w-7xl px-4 pt-6 pb-10">
         <SectionHeader title="Qualité vérifiée par Wintek" to="/catalogue" search={{ verified: true }} />
         <Shelf items={data.verified} />
       </section>
 
-      {/* Shelf 6 — Formations à venir */}
-      <section className="mx-auto max-w-7xl px-4 pt-6">
-        <SectionHeader title="Formations à venir" to="/catalogue" search={{ type: "training" }} />
-        <Shelf items={data.trainings} />
-      </section>
-
-      {/* Secondary promo mosaic */}
-      <section className="mx-auto max-w-7xl px-4 pt-8 pb-10">
-        <SectionHeader title="À découvrir aussi" />
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          {SECONDARY_PROMO.map((t) => (
-            <Link
-              key={t.title}
-              to={t.to}
-              search={t.search as never}
-              className={cn(
-                "group flex min-h-[130px] flex-col justify-between rounded-sm border p-3.5 no-link-color transition-colors",
-                t.tint,
-                t.ring,
-              )}
-            >
-              <div className={cn("grid h-9 w-9 place-items-center rounded-sm", t.iconTint)}>
-                <t.Icon className="h-4 w-4" strokeWidth={2.5} />
-              </div>
-              <div>
-                <div className="text-sm font-bold text-foreground leading-tight">{t.title}</div>
-                <div className="mt-0.5 text-xs text-muted-foreground leading-snug">{t.sub}</div>
-                <div className="mt-2 inline-flex items-center gap-0.5 text-xs font-medium text-secondary">
-                  Découvrir <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
       <div className="mx-auto max-w-7xl px-4">
         <RecentlyViewedShelf />
       </div>
     </div>
   );
-
 }
 
 /* Silence unused imports typecheck (kept for potential reuse) */
