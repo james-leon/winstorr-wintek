@@ -45,7 +45,7 @@ function VendorCoupons() {
   });
 
   const toggle = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: "active" | "disabled" }) => {
+    mutationFn: async ({ id, status }: { id: string; status: "active" | "paused" }) => {
       const { error } = await supabase.from("coupons").update({ status }).eq("id", id);
       if (error) throw error;
     },
