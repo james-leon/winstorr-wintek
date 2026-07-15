@@ -294,17 +294,18 @@ function AdminBannersPage() {
         />
       )}
 
-      <ConfirmDialog
-        open={!!deleteId}
-        title="Supprimer cette bannière ?"
-        description="Cette action est définitive."
-        confirmLabel="Supprimer"
-        variant="destructive"
-        onConfirm={() => {
-          if (deleteId) del.mutate(deleteId);
-        }}
-        onCancel={() => setDeleteId(null)}
-      />
+      {deleteId && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4">
+          <div className="w-full max-w-sm rounded-sm border border-border bg-card p-5">
+            <h3 className="font-display text-lg text-foreground">Supprimer cette bannière ?</h3>
+            <p className="mt-1 text-sm text-muted-foreground">Cette action est définitive.</p>
+            <div className="mt-4 flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setDeleteId(null)}>Annuler</Button>
+              <Button variant="destructive" onClick={() => del.mutate(deleteId)}>Supprimer</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
