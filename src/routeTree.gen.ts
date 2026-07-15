@@ -36,6 +36,7 @@ import { Route as AuthenticatedAdminVendeursRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminSessionsRouteImport } from './routes/_authenticated/admin.sessions'
 import { Route as AuthenticatedAdminRetoursRouteImport } from './routes/_authenticated/admin.retours'
 import { Route as AuthenticatedAdminProduitsRouteImport } from './routes/_authenticated/admin.produits'
+import { Route as AuthenticatedAdminPointsRetraitRouteImport } from './routes/_authenticated/admin.points-retrait'
 import { Route as AuthenticatedAdminDemandesRouteImport } from './routes/_authenticated/admin.demandes'
 import { Route as AuthenticatedAdminCommandesRouteImport } from './routes/_authenticated/admin.commandes'
 import { Route as AuthenticatedAdminCodesPromoRouteImport } from './routes/_authenticated/admin.codes-promo'
@@ -192,6 +193,12 @@ const AuthenticatedAdminProduitsRoute =
     path: '/produits',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminPointsRetraitRoute =
+  AuthenticatedAdminPointsRetraitRouteImport.update({
+    id: '/points-retrait',
+    path: '/points-retrait',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminDemandesRoute =
   AuthenticatedAdminDemandesRouteImport.update({
     id: '/demandes',
@@ -251,6 +258,7 @@ export interface FileRoutesByFullPath {
   '/admin/codes-promo': typeof AuthenticatedAdminCodesPromoRoute
   '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
   '/admin/demandes': typeof AuthenticatedAdminDemandesRoute
+  '/admin/points-retrait': typeof AuthenticatedAdminPointsRetraitRoute
   '/admin/produits': typeof AuthenticatedAdminProduitsRoute
   '/admin/retours': typeof AuthenticatedAdminRetoursRoute
   '/admin/sessions': typeof AuthenticatedAdminSessionsRoute
@@ -284,6 +292,7 @@ export interface FileRoutesByTo {
   '/admin/codes-promo': typeof AuthenticatedAdminCodesPromoRoute
   '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
   '/admin/demandes': typeof AuthenticatedAdminDemandesRoute
+  '/admin/points-retrait': typeof AuthenticatedAdminPointsRetraitRoute
   '/admin/produits': typeof AuthenticatedAdminProduitsRoute
   '/admin/retours': typeof AuthenticatedAdminRetoursRoute
   '/admin/sessions': typeof AuthenticatedAdminSessionsRoute
@@ -321,6 +330,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/codes-promo': typeof AuthenticatedAdminCodesPromoRoute
   '/_authenticated/admin/commandes': typeof AuthenticatedAdminCommandesRoute
   '/_authenticated/admin/demandes': typeof AuthenticatedAdminDemandesRoute
+  '/_authenticated/admin/points-retrait': typeof AuthenticatedAdminPointsRetraitRoute
   '/_authenticated/admin/produits': typeof AuthenticatedAdminProduitsRoute
   '/_authenticated/admin/retours': typeof AuthenticatedAdminRetoursRoute
   '/_authenticated/admin/sessions': typeof AuthenticatedAdminSessionsRoute
@@ -358,6 +368,7 @@ export interface FileRouteTypes {
     | '/admin/codes-promo'
     | '/admin/commandes'
     | '/admin/demandes'
+    | '/admin/points-retrait'
     | '/admin/produits'
     | '/admin/retours'
     | '/admin/sessions'
@@ -391,6 +402,7 @@ export interface FileRouteTypes {
     | '/admin/codes-promo'
     | '/admin/commandes'
     | '/admin/demandes'
+    | '/admin/points-retrait'
     | '/admin/produits'
     | '/admin/retours'
     | '/admin/sessions'
@@ -427,6 +439,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/codes-promo'
     | '/_authenticated/admin/commandes'
     | '/_authenticated/admin/demandes'
+    | '/_authenticated/admin/points-retrait'
     | '/_authenticated/admin/produits'
     | '/_authenticated/admin/retours'
     | '/_authenticated/admin/sessions'
@@ -650,6 +663,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminProduitsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/points-retrait': {
+      id: '/_authenticated/admin/points-retrait'
+      path: '/points-retrait'
+      fullPath: '/admin/points-retrait'
+      preLoaderRoute: typeof AuthenticatedAdminPointsRetraitRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/demandes': {
       id: '/_authenticated/admin/demandes'
       path: '/demandes'
@@ -709,6 +729,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminCodesPromoRoute: typeof AuthenticatedAdminCodesPromoRoute
   AuthenticatedAdminCommandesRoute: typeof AuthenticatedAdminCommandesRoute
   AuthenticatedAdminDemandesRoute: typeof AuthenticatedAdminDemandesRoute
+  AuthenticatedAdminPointsRetraitRoute: typeof AuthenticatedAdminPointsRetraitRoute
   AuthenticatedAdminProduitsRoute: typeof AuthenticatedAdminProduitsRoute
   AuthenticatedAdminRetoursRoute: typeof AuthenticatedAdminRetoursRoute
   AuthenticatedAdminSessionsRoute: typeof AuthenticatedAdminSessionsRoute
@@ -723,6 +744,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminCodesPromoRoute: AuthenticatedAdminCodesPromoRoute,
   AuthenticatedAdminCommandesRoute: AuthenticatedAdminCommandesRoute,
   AuthenticatedAdminDemandesRoute: AuthenticatedAdminDemandesRoute,
+  AuthenticatedAdminPointsRetraitRoute: AuthenticatedAdminPointsRetraitRoute,
   AuthenticatedAdminProduitsRoute: AuthenticatedAdminProduitsRoute,
   AuthenticatedAdminRetoursRoute: AuthenticatedAdminRetoursRoute,
   AuthenticatedAdminSessionsRoute: AuthenticatedAdminSessionsRoute,

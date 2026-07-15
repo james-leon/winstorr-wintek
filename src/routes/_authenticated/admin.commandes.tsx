@@ -36,7 +36,7 @@ function AdminOrdersPage() {
     queryFn: async () => {
       let q = supabase
         .from("orders")
-        .select("id, order_number, status, payment_status, total, customer_name, customer_phone, has_physical_items, shipping_address, notes, created_at")
+        .select("id, order_number, status, payment_status, payment_method, total, customer_name, customer_phone, has_physical_items, shipping_address, delivery_mode, pickup_point_id, notes, created_at")
         .order("created_at", { ascending: false })
         .limit(200);
       if (statusFilter !== "all") q = q.eq("status", statusFilter as any);
