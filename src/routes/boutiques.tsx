@@ -19,11 +19,6 @@ const searchSchema = z.object({
 type BoutiquesSearch = z.infer<typeof searchSchema>;
 
 
-const searchSchema = z.object({
-  q: z.string().trim().min(1).optional().catch(undefined),
-  sort: z.enum(["popular", "rating", "recent", "name"]).optional().catch(undefined),
-  page: z.coerce.number().int().min(1).optional().catch(undefined),
-});
 
 type VendorDirEntry = {
   id: string;
