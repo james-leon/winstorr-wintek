@@ -216,7 +216,7 @@ export function SiteHeader() {
 
         {/* Row 2 — category nav (desktop only) */}
         <div className="hidden md:block" style={{ background: "var(--color-header-alt)" }}>
-          <nav className="mx-auto flex max-w-7xl items-center gap-0 px-3 h-10 flex-wrap">
+          <nav className="mx-auto flex max-w-7xl items-center gap-0 px-3 h-10">
             <button
               onClick={() => setDrawerOpen(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/10 whitespace-nowrap"
