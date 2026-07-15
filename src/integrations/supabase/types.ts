@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          metadata: Json
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json
+        }
+        Relationships: []
+      }
       admin_notifications: {
         Row: {
           created_at: string
@@ -1204,7 +1234,11 @@ export type Database = {
           expires_at: string
           id: string
           invited_by: string | null
+          last_email_error: string | null
+          last_email_sent_at: string | null
+          last_email_status: string | null
           proposed_vendor_name: string | null
+          revoked_at: string | null
           status: Database["public"]["Enums"]["vendor_invitation_status"]
           token: string
           vendor_id: string | null
@@ -1216,7 +1250,11 @@ export type Database = {
           expires_at?: string
           id?: string
           invited_by?: string | null
+          last_email_error?: string | null
+          last_email_sent_at?: string | null
+          last_email_status?: string | null
           proposed_vendor_name?: string | null
+          revoked_at?: string | null
           status?: Database["public"]["Enums"]["vendor_invitation_status"]
           token: string
           vendor_id?: string | null
@@ -1228,7 +1266,11 @@ export type Database = {
           expires_at?: string
           id?: string
           invited_by?: string | null
+          last_email_error?: string | null
+          last_email_sent_at?: string | null
+          last_email_status?: string | null
           proposed_vendor_name?: string | null
+          revoked_at?: string | null
           status?: Database["public"]["Enums"]["vendor_invitation_status"]
           token?: string
           vendor_id?: string | null
