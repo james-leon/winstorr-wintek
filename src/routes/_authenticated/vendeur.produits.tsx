@@ -48,8 +48,7 @@ function VendorProducts() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, slug, name, type, status, price, price_type, stock_quantity, featured, quality_verified, vendor_id, rating_average, rating_count")
-        .eq("vendor_id", vendorId!)
+        .select("id, slug, name, type, status, price, price_type, stock_quantity, featured, quality_verified, vendor_id, rating_average, rating_count, rejection_reason")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as Row[];
