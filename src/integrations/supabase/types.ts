@@ -846,8 +846,11 @@ export type Database = {
           quality_verified: boolean
           rating_average: number
           rating_count: number
+          rejection_reason: string | null
           requires_diagnostic: boolean | null
           requires_shipping: boolean | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           service_area: Database["public"]["Enums"]["service_area"] | null
           short_description: string | null
           sku: string | null
@@ -879,8 +882,11 @@ export type Database = {
           quality_verified?: boolean
           rating_average?: number
           rating_count?: number
+          rejection_reason?: string | null
           requires_diagnostic?: boolean | null
           requires_shipping?: boolean | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           service_area?: Database["public"]["Enums"]["service_area"] | null
           short_description?: string | null
           sku?: string | null
@@ -912,8 +918,11 @@ export type Database = {
           quality_verified?: boolean
           rating_average?: number
           rating_count?: number
+          rejection_reason?: string | null
           requires_diagnostic?: boolean | null
           requires_shipping?: boolean | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           service_area?: Database["public"]["Enums"]["service_area"] | null
           short_description?: string | null
           sku?: string | null
@@ -933,6 +942,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
