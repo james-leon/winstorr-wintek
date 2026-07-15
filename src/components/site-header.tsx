@@ -54,6 +54,24 @@ export function SiteHeader() {
     staleTime: 5 * 60_000,
   });
 
+  useEffect(() => {
+    const details = moreDetailsRef.current;
+    if (!details) return;
+    const closeOnOutside = (e: MouseEvent) => {
+      if (!details.contains(e.target as Node)) {
+        details.open = false;
+      }
+    };
+    details.addEventListener("toggle", () => {
+      if (details.open) {
+        document.addEventListener("mousedown", closeOnOutside);
+      } else {
+        document.removeEventListener("mousedown", closeOnOutside);
+      }
+    });
+    return () => document.removeEventListener("mousedown", closeOnOutside);
+  }, []);
+
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
