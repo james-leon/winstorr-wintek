@@ -266,9 +266,11 @@ function AdminProducts() {
         <div className="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
           <span className="font-medium">{selected.size} sélectionné(s)</span>
           <div className="ml-auto flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => bulkUpdate.mutate("active")}>Activer</Button>
-            <Button size="sm" variant="outline" onClick={() => bulkUpdate.mutate("archived")}>Archiver</Button>
-            <Button size="sm" variant="outline" className="text-destructive" onClick={() => confirm(`Supprimer ${selected.size} produit(s) ?`) && bulkUpdate.mutate("delete")}>
+            <Button size="sm" variant="outline" onClick={() => bulkUpdate.mutate({ action: "approve" })}>Approuver</Button>
+            <Button size="sm" variant="outline" onClick={() => { const r = prompt("Motif du rejet (facultatif) :") ?? undefined; bulkUpdate.mutate({ action: "reject", reason: r }); }}>Rejeter</Button>
+            <Button size="sm" variant="outline" onClick={() => bulkUpdate.mutate({ action: "active" })}>Activer</Button>
+            <Button size="sm" variant="outline" onClick={() => bulkUpdate.mutate({ action: "archived" })}>Archiver</Button>
+            <Button size="sm" variant="outline" className="text-destructive" onClick={() => confirm(`Supprimer ${selected.size} produit(s) ?`) && bulkUpdate.mutate({ action: "delete" })}>
               Supprimer
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>Annuler</Button>
