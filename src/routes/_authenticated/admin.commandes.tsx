@@ -72,6 +72,21 @@ function AdminOrdersPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const confirmCashFn = useServerFn(confirmCashPayment);
+  const cashMut = useMutation({
+    mutationFn: (orderId: string) => confirmCashFn({ data: { orderId, notes: notes || null } }),
+    onSuccess: (res: any) => {
+      if (res?.ok === false) {
+        toast.info(res.reason === "already_paid" ? "Déjà payée." : "Impossible de confirmer.");
+      } else {
+        toast.success("Paiement en espèces confirmé.");
+      }
+      qc.invalidateQueries({ queryKey: ["admin-orders"] });
+      setSelected(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <div>
       <div className="mb-4 flex items-center gap-2">
