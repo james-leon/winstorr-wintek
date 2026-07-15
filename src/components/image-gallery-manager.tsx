@@ -216,7 +216,7 @@ export function ImageGalleryManager({ value, onChange }: Props) {
 
       <div className="flex items-end gap-2 pt-1">
         <div className="flex-1">
-          <Label className="text-xs text-muted-foreground">Ajouter une ou plusieurs URLs (une par ligne ou séparées par un espace)</Label>
+          <Label className="text-xs text-muted-foreground">Ou coller une URL externe (une par ligne)</Label>
           <div className="relative">
             <LinkIcon className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
