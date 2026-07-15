@@ -117,6 +117,42 @@ export type Database = {
           },
         ]
       }
+      commission_rules: {
+        Row: {
+          commission_type: Database["public"]["Enums"]["commission_kind"]
+          commission_value: number
+          created_at: string
+          id: string
+          is_active: boolean
+          priority: number
+          scope: Database["public"]["Enums"]["commission_scope"]
+          scope_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          commission_type: Database["public"]["Enums"]["commission_kind"]
+          commission_value: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          priority?: number
+          scope: Database["public"]["Enums"]["commission_scope"]
+          scope_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          commission_type?: Database["public"]["Enums"]["commission_kind"]
+          commission_value?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          priority?: number
+          scope?: Database["public"]["Enums"]["commission_scope"]
+          scope_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       coupon_redemptions: {
         Row: {
           coupon_id: string
@@ -190,6 +226,7 @@ export type Database = {
           usage_limit_total: number | null
           valid_from: string
           valid_until: string | null
+          vendor_id: string | null
         }
         Insert: {
           applies_to?: Database["public"]["Enums"]["coupon_applies_to"]
@@ -211,6 +248,7 @@ export type Database = {
           usage_limit_total?: number | null
           valid_from?: string
           valid_until?: string | null
+          vendor_id?: string | null
         }
         Update: {
           applies_to?: Database["public"]["Enums"]["coupon_applies_to"]
@@ -232,6 +270,7 @@ export type Database = {
           usage_limit_total?: number | null
           valid_from?: string
           valid_until?: string | null
+          vendor_id?: string | null
         }
         Relationships: [
           {
@@ -239,6 +278,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupons_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
             referencedColumns: ["id"]
           },
         ]
@@ -295,6 +341,8 @@ export type Database = {
       }
       order_items: {
         Row: {
+          commission_amount: number
+          commission_rate_applied: number | null
           created_at: string
           id: string
           order_id: string
@@ -309,6 +357,8 @@ export type Database = {
           vendor_id: string | null
         }
         Insert: {
+          commission_amount?: number
+          commission_rate_applied?: number | null
           created_at?: string
           id?: string
           order_id: string
@@ -323,6 +373,8 @@ export type Database = {
           vendor_id?: string | null
         }
         Update: {
+          commission_amount?: number
+          commission_rate_applied?: number | null
           created_at?: string
           id?: string
           order_id?: string
@@ -558,6 +610,70 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "product_price_tiers_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_questions: {
+        Row: {
+          answer: string | null
+          answered_at: string | null
+          answered_by: string | null
+          created_at: string
+          customer_id: string | null
+          guest_contact: string | null
+          guest_name: string | null
+          id: string
+          product_id: string
+          question: string
+          status: Database["public"]["Enums"]["question_status"]
+        }
+        Insert: {
+          answer?: string | null
+          answered_at?: string | null
+          answered_by?: string | null
+          created_at?: string
+          customer_id?: string | null
+          guest_contact?: string | null
+          guest_name?: string | null
+          id?: string
+          product_id: string
+          question: string
+          status?: Database["public"]["Enums"]["question_status"]
+        }
+        Update: {
+          answer?: string | null
+          answered_at?: string | null
+          answered_by?: string | null
+          created_at?: string
+          customer_id?: string | null
+          guest_contact?: string | null
+          guest_name?: string | null
+          id?: string
+          product_id?: string
+          question?: string
+          status?: Database["public"]["Enums"]["question_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_questions_answered_by_fkey"
+            columns: ["answered_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_questions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_questions_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
@@ -893,6 +1009,42 @@ export type Database = {
           },
         ]
       }
+      store_follows: {
+        Row: {
+          created_at: string
+          customer_id: string
+          id: string
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          id?: string
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          id?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_follows_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_follows_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_enrollments: {
         Row: {
           created_at: string
@@ -1002,6 +1154,48 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_announcements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          message: string
+          title: string
+          vendor_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message: string
+          title: string
+          vendor_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message?: string
+          title?: string
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_announcements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_announcements_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendor_invitations: {
         Row: {
           accepted_at: string | null
@@ -1081,8 +1275,107 @@ export type Database = {
           },
         ]
       }
+      vendor_storefronts: {
+        Row: {
+          banner_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          policies: string | null
+          social_links: Json
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          banner_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          policies?: string | null
+          social_links?: Json
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          banner_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          policies?: string | null
+          social_links?: Json
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_storefronts_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: true
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_withdrawal_requests: {
+        Row: {
+          amount_requested: number
+          available_balance_at_request: number
+          created_at: string
+          id: string
+          payout_details: string
+          payout_method: string
+          processed_at: string | null
+          processed_by: string | null
+          staff_notes: string | null
+          status: Database["public"]["Enums"]["withdrawal_status"]
+          vendor_id: string
+        }
+        Insert: {
+          amount_requested: number
+          available_balance_at_request: number
+          created_at?: string
+          id?: string
+          payout_details: string
+          payout_method: string
+          processed_at?: string | null
+          processed_by?: string | null
+          staff_notes?: string | null
+          status?: Database["public"]["Enums"]["withdrawal_status"]
+          vendor_id: string
+        }
+        Update: {
+          amount_requested?: number
+          available_balance_at_request?: number
+          created_at?: string
+          id?: string
+          payout_details?: string
+          payout_method?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          staff_notes?: string | null
+          status?: Database["public"]["Enums"]["withdrawal_status"]
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_withdrawal_requests_processed_by_fkey"
+            columns: ["processed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_withdrawal_requests_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendors: {
         Row: {
+          boost_score: number
           commission_rate: number | null
           contact_email: string | null
           contact_phone: string | null
@@ -1091,12 +1384,14 @@ export type Database = {
           id: string
           logo_url: string | null
           name: string
+          pinned_until: string | null
           slug: string
           status: Database["public"]["Enums"]["vendor_status"]
           type: Database["public"]["Enums"]["vendor_type"]
           updated_at: string
         }
         Insert: {
+          boost_score?: number
           commission_rate?: number | null
           contact_email?: string | null
           contact_phone?: string | null
@@ -1105,12 +1400,14 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name: string
+          pinned_until?: string | null
           slug: string
           status?: Database["public"]["Enums"]["vendor_status"]
           type?: Database["public"]["Enums"]["vendor_type"]
           updated_at?: string
         }
         Update: {
+          boost_score?: number
           commission_rate?: number | null
           contact_email?: string | null
           contact_phone?: string | null
@@ -1119,6 +1416,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name?: string
+          pinned_until?: string | null
           slug?: string
           status?: Database["public"]["Enums"]["vendor_status"]
           type?: Database["public"]["Enums"]["vendor_type"]
@@ -1281,6 +1579,7 @@ export type Database = {
         Args: { _user_id: string; _vendor_id: string }
         Returns: boolean
       }
+      recompute_vendor_boost_scores: { Args: never; Returns: undefined }
       redeem_coupon: {
         Args: {
           _coupon_id: string
@@ -1289,6 +1588,23 @@ export type Database = {
           _discount: number
           _order_id: string
         }
+        Returns: undefined
+      }
+      request_withdrawal: {
+        Args: {
+          _amount: number
+          _payout_details: string
+          _payout_method: string
+          _vendor_id: string
+        }
+        Returns: Json
+      }
+      resolve_commission: {
+        Args: { _line_amount: number; _product_id: string }
+        Returns: Json
+      }
+      snapshot_order_commissions: {
+        Args: { _order_id: string }
         Returns: undefined
       }
       validate_coupon: {
@@ -1301,6 +1617,10 @@ export type Database = {
         }
         Returns: Json
       }
+      vendor_available_balance: {
+        Args: { _vendor_id: string }
+        Returns: number
+      }
     }
     Enums: {
       admin_notification_type:
@@ -1310,6 +1630,8 @@ export type Database = {
         | "other"
       app_role: "customer" | "staff" | "admin"
       category_status: "active" | "archived"
+      commission_kind: "percentage" | "fixed_amount"
+      commission_scope: "global" | "vendor" | "category" | "product"
       coupon_applies_to:
         | "all_products"
         | "specific_products"
@@ -1332,6 +1654,7 @@ export type Database = {
       price_type: "fixed" | "starting_at" | "quote_only"
       product_status: "draft" | "active" | "archived"
       product_type: "physical" | "digital" | "service" | "training"
+      question_status: "pending" | "answered" | "hidden"
       return_reason:
         | "defective"
         | "wrong_item"
@@ -1363,6 +1686,7 @@ export type Database = {
       vendor_member_role: "owner" | "staff"
       vendor_status: "active" | "suspended" | "pending_approval"
       vendor_type: "internal" | "external"
+      withdrawal_status: "pending" | "approved" | "paid" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1498,6 +1822,8 @@ export const Constants = {
       ],
       app_role: ["customer", "staff", "admin"],
       category_status: ["active", "archived"],
+      commission_kind: ["percentage", "fixed_amount"],
+      commission_scope: ["global", "vendor", "category", "product"],
       coupon_applies_to: [
         "all_products",
         "specific_products",
@@ -1522,6 +1848,7 @@ export const Constants = {
       price_type: ["fixed", "starting_at", "quote_only"],
       product_status: ["draft", "active", "archived"],
       product_type: ["physical", "digital", "service", "training"],
+      question_status: ["pending", "answered", "hidden"],
       return_reason: [
         "defective",
         "wrong_item",
@@ -1556,6 +1883,7 @@ export const Constants = {
       vendor_member_role: ["owner", "staff"],
       vendor_status: ["active", "suspended", "pending_approval"],
       vendor_type: ["internal", "external"],
+      withdrawal_status: ["pending", "approved", "paid", "rejected"],
     },
   },
 } as const
