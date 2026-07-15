@@ -1,9 +1,11 @@
 import { useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Star, Trash2, Plus, Link as LinkIcon } from "lucide-react";
+import { ArrowLeft, ArrowRight, Star, Trash2, Plus, Link as LinkIcon, Upload, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { uploadProductImage } from "@/lib/image-upload";
 
 type Props = {
   value: string[];
