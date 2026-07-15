@@ -14,19 +14,71 @@ function randomToken() {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+type EmailSendResult = { status: "sent" | "mocked" | "failed"; error?: string };
+
+async function sendInvitationEmail(email: string, token: string, expiresAt: string): Promise<EmailSendResult> {
+  const key = process.env.RESEND_API_KEY;
+  const appUrl = process.env.APP_PUBLIC_URL || "";
+  const link = `${appUrl}/vendeur/invitation/${token}`;
+  const subject = "Invitation à rejoindre Winstorr en tant que vendeur";
+  const text = `Bonjour,\n\nVous êtes invité·e à rejoindre la marketplace Winstorr.\nAcceptez votre invitation ici : ${link}\n\nCe lien expire le ${new Date(expiresAt).toLocaleDateString("fr-FR")}.\n\n— L'équipe Winstorr`;
+  if (!key) {
+    console.log(`[vendor-invitation:mock] to=${email} link=${link}`);
+    return { status: "mocked" };
+  }
+  try {
+    const from = process.env.RESEND_FROM || "Winstorr <onboarding@resend.dev>";
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ from, to: email, subject, text }),
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      return { status: "failed", error: `HTTP ${res.status}: ${body.slice(0, 300)}` };
+    }
+    return { status: "sent" };
+  } catch (e) {
+    return { status: "failed", error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+async function requireAdmin(context: { supabase: import("@supabase/supabase-js").SupabaseClient; userId: string }) {
+  const { data: isAdmin, error } = await context.supabase
+    .rpc("has_role", { _user_id: context.userId, _role: "admin" });
+  if (error) throw new Error(error.message);
+  if (!isAdmin) throw new Error("Forbidden");
+}
+
+async function logAudit(
+  admin: Awaited<ReturnType<typeof loadAdmin>>,
+  action: string,
+  entityId: string,
+  actorId: string,
+  metadata: Record<string, unknown>,
+) {
+  await admin.from("admin_audit_log").insert({
+    action,
+    entity_type: "vendor_invitation",
+    entity_id: entityId,
+    actor_id: actorId,
+    metadata,
+  });
+}
+
+async function loadAdmin() {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin;
+}
+
 export const createVendorInvitation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => createSchema.parse(input))
   .handler(async ({ data, context }) => {
-    // caller must be admin
-    const { data: isAdmin, error: roleErr } = await context.supabase
-      .rpc("has_role", { _user_id: context.userId, _role: "admin" });
-    if (roleErr) throw new Error(roleErr.message);
-    if (!isAdmin) throw new Error("Forbidden");
-
+    await requireAdmin(context);
+    const admin = await loadAdmin();
     const token = randomToken();
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: inv, error } = await supabaseAdmin
+    const { data: inv, error } = await admin
       .from("vendor_invitations")
       .insert({
         email: data.email.toLowerCase(),
@@ -39,42 +91,112 @@ export const createVendorInvitation = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
 
-    // Best-effort email
-    try {
-      const key = process.env.RESEND_API_KEY;
-      const appUrl = process.env.APP_PUBLIC_URL || "";
-      const link = `${appUrl}/vendeur/invitation/${inv.token}`;
-      const subject = "Invitation à rejoindre Winstorr en tant que vendeur";
-      const text = `Bonjour,\n\nVous êtes invité·e à rejoindre la marketplace Winstorr.\nAcceptez votre invitation ici : ${link}\n\nCe lien expire le ${new Date(inv.expires_at).toLocaleDateString("fr-FR")}.\n\n— L'équipe Winstorr`;
-      if (key) {
-        const from = process.env.RESEND_FROM || "Winstorr <onboarding@resend.dev>";
-        await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ from, to: inv.email, subject, text }),
-        });
-      } else {
-        console.log(`[vendor-invitation:mock] to=${inv.email} link=${link}`);
-      }
-    } catch (e) {
-      console.error("[vendor-invitation] email failed", e);
-    }
+    const send = await sendInvitationEmail(inv.email, inv.token, inv.expires_at);
+    await admin.from("vendor_invitations").update({
+      last_email_status: send.status,
+      last_email_sent_at: new Date().toISOString(),
+      last_email_error: send.error ?? null,
+    }).eq("id", inv.id);
 
-    return { id: inv.id, token: inv.token };
+    await logAudit(admin, "vendor_invitation.created", inv.id, context.userId, {
+      email: inv.email, email_status: send.status,
+    });
+
+    return { id: inv.id, token: inv.token, email_status: send.status, email_error: send.error };
   });
 
 export const revokeVendorInvitation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    const { data: isAdmin } = await context.supabase
-      .rpc("has_role", { _user_id: context.userId, _role: "admin" });
-    if (!isAdmin) throw new Error("Forbidden");
-    const { error } = await context.supabase
+    await requireAdmin(context);
+    const admin = await loadAdmin();
+    const { data: updated, error } = await admin
       .from("vendor_invitations")
-      .update({ status: "revoked" })
+      .update({ status: "revoked", revoked_at: new Date().toISOString() })
       .eq("id", data.id)
-      .eq("status", "pending");
+      .eq("status", "pending")
+      .select("id, email")
+      .single();
     if (error) throw new Error(error.message);
+    await logAudit(admin, "vendor_invitation.revoked", data.id, context.userId, { email: updated?.email });
+    return { ok: true };
+  });
+
+export const resendVendorInvitation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context);
+    const admin = await loadAdmin();
+
+    const { data: existing, error: readErr } = await admin
+      .from("vendor_invitations")
+      .select("id, email, status, expires_at")
+      .eq("id", data.id)
+      .single();
+    if (readErr) throw new Error(readErr.message);
+    if (!existing) throw new Error("Invitation introuvable");
+    if (existing.status !== "pending" && existing.status !== "expired") {
+      throw new Error("Seules les invitations en attente ou expirées peuvent être renvoyées.");
+    }
+
+    const token = randomToken();
+    const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+    const { error: updErr } = await admin
+      .from("vendor_invitations")
+      .update({ token, expires_at: expiresAt, status: "pending" })
+      .eq("id", data.id);
+    if (updErr) throw new Error(updErr.message);
+
+    const send = await sendInvitationEmail(existing.email, token, expiresAt);
+    await admin.from("vendor_invitations").update({
+      last_email_status: send.status,
+      last_email_sent_at: new Date().toISOString(),
+      last_email_error: send.error ?? null,
+    }).eq("id", data.id);
+
+    await logAudit(admin, "vendor_invitation.resent", data.id, context.userId, {
+      email: existing.email, email_status: send.status,
+    });
+
+    return { ok: true, token, email_status: send.status, email_error: send.error };
+  });
+
+export const deleteVendorInvitation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context);
+    const admin = await loadAdmin();
+
+    const { data: existing, error: readErr } = await admin
+      .from("vendor_invitations")
+      .select("id, email, status, expires_at, revoked_at, created_at")
+      .eq("id", data.id)
+      .single();
+    if (readErr) throw new Error(readErr.message);
+    if (!existing) throw new Error("Invitation introuvable");
+
+    if (existing.status !== "revoked" && existing.status !== "expired") {
+      throw new Error("Seules les invitations révoquées ou expirées peuvent être supprimées.");
+    }
+
+    // Safety window: 7 days past revocation/expiry
+    const reference = existing.status === "revoked"
+      ? existing.revoked_at ?? existing.created_at
+      : existing.expires_at;
+    const ageMs = Date.now() - new Date(reference).getTime();
+    if (ageMs < 7 * 24 * 60 * 60 * 1000) {
+      throw new Error("La suppression est disponible 7 jours après la révocation ou l'expiration.");
+    }
+
+    const { error } = await admin.from("vendor_invitations").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+
+    await logAudit(admin, "vendor_invitation.deleted", data.id, context.userId, {
+      email: existing.email, prior_status: existing.status,
+    });
+
     return { ok: true };
   });
