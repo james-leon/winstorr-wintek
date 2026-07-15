@@ -46,18 +46,25 @@ function AdminVendors() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("vendor_invitations")
-        .select("id, email, proposed_vendor_name, vendor_id, token, status, expires_at, created_at")
+        .select("id, email, proposed_vendor_name, vendor_id, token, status, expires_at, created_at, revoked_at, last_email_status, last_email_sent_at, last_email_error")
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(200);
       if (error) throw error;
       return data ?? [];
     },
   });
 
-  const suspend = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: "active" | "suspended" }) => {
-      const { error } = await supabase.from("vendors").update({ status }).eq("id", id);
-      if (error) throw error;
+  const vendorNameById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const v of vendors) m.set(v.id, v.name);
+    return m;
+  }, [vendors]);
+
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "accepted" | "revoked" | "expired">("all");
+  const filteredInvitations = useMemo(() => {
+    if (statusFilter === "all") return invitations;
+    return invitations.filter((i) => i.status === statusFilter);
+  }, [invitations, statusFilter]);
     },
     onSuccess: () => { toast.success("Vendeur mis à jour"); qc.invalidateQueries({ queryKey: ["admin-vendors-full"] }); },
     onError: (e: Error) => toast.error(e.message),
