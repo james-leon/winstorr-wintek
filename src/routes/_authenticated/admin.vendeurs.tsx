@@ -1,16 +1,22 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Copy, Plus } from "lucide-react";
+import { Copy, Plus, RotateCw, Trash2, XCircle, CheckCircle2, AlertCircle, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { createVendorInvitation, revokeVendorInvitation } from "@/lib/vendor-invitations.functions";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import {
+  createVendorInvitation,
+  revokeVendorInvitation,
+  resendVendorInvitation,
+  deleteVendorInvitation,
+} from "@/lib/vendor-invitations.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/vendeurs")({
   component: AdminVendors,
