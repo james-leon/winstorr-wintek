@@ -162,9 +162,7 @@ function AdminProducts() {
 
   const reviewOne = useMutation({
     mutationFn: async ({ id, status, reason }: { id: string; status: "active" | "rejected"; reason?: string | null }) => {
-      const patch: Record<string, unknown> = { status };
-      if (status === "active") patch.rejection_reason = null;
-      if (status === "rejected") patch.rejection_reason = reason ?? null;
+      const patch = { status, rejection_reason: status === "rejected" ? (reason ?? null) : null };
       const { error } = await supabase.from("products").update(patch).eq("id", id);
       if (error) throw error;
     },
