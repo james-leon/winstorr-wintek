@@ -1,12 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CheckCircle2, XCircle, Loader2, Package, Download } from "lucide-react";
+import { XCircle, Loader2, Package, Download, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { formatFcfa } from "@/lib/format";
 import { initiatePayment, mockConfirmPayment } from "@/lib/orders.functions";
 import { toast } from "sonner";
+import { SuccessCheckmark } from "@/components/success-checkmark";
+import { TrustStrip } from "@/components/trust-strip";
+import { useAuth } from "@/lib/auth-context";
+import { useState } from "react";
+
 
 export const Route = createFileRoute("/commande/$orderNumber/confirmation")({
   head: () => ({ meta: [{ title: "Confirmation de commande — Winstorr" }] }),
@@ -62,13 +67,16 @@ function ConfirmationPage() {
   const isFailed = order.payment_status === "failed";
   const isPending = order.payment_status === "pending";
 
+  const { user } = useAuth();
+  const [dismissedNudge, setDismissedNudge] = useState(false);
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <div className="rounded-sm border border-border bg-card p-6">
         <div className="flex items-center gap-3">
-          {isPaid && <CheckCircle2 className="h-10 w-10 text-success" />}
-          {isFailed && <XCircle className="h-10 w-10 text-destructive" />}
-          {isPending && <Loader2 className="h-10 w-10 text-secondary animate-spin" />}
+          {isPaid && <SuccessCheckmark />}
+          {isFailed && <XCircle className="h-14 w-14 text-destructive" />}
+          {isPending && <Loader2 className="h-14 w-14 text-secondary animate-spin" />}
           <div>
             <h1 className="font-display text-2xl text-foreground">
               {isPaid && "Merci pour votre commande !"}
@@ -78,6 +86,27 @@ function ConfirmationPage() {
             <p className="text-sm text-muted-foreground">Commande n° <span className="font-mono">{order.order_number}</span></p>
           </div>
         </div>
+
+        {isPaid && !user && !dismissedNudge && (
+          <div className="mt-4 flex items-start gap-3 rounded-sm border border-secondary/30 bg-secondary/5 p-3">
+            <UserPlus className="mt-0.5 h-5 w-5 shrink-0 text-secondary" />
+            <div className="flex-1">
+              <div className="text-sm font-medium text-foreground">Créez un compte pour suivre votre commande</div>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Retrouvez cette commande et vos futures livraisons dans votre espace personnel.
+              </p>
+              <div className="mt-2 flex gap-2">
+                <Button asChild size="sm" variant="outline" className="h-8">
+                  <Link to="/auth">Créer mon compte</Link>
+                </Button>
+                <Button size="sm" variant="ghost" className="h-8" onClick={() => setDismissedNudge(true)}>
+                  Plus tard
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
 
         {isFailed && (
           <div className="mt-4 flex gap-2">
@@ -151,11 +180,18 @@ function ConfirmationPage() {
           </ul>
         </div>
 
+        {isPaid && (
+          <div className="mt-6 rounded-sm border border-border bg-muted/30 p-3">
+            <TrustStrip />
+          </div>
+        )}
+
         <div className="mt-6 flex gap-2">
           <Button asChild variant="outline"><Link to="/catalogue">Continuer mes achats</Link></Button>
           <Button asChild variant="ghost"><Link to="/mon-compte/commandes">Mes commandes</Link></Button>
         </div>
       </div>
     </div>
+
   );
 }

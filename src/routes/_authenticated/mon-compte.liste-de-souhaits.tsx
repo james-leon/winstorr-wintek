@@ -4,7 +4,10 @@ import { Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { ProductCard, type ProductCardData } from "@/components/product-card";
+import { ProductCardSkeletonGrid } from "@/components/product-card-skeleton";
+import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
+
 
 export const Route = createFileRoute("/_authenticated/mon-compte/liste-de-souhaits")({
   head: () => ({ meta: [{ title: "Liste de souhaits — Winstorr" }, { name: "robots", content: "noindex" }] }),
@@ -33,14 +36,16 @@ function WishlistPage() {
   return (
     <div className="space-y-4">
       <h2 className="font-semibold text-lg">Liste de souhaits</h2>
-      {isLoading && <p className="text-sm text-muted-foreground">Chargement…</p>}
+      {isLoading && <ProductCardSkeletonGrid count={4} />}
       {!isLoading && data.length === 0 && (
-        <div className="rounded-sm border border-dashed border-border p-10 text-center">
-          <Heart className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-          <p className="text-sm text-muted-foreground mb-3">Aucun article enregistré pour le moment.</p>
-          <Button asChild><Link to="/catalogue">Découvrir le catalogue</Link></Button>
-        </div>
+        <EmptyState
+          icon={Heart}
+          title="Aucun article enregistré pour le moment"
+          description="Cliquez sur le cœur d'un produit pour le retrouver ici."
+          action={<Button asChild><Link to="/catalogue">Découvrir le catalogue</Link></Button>}
+        />
       )}
+
       {data.length > 0 && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {data.map((p) => <ProductCard key={p.id} p={p} />)}

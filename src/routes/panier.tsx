@@ -10,6 +10,9 @@ import { Input } from "@/components/ui/input";
 import { formatFcfa } from "@/lib/format";
 import { validateCouponFn } from "@/lib/coupons.functions";
 import { useCartTiers, resolveUnitPrice } from "@/lib/tiers";
+import { EmptyState } from "@/components/empty-state";
+import { TrustStrip } from "@/components/trust-strip";
+
 
 
 export const Route = createFileRoute("/panier")({
@@ -62,14 +65,21 @@ function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <ShoppingBag className="mx-auto h-14 w-14 text-muted-foreground" />
-        <h1 className="mt-4 font-display text-2xl text-foreground">Votre panier est vide</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Parcourez notre catalogue pour trouver ce dont vous avez besoin.</p>
-        <Button asChild className="mt-6"><Link to="/catalogue">Voir le catalogue</Link></Button>
+      <div className="mx-auto max-w-2xl px-4 py-16">
+        <EmptyState
+          icon={ShoppingBag}
+          title="Votre panier est vide"
+          description="Parcourez notre catalogue pour trouver ce dont vous avez besoin."
+          action={
+            <Button asChild>
+              <Link to="/catalogue">Découvrir le catalogue</Link>
+            </Button>
+          }
+        />
       </div>
     );
   }
+
 
   const inc = (i: typeof items[number]) =>
     add({ productId: i.productId, slug: i.slug, name: i.name, price: i.price, image: i.image }, 1);
@@ -203,6 +213,10 @@ function CartPage() {
           <Link to="/catalogue" className="mt-3 block text-center text-sm text-secondary hover:underline">
             Continuer mes achats
           </Link>
+          <div className="mt-4 border-t border-border pt-3">
+            <TrustStrip />
+          </div>
+
         </aside>
       </div>
     </div>
