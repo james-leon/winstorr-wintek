@@ -25,6 +25,15 @@ type Row = {
   stock_quantity: number | null; featured: boolean;
   quality_verified: boolean; vendor_id: string;
   rating_average: number; rating_count: number;
+  rejection_reason: string | null;
+};
+
+const STATUS_META: Record<string, { label: string; cls: string }> = {
+  draft:          { label: "Brouillon",                cls: "bg-muted text-muted-foreground" },
+  pending_review: { label: "En attente de validation", cls: "bg-accent/15 text-accent" },
+  active:         { label: "Actif",                    cls: "bg-success/15 text-success" },
+  rejected:       { label: "Rejeté",                   cls: "bg-destructive/15 text-destructive" },
+  archived:       { label: "Archivé",                  cls: "bg-muted text-muted-foreground" },
 };
 
 function VendorProducts() {
