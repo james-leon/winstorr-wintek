@@ -65,15 +65,41 @@ function AdminVendors() {
     if (statusFilter === "all") return invitations;
     return invitations.filter((i) => i.status === statusFilter);
   }, [invitations, statusFilter]);
+
+  const suspend = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: "active" | "suspended" }) => {
+      const { error } = await supabase.from("vendors").update({ status }).eq("id", id);
+      if (error) throw error;
     },
     onSuccess: () => { toast.success("Vendeur mis à jour"); qc.invalidateQueries({ queryKey: ["admin-vendors-full"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const invalidateInv = () => qc.invalidateQueries({ queryKey: ["admin-vendor-invitations"] });
+
   const revokeFn = useServerFn(revokeVendorInvitation);
   const revoke = useMutation({
     mutationFn: (id: string) => revokeFn({ data: { id } }),
-    onSuccess: () => { toast.success("Invitation révoquée"); qc.invalidateQueries({ queryKey: ["admin-vendor-invitations"] }); },
+    onSuccess: () => { toast.success("Invitation révoquée"); invalidateInv(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const resendFn = useServerFn(resendVendorInvitation);
+  const resend = useMutation({
+    mutationFn: (id: string) => resendFn({ data: { id } }),
+    onSuccess: (res: { email_status?: string; email_error?: string }) => {
+      if (res.email_status === "sent") toast.success("Invitation renvoyée — email livré au fournisseur");
+      else if (res.email_status === "mocked") toast.success("Invitation régénérée — email non configuré, utilisez « Copier le lien »");
+      else toast.error(`Échec de l'envoi de l'email : ${res.email_error ?? "erreur inconnue"}. Le lien est régénéré, utilisez « Copier le lien ».`);
+      invalidateInv();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteFn = useServerFn(deleteVendorInvitation);
+  const del = useMutation({
+    mutationFn: (id: string) => deleteFn({ data: { id } }),
+    onSuccess: () => { toast.success("Invitation supprimée"); invalidateInv(); },
     onError: (e: Error) => toast.error(e.message),
   });
 
