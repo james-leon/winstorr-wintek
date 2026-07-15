@@ -285,3 +285,25 @@ export const mockConfirmPayment = createServerFn({ method: "POST" })
     return res;
   });
 
+// Staff-only: confirm a cash-on-pickup order as paid
+export const confirmCashPayment = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) =>
+    z.object({ orderId: z.string().uuid(), notes: z.string().max(500).optional().nullable() }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireSupabaseAuth } = await import("@/integrations/supabase/auth-middleware");
+    void requireSupabaseAuth;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: res, error } = await supabaseAdmin.rpc("confirm_cash_payment", {
+      _order_id: data.orderId,
+      _notes: data.notes ?? null,
+    });
+    if (error) throw new Error(error.message);
+    const { notifyOrderEvent } = await import("./notifications.server");
+    await notifyOrderEvent(data.orderId, "payment_confirmed").catch((e) => console.error("[notify]", e));
+    const { redeemOrderCouponIfAny } = await import("./coupons.server");
+    await redeemOrderCouponIfAny(data.orderId).catch((e) => console.error("[redeem]", e));
+    return res;
+  });
+
+
