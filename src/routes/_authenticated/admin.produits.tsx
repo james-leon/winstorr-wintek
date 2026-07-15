@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { TypeBadge } from "@/components/type-badge";
 import { displayPrice, slugify, PRODUCT_TYPE_LABELS, type ProductType } from "@/lib/format";
+import { ImageGalleryManager } from "@/components/image-gallery-manager";
 
 export const Route = createFileRoute("/_authenticated/admin/produits")({
   component: AdminProducts,
