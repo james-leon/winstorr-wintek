@@ -32,7 +32,7 @@ function VendorRevenues() {
           .from("order_items")
           .select("subtotal, commission_amount, orders!inner(payment_status,status,created_at)")
           .eq("vendor_id", vendorId!)
-          .eq("orders.payment_status", "paid"),
+          .neq("orders.status", "cancelled"),
         supabase.rpc("vendor_available_balance", { _vendor_id: vendorId! }),
       ]);
       if (e1) throw e1;
@@ -70,7 +70,7 @@ function VendorRevenues() {
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-        <Card label="Ventes brutes (payées)" value={summary ? formatFcfa(summary.gross) : "…"} />
+        <Card label="Ventes brutes" value={summary ? formatFcfa(summary.gross) : "…"} />
         <Card label="Commission Winstorr" value={summary ? formatFcfa(summary.commission) : "…"} />
         <Card label="Net perçu" value={summary ? formatFcfa(summary.net) : "…"} />
         <Card label="Solde disponible" value={summary ? formatFcfa(summary.available) : "…"} highlight />
