@@ -31,12 +31,9 @@ export function useFollowerCount(vendorId: string | null | undefined) {
     enabled: !!vendorId,
     queryFn: async () => {
       if (!vendorId) return 0;
-      const { count, error } = await supabase
-        .from("store_follows")
-        .select("id", { count: "exact", head: true })
-        .eq("vendor_id", vendorId);
+      const { data, error } = await supabase.rpc("get_follower_count", { _vendor_id: vendorId });
       if (error) throw error;
-      return count ?? 0;
+      return Number(data ?? 0);
     },
     staleTime: 60_000,
   });

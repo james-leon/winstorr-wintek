@@ -60,7 +60,7 @@ const directoryQuery = queryOptions({
           .from("products")
           .select("vendor_id, rating_average, rating_count")
           .eq("status", "active"),
-        supabase.from("store_follows").select("vendor_id"),
+        supabase.rpc("get_follower_counts"),
       ]);
     if (vErr) throw vErr;
     if (storefrontsRes.error) throw storefrontsRes.error;
@@ -84,8 +84,8 @@ const directoryQuery = queryOptions({
     }
 
     const followBy = new Map<string, number>();
-    for (const f of followsRes.data ?? []) {
-      followBy.set(f.vendor_id, (followBy.get(f.vendor_id) ?? 0) + 1);
+    for (const f of (followsRes.data ?? []) as Array<{ vendor_id: string; count: number }>) {
+      followBy.set(f.vendor_id, Number(f.count ?? 0));
     }
 
     const now = Date.now();
