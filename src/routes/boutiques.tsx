@@ -84,8 +84,8 @@ const directoryQuery = queryOptions({
     }
 
     const followBy = new Map<string, number>();
-    for (const f of followsRes.data ?? []) {
-      followBy.set(f.vendor_id, (followBy.get(f.vendor_id) ?? 0) + 1);
+    for (const f of (followsRes.data ?? []) as Array<{ vendor_id: string; count: number }>) {
+      followBy.set(f.vendor_id, Number(f.count ?? 0));
     }
 
     const now = Date.now();
