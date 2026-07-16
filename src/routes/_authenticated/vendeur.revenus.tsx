@@ -70,7 +70,7 @@ function VendorRevenues() {
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-        <Card label="Ventes brutes (payées)" value={summary ? formatFcfa(summary.gross) : "…"} />
+        <Card label="Ventes brutes" value={summary ? formatFcfa(summary.gross) : "…"} />
         <Card label="Commission Winstorr" value={summary ? formatFcfa(summary.commission) : "…"} />
         <Card label="Net perçu" value={summary ? formatFcfa(summary.net) : "…"} />
         <Card label="Solde disponible" value={summary ? formatFcfa(summary.available) : "…"} highlight />
