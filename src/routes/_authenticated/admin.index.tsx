@@ -34,7 +34,7 @@ function AdminDashboard() {
 
       const [todayOrders, weekOrders, lowStock, pendingReviews, pendingInvites, staleCash] = await Promise.all([
         supabase.from("orders").select("id, total", { count: "exact" }).gte("created_at", startOfDay.toISOString()),
-        supabase.from("orders").select("total").gte("created_at", weekAgo.toISOString()).in("payment_status", ["paid"]),
+        supabase.from("orders").select("total").gte("created_at", weekAgo.toISOString()).neq("status", "cancelled"),
         supabase.from("products").select("id", { count: "exact", head: true }).eq("type", "physical").eq("status", "active").lte("stock_quantity", 5),
         supabase.from("product_reviews").select("id", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("vendor_invitations").select("id", { count: "exact", head: true }).eq("status", "pending"),
