@@ -5,7 +5,7 @@ import { XCircle, Loader2, Package, Download, UserPlus, Wallet, Store, MapPin } 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { formatFcfa } from "@/lib/format";
-import { initiatePayment, mockConfirmPayment } from "@/lib/orders.functions";
+import { initiatePayment } from "@/lib/orders.functions";
 import { toast } from "sonner";
 import { SuccessCheckmark } from "@/components/success-checkmark";
 import { TrustStrip } from "@/components/trust-strip";
@@ -38,15 +38,9 @@ function ConfirmationPage() {
   });
 
   const retryFn = useServerFn(initiatePayment);
-  const mockFn = useServerFn(mockConfirmPayment);
   const retry = useMutation({
     mutationFn: () => retryFn({ data: { orderNumber } }),
     onSuccess: (r) => { window.location.href = r.paymentUrl; },
-    onError: (e: Error) => toast.error(e.message),
-  });
-  const mock = useMutation({
-    mutationFn: () => mockFn({ data: { orderNumber } }),
-    onSuccess: () => { toast.success("Paiement simulé confirmé."); refetch(); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -156,11 +150,6 @@ function ConfirmationPage() {
         {isPending && !isCash && (
           <div className="mt-4 space-y-2">
             <p className="text-sm text-muted-foreground">Nous vérifions votre paiement automatiquement. Cette page se met à jour toute seule.</p>
-            {import.meta.env.DEV && (
-              <Button variant="outline" size="sm" onClick={() => mock.mutate()} disabled={mock.isPending}>
-                (Dev) Simuler paiement réussi
-              </Button>
-            )}
           </div>
         )}
 
