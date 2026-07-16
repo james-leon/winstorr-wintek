@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
 const itemSchema = z.object({
@@ -225,8 +226,9 @@ export const initiatePayment = createServerFn({ method: "POST" })
     return { paymentUrl: res.paymentUrl, mocked: res.mocked };
   });
 
-// Admin-only: manual status update
+// Admin/staff only: manual status update
 export const updateOrderStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>
     z.object({
       orderId: z.string().uuid(),
@@ -243,9 +245,10 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
       notes: z.string().max(1000).optional().nullable(),
     }).parse(data),
   )
-  .handler(async ({ data }) => {
-    const { requireSupabaseAuth } = await import("@/integrations/supabase/auth-middleware");
-    void requireSupabaseAuth; // keep in graph
+  .handler(async ({ data, context }) => {
+    const { data: isStaff, error: rErr } = await context.supabase.rpc("is_staff", { _user_id: context.userId });
+    if (rErr) throw new Error(rErr.message);
+    if (!isStaff) throw new Error("Forbidden");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const patch: { status: typeof data.status; notes?: string | null } = { status: data.status };
     if (data.notes !== undefined) patch.notes = data.notes;
@@ -258,43 +261,19 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-// Testing/scaffold helper: allow manually confirming a mock payment while credentials are missing.
-export const mockConfirmPayment = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => z.object({ orderNumber: z.string() }).parse(data))
-  .handler(async ({ data }) => {
-    if (process.env.CINETPAY_API_KEY) {
-      throw new Error("Confirmation manuelle désactivée en mode production CinetPay.");
-    }
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: order } = await supabaseAdmin
-      .from("orders")
-      .select("id")
-      .eq("order_number", data.orderNumber)
-      .maybeSingle();
-    if (!order) throw new Error("Commande introuvable.");
-    const { data: res, error } = await supabaseAdmin.rpc("confirm_order_payment", {
-      _order_id: order.id,
-      _txn_id: "MOCK-" + data.orderNumber,
-      _method: "mtn_momo",
-    });
-    if (error) throw new Error(error.message);
-    const { notifyOrderEvent } = await import("./notifications.server");
-    await notifyOrderEvent(order.id, "payment_confirmed").catch((e) => console.error("[notify]", e));
-    const { redeemOrderCouponIfAny } = await import("./coupons.server");
-    await redeemOrderCouponIfAny(order.id).catch((e) => console.error("[redeem]", e));
-    return res;
-  });
-
-// Staff-only: confirm a cash-on-pickup order as paid
+// Staff-only: confirm a cash-on-pickup order as paid.
+// The underlying RPC (confirm_cash_payment) also enforces is_staff via auth.uid().
 export const confirmCashPayment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>
     z.object({ orderId: z.string().uuid(), notes: z.string().max(500).optional().nullable() }).parse(data),
   )
-  .handler(async ({ data }) => {
-    const { requireSupabaseAuth } = await import("@/integrations/supabase/auth-middleware");
-    void requireSupabaseAuth;
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: res, error } = await supabaseAdmin.rpc("confirm_cash_payment", {
+  .handler(async ({ data, context }) => {
+    const { data: isStaff, error: rErr } = await context.supabase.rpc("is_staff", { _user_id: context.userId });
+    if (rErr) throw new Error(rErr.message);
+    if (!isStaff) throw new Error("Forbidden");
+    // Use user-scoped supabase client so the RPC's auth.uid() check passes.
+    const { data: res, error } = await context.supabase.rpc("confirm_cash_payment", {
       _order_id: data.orderId,
       _notes: data.notes ?? undefined,
     });
@@ -305,5 +284,6 @@ export const confirmCashPayment = createServerFn({ method: "POST" })
     await redeemOrderCouponIfAny(data.orderId).catch((e) => console.error("[redeem]", e));
     return res;
   });
+
 
 
