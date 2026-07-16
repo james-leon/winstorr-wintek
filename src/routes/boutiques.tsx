@@ -60,7 +60,7 @@ const directoryQuery = queryOptions({
           .from("products")
           .select("vendor_id, rating_average, rating_count")
           .eq("status", "active"),
-        supabase.from("store_follows").select("vendor_id"),
+        supabase.rpc("get_follower_counts"),
       ]);
     if (vErr) throw vErr;
     if (storefrontsRes.error) throw storefrontsRes.error;
