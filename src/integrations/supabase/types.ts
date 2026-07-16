@@ -1609,6 +1609,14 @@ export type Database = {
         Returns: Json
       }
       generate_order_number: { Args: never; Returns: string }
+      get_follower_count: { Args: { _vendor_id: string }; Returns: number }
+      get_follower_counts: {
+        Args: never
+        Returns: {
+          count: number
+          vendor_id: string
+        }[]
+      }
       get_order_by_number: {
         Args: { _order_number: string }
         Returns: {
