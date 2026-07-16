@@ -1703,6 +1703,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_order_vendor: {
+        Args: { _order_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       is_vendor_member: {
         Args: { _user_id: string; _vendor_id: string }
