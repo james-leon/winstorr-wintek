@@ -25,10 +25,10 @@ function VendorDashboard() {
         supabase.from("products").select("id", { count: "exact", head: true })
           .eq("vendor_id", vendorId!).eq("status", "active"),
         supabase.from("order_items")
-          .select("id, quantity, subtotal, order_id, orders!inner(created_at, payment_status)")
+          .select("id, quantity, subtotal, order_id, orders!inner(created_at, status, payment_status)")
           .eq("vendor_id", vendorId!)
           .gte("orders.created_at", iso)
-          .eq("orders.payment_status", "paid"),
+          .neq("orders.status", "cancelled"),
       ]);
       if (prod.error) throw prod.error;
       if (items.error) throw items.error;
