@@ -32,7 +32,7 @@ function VendorRevenues() {
           .from("order_items")
           .select("subtotal, commission_amount, orders!inner(payment_status,status,created_at)")
           .eq("vendor_id", vendorId!)
-          .eq("orders.payment_status", "paid"),
+          .neq("orders.status", "cancelled"),
         supabase.rpc("vendor_available_balance", { _vendor_id: vendorId! }),
       ]);
       if (e1) throw e1;
