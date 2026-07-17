@@ -13,7 +13,7 @@ const COLS: { title: string; items: { label: string; to?: string }[] }[] = [
   {
     title: "Vendre sur Winstorr",
     items: [
-      { label: "Devenir vendeur" },
+      { label: "Devenir vendeur", to: "/devenir-vendeur" },
       { label: "Nos boutiques", to: "/boutiques" },
       { label: "Espace vendeur", to: "/vendeur/tableau-de-bord" },
     ],

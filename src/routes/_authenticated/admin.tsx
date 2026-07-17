@@ -2,7 +2,7 @@ import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-r
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, ShoppingCart, Undo2, Wrench, GraduationCap,
-  Package, FolderTree, Star, Tag, Store, BarChart3, MapPin, Image,
+  Package, FolderTree, Star, Tag, Store, BarChart3, MapPin, Image, UserPlus,
   Menu, ChevronDown,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
@@ -37,6 +37,7 @@ const NAV_GROUPS: NavGroup[] = [
   ]},
   { label: "Vendeurs", items: [
     { to: "/admin/vendeurs", label: "Tous les vendeurs", icon: Store },
+    { to: "/admin/candidatures-vendeurs", label: "Candidatures", icon: UserPlus },
     { to: "/admin/commissions", label: "Commissions", icon: Tag },
     { to: "/admin/retraits", label: "Retraits", icon: BarChart3 },
     { to: "/admin/annonces-vendeurs", label: "Annonces", icon: Star },
