@@ -15,6 +15,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { TypeBadge } from "@/components/type-badge";
 import { displayPrice, slugify, PRODUCT_TYPE_LABELS, type ProductType } from "@/lib/format";
 import { ImageGalleryManager } from "@/components/image-gallery-manager";
+import { VariantsManager } from "@/components/variants-manager";
 import { Pagination, usePagination } from "@/components/pagination";
 import { cn } from "@/lib/utils";
 
