@@ -49,13 +49,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try {
       const raw = localStorage.getItem(KEY);
       if (raw) {
-        const parsed = JSON.parse(raw) as CartItem[];
+        const parsed = JSON.parse(raw) as Partial<CartItem>[];
         // Normalize legacy entries (no variantId field).
         setItems(
           parsed.map((i) => ({
-            variantId: null,
-            variantAttributes: null,
-            ...i,
+            ...(i as CartItem),
+            variantId: i.variantId ?? null,
+            variantAttributes: i.variantAttributes ?? null,
           })),
         );
       }
