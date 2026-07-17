@@ -72,7 +72,10 @@ function VendorApplicationsPage() {
 
   const updateStatus = useMutation({
     mutationFn: async (input: { id: string; status: AppStatus; note?: string | null }) => {
-      const patch: Record<string, unknown> = { status: input.status, reviewed_by: user?.id ?? null };
+      const patch: { status: AppStatus; reviewed_by: string | null; admin_notes?: string | null } = {
+        status: input.status,
+        reviewed_by: user?.id ?? null,
+      };
       if (input.note !== undefined) patch.admin_notes = input.note;
       const { error } = await supabase.from("vendor_applications").update(patch).eq("id", input.id);
       if (error) throw error;
