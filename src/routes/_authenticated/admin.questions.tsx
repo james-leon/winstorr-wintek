@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Pagination, usePagination } from "@/components/pagination";
 
 export const Route = createFileRoute("/_authenticated/admin/questions")({
   component: AdminQuestions,
