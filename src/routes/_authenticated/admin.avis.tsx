@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { StarRating } from "@/components/star-rating";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Pagination, usePagination } from "@/components/pagination";
 import { useState } from "react";
 
 export const Route = createFileRoute("/_authenticated/admin/avis")({
@@ -71,6 +72,8 @@ function AdminReviews() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const { page, setPage, paged, total, pageCount, rangeStart, rangeEnd } = usePagination(rows, 25);
+
   return (
     <div>
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -94,7 +97,7 @@ function AdminReviews() {
         </div>
       ) : (
         <ul className="space-y-3">
-          {rows.map((r) => (
+          {paged.map((r) => (
             <li key={r.id} className="rounded-lg border border-border bg-card p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
