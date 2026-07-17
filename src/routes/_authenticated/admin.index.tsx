@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
   ShoppingCart, TrendingUp, PackageX, MessageSquareWarning, UserPlus, Wallet,
-  Plus, Wrench, Tag, ArrowRight,
+  Plus, Wrench, Tag, ArrowRight, AlarmClock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatFcfa } from "@/lib/format";
@@ -32,13 +32,16 @@ function AdminDashboard() {
       const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
       const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString();
 
-      const [todayOrders, weekOrders, lowStock, pendingReviews, pendingInvites, staleCash] = await Promise.all([
+      const warningThreshold = new Date(Date.now() + 4 * 3600000).toISOString();
+
+      const [todayOrders, weekOrders, lowStock, pendingReviews, pendingInvites, staleCash, pendingShipments] = await Promise.all([
         supabase.from("orders").select("id, total", { count: "exact" }).gte("created_at", startOfDay.toISOString()),
         supabase.from("orders").select("total").gte("created_at", weekAgo.toISOString()).neq("status", "cancelled"),
         supabase.from("products").select("id", { count: "exact", head: true }).eq("type", "physical").eq("status", "active").lte("stock_quantity", 5),
         supabase.from("product_reviews").select("id", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("vendor_invitations").select("id", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("orders").select("id", { count: "exact", head: true }).eq("payment_method", "cash_on_pickup").eq("payment_status", "pending").lt("created_at", sevenDaysAgo),
+        supabase.from("order_shipments").select("id", { count: "exact", head: true }).eq("acceptance_status", "pending_acceptance").lte("acceptance_deadline", warningThreshold),
       ]);
 
       const todayCount = todayOrders.count ?? 0;
@@ -52,6 +55,7 @@ function AdminDashboard() {
         pendingReviews: pendingReviews.count ?? 0,
         pendingInvites: pendingInvites.count ?? 0,
         staleCash: staleCash.count ?? 0,
+        pendingShipments: pendingShipments.count ?? 0,
       };
     },
   });
@@ -88,6 +92,7 @@ function AdminDashboard() {
     { label: "Avis à modérer", value: String(stats?.pendingReviews ?? "—"), icon: MessageSquareWarning, tint: "text-secondary", to: "/admin/avis" },
     { label: "Invitations vendeur", value: String(stats?.pendingInvites ?? "—"), icon: UserPlus, tint: "text-primary", to: "/admin/vendeurs" },
     { label: "Espèces en attente 7j+", value: String(stats?.staleCash ?? "—"), icon: Wallet, tint: "text-accent", to: "/admin/commandes" },
+    { label: "Expéditions à confirmer <4h", value: String(stats?.pendingShipments ?? "—"), icon: AlarmClock, tint: "text-destructive" },
   ];
 
   const shortcuts = [

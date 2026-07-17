@@ -444,6 +444,7 @@ export type Database = {
           product_slug: string | null
           product_type: string
           quantity: number
+          shipment_id: string | null
           subtotal: number
           unit_price: number
           vendor_id: string | null
@@ -460,6 +461,7 @@ export type Database = {
           product_slug?: string | null
           product_type: string
           quantity: number
+          shipment_id?: string | null
           subtotal: number
           unit_price: number
           vendor_id?: string | null
@@ -476,6 +478,7 @@ export type Database = {
           product_slug?: string | null
           product_type?: string
           quantity?: number
+          shipment_id?: string | null
           subtotal?: number
           unit_price?: number
           vendor_id?: string | null
@@ -496,7 +499,105 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "order_items_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "order_shipments"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "order_items_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_shipments: {
+        Row: {
+          acceptance_deadline: string | null
+          acceptance_status: Database["public"]["Enums"]["shipment_acceptance_status"]
+          accepted_at: string | null
+          created_at: string
+          currency: string
+          delivery_mode: string | null
+          id: string
+          notes: string | null
+          order_id: string
+          pickup_point_id: string | null
+          refusal_notes: string | null
+          refusal_reason:
+            | Database["public"]["Enums"]["shipment_refusal_reason"]
+            | null
+          refused_at: string | null
+          shipment_number: string | null
+          status: Database["public"]["Enums"]["shipment_status"]
+          subtotal: number
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          acceptance_deadline?: string | null
+          acceptance_status?: Database["public"]["Enums"]["shipment_acceptance_status"]
+          accepted_at?: string | null
+          created_at?: string
+          currency?: string
+          delivery_mode?: string | null
+          id?: string
+          notes?: string | null
+          order_id: string
+          pickup_point_id?: string | null
+          refusal_notes?: string | null
+          refusal_reason?:
+            | Database["public"]["Enums"]["shipment_refusal_reason"]
+            | null
+          refused_at?: string | null
+          shipment_number?: string | null
+          status?: Database["public"]["Enums"]["shipment_status"]
+          subtotal?: number
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          acceptance_deadline?: string | null
+          acceptance_status?: Database["public"]["Enums"]["shipment_acceptance_status"]
+          accepted_at?: string | null
+          created_at?: string
+          currency?: string
+          delivery_mode?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string
+          pickup_point_id?: string | null
+          refusal_notes?: string | null
+          refusal_reason?:
+            | Database["public"]["Enums"]["shipment_refusal_reason"]
+            | null
+          refused_at?: string | null
+          shipment_number?: string | null
+          status?: Database["public"]["Enums"]["shipment_status"]
+          subtotal?: number
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_shipments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_shipments_pickup_point_id_fkey"
+            columns: ["pickup_point_id"]
+            isOneToOne: false
+            referencedRelation: "pickup_points"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_shipments_vendor_id_fkey"
             columns: ["vendor_id"]
             isOneToOne: false
             referencedRelation: "vendors"
@@ -1595,6 +1696,7 @@ export type Database = {
         }
         Returns: Json
       }
+      auto_refuse_expired_shipments: { Args: never; Returns: number }
       can_manage_product_image: { Args: { _name: string }; Returns: boolean }
       confirm_cash_payment: {
         Args: { _notes?: string; _order_id: string }
@@ -1609,6 +1711,11 @@ export type Database = {
         Returns: Json
       }
       generate_order_number: { Args: never; Returns: string }
+      generate_shipment_number: { Args: never; Returns: string }
+      generate_shipments_for_order: {
+        Args: { _order_id: string }
+        Returns: undefined
+      }
       get_follower_count: { Args: { _vendor_id: string }; Returns: number }
       get_follower_counts: {
         Args: never
@@ -1727,6 +1834,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      refuse_shipment: {
+        Args: {
+          _notes: string
+          _reason: Database["public"]["Enums"]["shipment_refusal_reason"]
+          _shipment_id: string
+          _system?: boolean
+        }
+        Returns: Json
+      }
       request_withdrawal: {
         Args: {
           _amount: number
@@ -1754,9 +1870,18 @@ export type Database = {
         }
         Returns: Json
       }
+      vendor_accept_shipment: { Args: { _shipment_id: string }; Returns: Json }
       vendor_available_balance: {
         Args: { _vendor_id: string }
         Returns: number
+      }
+      vendor_refuse_shipment: {
+        Args: {
+          _notes?: string
+          _reason: Database["public"]["Enums"]["shipment_refusal_reason"]
+          _shipment_id: string
+        }
+        Returns: Json
       }
     }
     Enums: {
@@ -1819,6 +1944,23 @@ export type Database = {
         | "quoted"
         | "accepted"
         | "in_progress"
+        | "completed"
+        | "cancelled"
+      shipment_acceptance_status: "pending_acceptance" | "accepted" | "refused"
+      shipment_refusal_reason:
+        | "rupture_stock"
+        | "produit_endommage"
+        | "prix_incorrect"
+        | "autre"
+        | "delai_depasse"
+      shipment_status:
+        | "pending_acceptance"
+        | "accepted"
+        | "refused"
+        | "pending_pickup"
+        | "ready_for_pickup"
+        | "shipped"
+        | "delivered"
         | "completed"
         | "cancelled"
       source_type: "direct_import" | "authorized_wholesaler" | "other"
@@ -2022,6 +2164,25 @@ export const Constants = {
         "quoted",
         "accepted",
         "in_progress",
+        "completed",
+        "cancelled",
+      ],
+      shipment_acceptance_status: ["pending_acceptance", "accepted", "refused"],
+      shipment_refusal_reason: [
+        "rupture_stock",
+        "produit_endommage",
+        "prix_incorrect",
+        "autre",
+        "delai_depasse",
+      ],
+      shipment_status: [
+        "pending_acceptance",
+        "accepted",
+        "refused",
+        "pending_pickup",
+        "ready_for_pickup",
+        "shipped",
+        "delivered",
         "completed",
         "cancelled",
       ],
