@@ -134,6 +134,74 @@ function OrderDetail() {
         </div>
       </section>
 
+      {pendingShipments.length > 0 && (
+        <section className="rounded-sm border-2 border-accent bg-accent/5 p-4">
+          <div className="flex items-start gap-3">
+            <PackageCheck className="mt-0.5 h-5 w-5 flex-shrink-0 text-accent" />
+            <div className="flex-1 space-y-3">
+              <div>
+                <h2 className="font-semibold text-foreground">Confirmez la réception</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Une expédition a été marquée comme livrée. Confirmez sa bonne réception, ou signalez un problème.
+                  Sans action de votre part, elle sera automatiquement validée après la date limite.
+                </p>
+              </div>
+              <ul className="space-y-2">
+                {pendingShipments.map((s: any) => {
+                  const deadline = s.confirmation_deadline ? new Date(s.confirmation_deadline) : null;
+                  const overdue = deadline ? deadline < new Date() : false;
+                  return (
+                    <li key={s.id} className="rounded-sm border border-border bg-card p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="text-sm">
+                          <span className="font-mono text-xs">{s.shipment_number}</span>
+                          <span className="ml-2 font-medium">{formatFcfa(Number(s.subtotal))}</span>
+                        </div>
+                        {deadline && (
+                          <span className={cn("text-xs", overdue ? "text-destructive" : "text-muted-foreground")}>
+                            À confirmer avant le {deadline.toLocaleDateString("fr-FR")}
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => confirmMut.mutate(s.id)}
+                          disabled={confirmMut.isPending}
+                          className="bg-success text-white hover:bg-success/90"
+                        >
+                          <CheckCircle2 className="mr-1 h-4 w-4" /> Confirmer la réception
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => setDlgOpen(true)}>
+                          <AlertTriangle className="mr-1 h-4 w-4" /> Signaler un problème
+                        </Button>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {shipments.some((s: any) => s.customer_confirmed_at) && (
+        <section className="rounded-sm border border-border bg-card p-4">
+          <h2 className="font-semibold mb-2">Réceptions confirmées</h2>
+          <ul className="divide-y divide-border text-sm">
+            {shipments.filter((s: any) => s.customer_confirmed_at).map((s: any) => (
+              <li key={s.id} className="py-2 flex items-center justify-between">
+                <span className="font-mono text-xs">{s.shipment_number}</span>
+                <span className="flex items-center gap-1 text-success">
+                  <CheckCircle2 className="h-4 w-4" />
+                  {s.auto_confirmed ? "Validée automatiquement" : "Confirmée"} le {new Date(s.customer_confirmed_at).toLocaleDateString("fr-FR")}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section className="rounded-sm border border-border bg-card p-4">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold">Retours & problèmes</h2>
