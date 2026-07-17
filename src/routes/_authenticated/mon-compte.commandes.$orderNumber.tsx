@@ -46,8 +46,33 @@ function OrderDetail() {
         supabase.rpc("get_order_items_by_number", { _order_number: orderNumber }),
         supabase.rpc("get_order_returns", { _order_number: orderNumber }),
       ]);
-      return { order: order?.[0] ?? null, items: items ?? [], returns: returns ?? [] };
+      const orderRow = order?.[0] ?? null;
+      let shipments: any[] = [];
+      if (orderRow?.id) {
+        const { data: sh } = await supabase
+          .from("order_shipments")
+          .select("id, shipment_number, status, delivered_at, confirmation_deadline, customer_confirmed_at, auto_confirmed, subtotal, vendor_id")
+          .eq("order_id", orderRow.id)
+          .order("created_at", { ascending: true });
+        shipments = sh ?? [];
+      }
+      return { order: orderRow, items: items ?? [], returns: returns ?? [], shipments };
     },
+  });
+
+  const confirmMut = useMutation({
+    mutationFn: async (shipmentId: string) => {
+      const { data, error } = await supabase.rpc("customer_confirm_shipment", { _shipment_id: shipmentId });
+      if (error) throw new Error(error.message);
+      const res = data as { ok: boolean; reason?: string };
+      if (!res?.ok) throw new Error(res?.reason ?? "unknown_error");
+      return res;
+    },
+    onSuccess: () => {
+      toast.success("Réception confirmée. Merci !");
+      qc.invalidateQueries({ queryKey: ["order-detail", orderNumber] });
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const [dlgOpen, setDlgOpen] = useState(false);
