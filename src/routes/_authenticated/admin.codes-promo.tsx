@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatFcfa } from "@/lib/format";
+import { Pagination, usePagination } from "@/components/pagination";
 
 export const Route = createFileRoute("/_authenticated/admin/codes-promo")({
   head: () => ({ meta: [{ title: "Codes promo — Admin Winstorr" }] }),
@@ -74,6 +75,8 @@ function AdminCoupons() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const { page, setPage, paged, total, pageCount, rangeStart, rangeEnd } = usePagination(coupons, 25);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -95,7 +98,7 @@ function AdminCoupons() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {coupons.map((c) => (
+            {paged.map((c) => (
               <tr key={c.id}>
                 <td className="p-3">
                   <div className="font-mono font-semibold">{c.code}</div>
