@@ -103,10 +103,13 @@ function OrderDetail() {
   if (!data) return <div className="mx-auto max-w-3xl px-4 py-8 text-center text-muted-foreground">Chargement…</div>;
   if (!data.order) return <div className="mx-auto max-w-3xl px-4 py-8 text-center">Commande introuvable.</div>;
 
-  const { order, items, returns } = data;
+  const { order, items, returns, shipments } = data;
   const eligible =
     (order.has_physical_items && order.status === "delivered") ||
     (!order.has_physical_items && order.payment_status === "paid");
+  const pendingShipments = shipments.filter(
+    (s: any) => s.status === "delivered" && !s.customer_confirmed_at,
+  );
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 space-y-6">
