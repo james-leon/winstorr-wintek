@@ -83,6 +83,8 @@ export const createOrder = createServerFn({ method: "POST" })
       }
       if (p.type === "physical") {
         hasPhysical = true;
+        const moq = Math.max(1, (p as { min_order_quantity?: number }).min_order_quantity ?? 1);
+        if (it.quantity < moq) throw new Error(`Quantité minimum pour ${p.name} : ${moq} unités.`);
         if ((p.stock_quantity ?? 0) < it.quantity) throw new Error(`Stock insuffisant pour ${p.name}.`);
       }
       const unit = p.type === "physical" ? resolveUnit(p.id, Number(p.price), it.quantity) : Number(p.price);
