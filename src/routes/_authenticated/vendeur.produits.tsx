@@ -292,6 +292,12 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
             {f.type === "physical" && (
               <div><Label>Stock</Label><Input type="number" min="0" value={f.stock_quantity} onChange={(e) => setF({ ...f, stock_quantity: e.target.value })} /></div>
             )}
+            {f.type === "physical" && (
+              <div>
+                <Label>Quantité minimum</Label>
+                <Input type="number" min="1" value={f.min_order_quantity} onChange={(e) => setF({ ...f, min_order_quantity: e.target.value })} />
+              </div>
+            )}
           </div>
 
           {f.type === "physical" && (
