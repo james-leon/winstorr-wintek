@@ -34,7 +34,7 @@ function AdminDashboard() {
 
       const warningThreshold = new Date(Date.now() + 4 * 3600000).toISOString();
 
-      const [todayOrders, weekOrders, lowStock, pendingReviews, pendingInvites, staleCash, pendingShipments] = await Promise.all([
+      const [todayOrders, weekOrders, lowStock, pendingReviews, pendingInvites, staleCash, pendingShipments, newApplications] = await Promise.all([
         supabase.from("orders").select("id, total", { count: "exact" }).gte("created_at", startOfDay.toISOString()),
         supabase.from("orders").select("total").gte("created_at", weekAgo.toISOString()).neq("status", "cancelled"),
         supabase.from("products").select("id", { count: "exact", head: true }).eq("type", "physical").eq("status", "active").lte("stock_quantity", 5),
@@ -42,6 +42,7 @@ function AdminDashboard() {
         supabase.from("vendor_invitations").select("id", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("orders").select("id", { count: "exact", head: true }).eq("payment_method", "cash_on_pickup").eq("payment_status", "pending").lt("created_at", sevenDaysAgo),
         supabase.from("order_shipments").select("id", { count: "exact", head: true }).eq("acceptance_status", "pending_acceptance").lte("acceptance_deadline", warningThreshold),
+        supabase.from("vendor_applications").select("id", { count: "exact", head: true }).eq("status", "new"),
       ]);
 
       const todayCount = todayOrders.count ?? 0;
@@ -56,6 +57,7 @@ function AdminDashboard() {
         pendingInvites: pendingInvites.count ?? 0,
         staleCash: staleCash.count ?? 0,
         pendingShipments: pendingShipments.count ?? 0,
+        newApplications: newApplications.count ?? 0,
       };
     },
   });
@@ -90,6 +92,7 @@ function AdminDashboard() {
     { label: "CA 7 derniers jours", value: stats ? formatFcfa(stats.weekRevenue) : "—", icon: TrendingUp, tint: "text-success" },
     { label: "Stock faible", value: String(stats?.lowStock ?? "—"), icon: PackageX, tint: "text-destructive", to: "/admin/produits" },
     { label: "Avis à modérer", value: String(stats?.pendingReviews ?? "—"), icon: MessageSquareWarning, tint: "text-secondary", to: "/admin/avis" },
+    { label: "Candidatures vendeur", value: String(stats?.newApplications ?? "—"), icon: UserPlus, tint: "text-primary", to: "/admin/candidatures-vendeurs" },
     { label: "Invitations vendeur", value: String(stats?.pendingInvites ?? "—"), icon: UserPlus, tint: "text-primary", to: "/admin/vendeurs" },
     { label: "Espèces en attente 7j+", value: String(stats?.staleCash ?? "—"), icon: Wallet, tint: "text-accent", to: "/admin/commandes" },
     { label: "Expéditions à confirmer <4h", value: String(stats?.pendingShipments ?? "—"), icon: AlarmClock, tint: "text-destructive" },
