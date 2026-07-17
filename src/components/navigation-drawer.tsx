@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { X, ChevronRight, ChevronLeft, TrendingUp, Sparkles, ShieldCheck, User as UserIcon, Package, Heart, Store, LogOut, LogIn } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { useMyVendors } from "@/lib/vendor";
 import { cn } from "@/lib/utils";
 import type { ProductType } from "@/lib/format";
 import logo from "@/assets/winstorr-logo.png.asset.json";
@@ -25,6 +26,8 @@ const TYPE_LABEL: Record<ProductType, string> = {
 
 export function NavigationDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { user, signOut, isStaff } = useAuth();
+  const { data: myVendors } = useMyVendors();
+  const isVendor = !!myVendors && myVendors.length > 0;
   const [drillTypeOrId, setDrillTypeOrId] = useState<
     | { kind: "type"; type: ProductType }
     | { kind: "category"; id: string; name: string }
@@ -145,6 +148,11 @@ export function NavigationDrawer({ open, onClose }: { open: boolean; onClose: ()
                     <DrawerLink to="/mon-compte/commandes" onClick={close} icon={<Package className="h-4 w-4" />} label="Mes commandes" />
                     <DrawerLink to="/mon-compte/souhaits" onClick={close} icon={<Heart className="h-4 w-4" />} label="Ma liste de souhaits" />
                     <DrawerLink to="/boutiques" onClick={close} icon={<Store className="h-4 w-4" />} label="Nos boutiques" />
+                    {isVendor ? (
+                      <DrawerLink to="/vendeur/tableau-de-bord" onClick={close} icon={<Store className="h-4 w-4" />} label="Espace vendeur" />
+                    ) : (
+                      <DrawerLink to="/devenir-vendeur" onClick={close} icon={<Store className="h-4 w-4" />} label="Devenir vendeur" />
+                    )}
                     {isStaff && <DrawerLink to="/admin/produits" onClick={close} icon={<Store className="h-4 w-4" />} label="Admin" />}
                     <button
                       onClick={() => { close(); void signOut(); }}
@@ -157,6 +165,7 @@ export function NavigationDrawer({ open, onClose }: { open: boolean; onClose: ()
                   <>
                     <DrawerLink to="/auth" onClick={close} icon={<LogIn className="h-4 w-4" />} label="Se connecter / S'inscrire" />
                     <DrawerLink to="/boutiques" onClick={close} icon={<Store className="h-4 w-4" />} label="Nos boutiques" />
+                    <DrawerLink to="/devenir-vendeur" onClick={close} icon={<Store className="h-4 w-4" />} label="Devenir vendeur" />
                   </>
                 )}
               </Section>

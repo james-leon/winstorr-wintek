@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as PanierRouteImport } from './routes/panier'
+import { Route as DevenirVendeurRouteImport } from './routes/devenir-vendeur'
 import { Route as ConnexionRouteImport } from './routes/connexion'
 import { Route as CommandeRouteImport } from './routes/commande'
 import { Route as CatalogueRouteImport } from './routes/catalogue'
@@ -53,6 +54,7 @@ import { Route as AuthenticatedAdminCommissionsRouteImport } from './routes/_aut
 import { Route as AuthenticatedAdminCommandesRouteImport } from './routes/_authenticated/admin.commandes'
 import { Route as AuthenticatedAdminCodesPromoRouteImport } from './routes/_authenticated/admin.codes-promo'
 import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_authenticated/admin.categories'
+import { Route as AuthenticatedAdminCandidaturesVendeursRouteImport } from './routes/_authenticated/admin.candidatures-vendeurs'
 import { Route as AuthenticatedAdminBanieresRouteImport } from './routes/_authenticated/admin.banieres'
 import { Route as AuthenticatedAdminAvisRouteImport } from './routes/_authenticated/admin.avis'
 import { Route as AuthenticatedAdminAnnoncesVendeursRouteImport } from './routes/_authenticated/admin.annonces-vendeurs'
@@ -67,6 +69,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const PanierRoute = PanierRouteImport.update({
   id: '/panier',
   path: '/panier',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevenirVendeurRoute = DevenirVendeurRouteImport.update({
+  id: '/devenir-vendeur',
+  path: '/devenir-vendeur',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConnexionRoute = ConnexionRouteImport.update({
@@ -305,6 +312,12 @@ const AuthenticatedAdminCategoriesRoute =
     path: '/categories',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminCandidaturesVendeursRoute =
+  AuthenticatedAdminCandidaturesVendeursRouteImport.update({
+    id: '/candidatures-vendeurs',
+    path: '/candidatures-vendeurs',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminBanieresRoute =
   AuthenticatedAdminBanieresRouteImport.update({
     id: '/banieres',
@@ -342,6 +355,7 @@ export interface FileRoutesByFullPath {
   '/catalogue': typeof CatalogueRoute
   '/commande': typeof CommandeRouteWithChildren
   '/connexion': typeof ConnexionRoute
+  '/devenir-vendeur': typeof DevenirVendeurRoute
   '/panier': typeof PanierRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -354,6 +368,7 @@ export interface FileRoutesByFullPath {
   '/admin/annonces-vendeurs': typeof AuthenticatedAdminAnnoncesVendeursRoute
   '/admin/avis': typeof AuthenticatedAdminAvisRoute
   '/admin/banieres': typeof AuthenticatedAdminBanieresRoute
+  '/admin/candidatures-vendeurs': typeof AuthenticatedAdminCandidaturesVendeursRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/codes-promo': typeof AuthenticatedAdminCodesPromoRoute
   '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
@@ -392,6 +407,7 @@ export interface FileRoutesByTo {
   '/catalogue': typeof CatalogueRoute
   '/commande': typeof CommandeRouteWithChildren
   '/connexion': typeof ConnexionRoute
+  '/devenir-vendeur': typeof DevenirVendeurRoute
   '/panier': typeof PanierRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vendeur': typeof AuthenticatedVendeurRouteWithChildren
@@ -402,6 +418,7 @@ export interface FileRoutesByTo {
   '/admin/annonces-vendeurs': typeof AuthenticatedAdminAnnoncesVendeursRoute
   '/admin/avis': typeof AuthenticatedAdminAvisRoute
   '/admin/banieres': typeof AuthenticatedAdminBanieresRoute
+  '/admin/candidatures-vendeurs': typeof AuthenticatedAdminCandidaturesVendeursRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/codes-promo': typeof AuthenticatedAdminCodesPromoRoute
   '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
@@ -442,6 +459,7 @@ export interface FileRoutesById {
   '/catalogue': typeof CatalogueRoute
   '/commande': typeof CommandeRouteWithChildren
   '/connexion': typeof ConnexionRoute
+  '/devenir-vendeur': typeof DevenirVendeurRoute
   '/panier': typeof PanierRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -454,6 +472,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/annonces-vendeurs': typeof AuthenticatedAdminAnnoncesVendeursRoute
   '/_authenticated/admin/avis': typeof AuthenticatedAdminAvisRoute
   '/_authenticated/admin/banieres': typeof AuthenticatedAdminBanieresRoute
+  '/_authenticated/admin/candidatures-vendeurs': typeof AuthenticatedAdminCandidaturesVendeursRoute
   '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/_authenticated/admin/codes-promo': typeof AuthenticatedAdminCodesPromoRoute
   '/_authenticated/admin/commandes': typeof AuthenticatedAdminCommandesRoute
@@ -494,6 +513,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/commande'
     | '/connexion'
+    | '/devenir-vendeur'
     | '/panier'
     | '/sitemap.xml'
     | '/admin'
@@ -506,6 +526,7 @@ export interface FileRouteTypes {
     | '/admin/annonces-vendeurs'
     | '/admin/avis'
     | '/admin/banieres'
+    | '/admin/candidatures-vendeurs'
     | '/admin/categories'
     | '/admin/codes-promo'
     | '/admin/commandes'
@@ -544,6 +565,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/commande'
     | '/connexion'
+    | '/devenir-vendeur'
     | '/panier'
     | '/sitemap.xml'
     | '/vendeur'
@@ -554,6 +576,7 @@ export interface FileRouteTypes {
     | '/admin/annonces-vendeurs'
     | '/admin/avis'
     | '/admin/banieres'
+    | '/admin/candidatures-vendeurs'
     | '/admin/categories'
     | '/admin/codes-promo'
     | '/admin/commandes'
@@ -593,6 +616,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/commande'
     | '/connexion'
+    | '/devenir-vendeur'
     | '/panier'
     | '/sitemap.xml'
     | '/_authenticated/admin'
@@ -605,6 +629,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/annonces-vendeurs'
     | '/_authenticated/admin/avis'
     | '/_authenticated/admin/banieres'
+    | '/_authenticated/admin/candidatures-vendeurs'
     | '/_authenticated/admin/categories'
     | '/_authenticated/admin/codes-promo'
     | '/_authenticated/admin/commandes'
@@ -645,6 +670,7 @@ export interface RootRouteChildren {
   CatalogueRoute: typeof CatalogueRoute
   CommandeRoute: typeof CommandeRouteWithChildren
   ConnexionRoute: typeof ConnexionRoute
+  DevenirVendeurRoute: typeof DevenirVendeurRoute
   PanierRoute: typeof PanierRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   BoutiquesVendorSlugRoute: typeof BoutiquesVendorSlugRoute
@@ -668,6 +694,13 @@ declare module '@tanstack/react-router' {
       path: '/panier'
       fullPath: '/panier'
       preLoaderRoute: typeof PanierRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/devenir-vendeur': {
+      id: '/devenir-vendeur'
+      path: '/devenir-vendeur'
+      fullPath: '/devenir-vendeur'
+      preLoaderRoute: typeof DevenirVendeurRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/connexion': {
@@ -964,6 +997,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminCategoriesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/candidatures-vendeurs': {
+      id: '/_authenticated/admin/candidatures-vendeurs'
+      path: '/candidatures-vendeurs'
+      fullPath: '/admin/candidatures-vendeurs'
+      preLoaderRoute: typeof AuthenticatedAdminCandidaturesVendeursRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/banieres': {
       id: '/_authenticated/admin/banieres'
       path: '/banieres'
@@ -1007,6 +1047,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAnnoncesVendeursRoute: typeof AuthenticatedAdminAnnoncesVendeursRoute
   AuthenticatedAdminAvisRoute: typeof AuthenticatedAdminAvisRoute
   AuthenticatedAdminBanieresRoute: typeof AuthenticatedAdminBanieresRoute
+  AuthenticatedAdminCandidaturesVendeursRoute: typeof AuthenticatedAdminCandidaturesVendeursRoute
   AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute
   AuthenticatedAdminCodesPromoRoute: typeof AuthenticatedAdminCodesPromoRoute
   AuthenticatedAdminCommandesRoute: typeof AuthenticatedAdminCommandesRoute
@@ -1028,6 +1069,8 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
     AuthenticatedAdminAnnoncesVendeursRoute,
   AuthenticatedAdminAvisRoute: AuthenticatedAdminAvisRoute,
   AuthenticatedAdminBanieresRoute: AuthenticatedAdminBanieresRoute,
+  AuthenticatedAdminCandidaturesVendeursRoute:
+    AuthenticatedAdminCandidaturesVendeursRoute,
   AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
   AuthenticatedAdminCodesPromoRoute: AuthenticatedAdminCodesPromoRoute,
   AuthenticatedAdminCommandesRoute: AuthenticatedAdminCommandesRoute,
@@ -1146,6 +1189,7 @@ const rootRouteChildren: RootRouteChildren = {
   CatalogueRoute: CatalogueRoute,
   CommandeRoute: CommandeRouteWithChildren,
   ConnexionRoute: ConnexionRoute,
+  DevenirVendeurRoute: DevenirVendeurRoute,
   PanierRoute: PanierRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   BoutiquesVendorSlugRoute: BoutiquesVendorSlugRoute,

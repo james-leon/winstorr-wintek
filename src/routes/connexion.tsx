@@ -129,7 +129,7 @@ function ConnexionStep1() {
                 Rejoignez notre marketplace et vendez vos produits à des milliers de clients.
               </p>
               <Link
-                to="/boutiques"
+                to="/devenir-vendeur"
                 className="mt-1.5 inline-block text-sm font-medium text-secondary underline underline-offset-2"
               >
                 Devenir vendeur sur Winstorr →

@@ -1,10 +1,11 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ShoppingCart, Menu, Search, MapPin, ChevronDown, Package, LayoutDashboard } from "lucide-react";
+import { ShoppingCart, Menu, Search, MapPin, ChevronDown, Package, LayoutDashboard, Store } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/lib/cart-context";
 import { useAuth } from "@/lib/auth-context";
+import { useMyVendors } from "@/lib/vendor";
 import { cn } from "@/lib/utils";
 import type { ProductType } from "@/lib/format";
 import { NavigationDrawer } from "@/components/navigation-drawer";
@@ -30,6 +31,8 @@ const TYPE_LINKS: { type: ProductType; label: string }[] = [
 export function SiteHeader() {
   const { count } = useCart();
   const { user, isStaff, signOut } = useAuth();
+  const { data: myVendors } = useMyVendors();
+  const isVendor = !!myVendors && myVendors.length > 0;
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [q, setQ] = useState("");
@@ -175,6 +178,15 @@ export function SiteHeader() {
                 <Package className="h-3.5 w-3.5" /> et commandes
               </span>
             </Link>
+
+            {isVendor && (
+              <Link
+                to="/vendeur/tableau-de-bord"
+                className="hidden md:inline-flex items-center gap-1 rounded-sm px-2 py-1.5 text-xs font-semibold hover:ring-1 hover:ring-white/40 no-link-color"
+              >
+                <Store className="h-4 w-4" /> Espace vendeur
+              </Link>
+            )}
 
             {isStaff && (
               <Link
