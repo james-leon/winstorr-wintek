@@ -41,7 +41,7 @@ export const createOrder = createServerFn({ method: "POST" })
     const ids = data.items.map((i) => i.productId);
     const { data: products, error: pErr } = await supabaseAdmin
       .from("products")
-      .select("id, name, slug, images, type, price, price_type, stock_quantity, vendor_id, status")
+      .select("id, name, slug, images, type, price, price_type, stock_quantity, min_order_quantity, vendor_id, status")
       .in("id", ids);
     if (pErr) throw new Error(pErr.message);
     if (!products || products.length !== ids.length) throw new Error("Un produit du panier n'est plus disponible.");
