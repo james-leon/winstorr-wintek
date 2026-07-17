@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as PanierRouteImport } from './routes/panier'
+import { Route as ConnexionRouteImport } from './routes/connexion'
 import { Route as CommandeRouteImport } from './routes/commande'
 import { Route as CatalogueRouteImport } from './routes/catalogue'
 import { Route as BoutiquesRouteImport } from './routes/boutiques'
@@ -65,6 +66,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const PanierRoute = PanierRouteImport.update({
   id: '/panier',
   path: '/panier',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConnexionRoute = ConnexionRouteImport.update({
+  id: '/connexion',
+  path: '/connexion',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CommandeRoute = CommandeRouteImport.update({
@@ -329,6 +335,7 @@ export interface FileRoutesByFullPath {
   '/boutiques': typeof BoutiquesRoute
   '/catalogue': typeof CatalogueRoute
   '/commande': typeof CommandeRouteWithChildren
+  '/connexion': typeof ConnexionRoute
   '/panier': typeof PanierRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -377,6 +384,7 @@ export interface FileRoutesByTo {
   '/boutiques': typeof BoutiquesRoute
   '/catalogue': typeof CatalogueRoute
   '/commande': typeof CommandeRouteWithChildren
+  '/connexion': typeof ConnexionRoute
   '/panier': typeof PanierRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vendeur': typeof AuthenticatedVendeurRouteWithChildren
@@ -425,6 +433,7 @@ export interface FileRoutesById {
   '/boutiques': typeof BoutiquesRoute
   '/catalogue': typeof CatalogueRoute
   '/commande': typeof CommandeRouteWithChildren
+  '/connexion': typeof ConnexionRoute
   '/panier': typeof PanierRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -475,6 +484,7 @@ export interface FileRouteTypes {
     | '/boutiques'
     | '/catalogue'
     | '/commande'
+    | '/connexion'
     | '/panier'
     | '/sitemap.xml'
     | '/admin'
@@ -523,6 +533,7 @@ export interface FileRouteTypes {
     | '/boutiques'
     | '/catalogue'
     | '/commande'
+    | '/connexion'
     | '/panier'
     | '/sitemap.xml'
     | '/vendeur'
@@ -570,6 +581,7 @@ export interface FileRouteTypes {
     | '/boutiques'
     | '/catalogue'
     | '/commande'
+    | '/connexion'
     | '/panier'
     | '/sitemap.xml'
     | '/_authenticated/admin'
@@ -620,6 +632,7 @@ export interface RootRouteChildren {
   BoutiquesRoute: typeof BoutiquesRoute
   CatalogueRoute: typeof CatalogueRoute
   CommandeRoute: typeof CommandeRouteWithChildren
+  ConnexionRoute: typeof ConnexionRoute
   PanierRoute: typeof PanierRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   BoutiquesVendorSlugRoute: typeof BoutiquesVendorSlugRoute
@@ -642,6 +655,13 @@ declare module '@tanstack/react-router' {
       path: '/panier'
       fullPath: '/panier'
       preLoaderRoute: typeof PanierRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/connexion': {
+      id: '/connexion'
+      path: '/connexion'
+      fullPath: '/connexion'
+      preLoaderRoute: typeof ConnexionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/commande': {
@@ -1105,6 +1125,7 @@ const rootRouteChildren: RootRouteChildren = {
   BoutiquesRoute: BoutiquesRoute,
   CatalogueRoute: CatalogueRoute,
   CommandeRoute: CommandeRouteWithChildren,
+  ConnexionRoute: ConnexionRoute,
   PanierRoute: PanierRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   BoutiquesVendorSlugRoute: BoutiquesVendorSlugRoute,
