@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { TypeBadge } from "@/components/type-badge";
 import { displayPrice, slugify, PRODUCT_TYPE_LABELS, type ProductType } from "@/lib/format";
 import { ImageGalleryManager } from "@/components/image-gallery-manager";
+import { VariantsManager } from "@/components/variants-manager";
 import { useMyVendors } from "@/lib/vendor";
 
 export const Route = createFileRoute("/_authenticated/vendeur/produits")({
