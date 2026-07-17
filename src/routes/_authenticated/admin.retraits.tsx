@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatFcfa } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Pagination, usePagination } from "@/components/pagination";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/retraits")({
@@ -38,6 +39,8 @@ function AdminWithdrawals() {
       return (data ?? []) as unknown as W[];
     },
   });
+
+  const { page, setPage, paged, total, pageCount, rangeStart, rangeEnd } = usePagination(rows, 25);
 
   const setStatus = useMutation({
     mutationFn: async ({ id, status, notes }: { id: string; status: string; notes?: string }) => {
