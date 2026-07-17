@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { X, ChevronRight, ChevronLeft, TrendingUp, Sparkles, ShieldCheck, User as UserIcon, Package, Heart, Store, LogOut, LogIn } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { useMyVendors } from "@/lib/vendor";
 import { cn } from "@/lib/utils";
 import type { ProductType } from "@/lib/format";
 import logo from "@/assets/winstorr-logo.png.asset.json";
@@ -25,6 +26,8 @@ const TYPE_LABEL: Record<ProductType, string> = {
 
 export function NavigationDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { user, signOut, isStaff } = useAuth();
+  const { data: myVendors } = useMyVendors();
+  const isVendor = !!myVendors && myVendors.length > 0;
   const [drillTypeOrId, setDrillTypeOrId] = useState<
     | { kind: "type"; type: ProductType }
     | { kind: "category"; id: string; name: string }
