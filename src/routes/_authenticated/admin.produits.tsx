@@ -633,6 +633,7 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
               <TabsTrigger value="inventory">Inventaire</TabsTrigger>
               <TabsTrigger value="images">Images</TabsTrigger>
               {f.type === "physical" && <TabsTrigger value="tiers">Prix par palier</TabsTrigger>}
+              {!isNew && (f.type === "physical" || f.type === "digital") && <TabsTrigger value="variants">Variantes</TabsTrigger>}
               <TabsTrigger value="quality">Qualité & Garantie</TabsTrigger>
               {hasTypeSpecific && <TabsTrigger value="type">Type-spécifique</TabsTrigger>}
             </TabsList>
@@ -773,6 +774,12 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
                     ))}
                   </div>
                 </div>
+              </TabsContent>
+            )}
+
+            {!isNew && (f.type === "physical" || f.type === "digital") && row && (
+              <TabsContent value="variants" className="mt-0">
+                <VariantsManager productId={row.id} />
               </TabsContent>
             )}
 
