@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { formatFcfa } from "@/lib/format";
+import { Pagination, usePagination } from "@/components/pagination";
 
 export const Route = createFileRoute("/_authenticated/admin/sessions")({
   component: AdminSessions,
