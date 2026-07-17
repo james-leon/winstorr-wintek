@@ -277,6 +277,12 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
           <div><Label>Description complète</Label><Textarea rows={4} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></div>
           <ImageGalleryManager value={f.images} onChange={(next) => setF({ ...f, images: next })} />
 
+          {!isNew && row && (f.type === "physical" || f.type === "digital") && (
+            <div className="rounded-sm border border-border bg-muted/20 p-3">
+              <VariantsManager productId={row.id} />
+            </div>
+          )}
+
           <div className="grid gap-3 sm:grid-cols-3">
             <div>
               <Label>Type de prix</Label>
