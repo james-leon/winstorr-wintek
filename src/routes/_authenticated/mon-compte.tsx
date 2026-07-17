@@ -27,26 +27,38 @@ function AccountLayout() {
         {user?.email && <p className="text-sm text-muted-foreground">{user.email}</p>}
       </div>
       <div className="grid gap-6 md:grid-cols-[220px_1fr]">
-        <aside className="md:sticky md:top-4 md:self-start">
-          <nav className="rounded-sm border border-border bg-card p-1 flex md:flex-col overflow-x-auto md:overflow-visible">
-            {NAV.map((n) => {
-              const active = n.exact ? path === n.to : path === n.to || path.startsWith(n.to + "/");
-              const Icon = n.icon;
-              return (
-                <Link
-                  key={n.to}
-                  to={n.to}
-                  className={cn(
-                    "flex items-center gap-2 rounded-sm px-3 py-2 text-sm no-link-color whitespace-nowrap",
-                    active ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted",
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{n.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
+        <aside className="min-w-0 md:sticky md:top-4 md:self-start">
+          <div className="relative md:contents">
+            <nav
+              className={cn(
+                "flex gap-1 rounded-sm border border-border bg-card p-1",
+                "overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
+                "md:flex-col md:overflow-visible",
+              )}
+            >
+              {NAV.map((n) => {
+                const active = n.exact ? path === n.to : path === n.to || path.startsWith(n.to + "/");
+                const Icon = n.icon;
+                return (
+                  <Link
+                    key={n.to}
+                    to={n.to}
+                    className={cn(
+                      "flex shrink-0 items-center gap-2 rounded-sm px-3 py-2 text-sm no-link-color whitespace-nowrap",
+                      active ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted",
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{n.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background to-transparent md:hidden"
+            />
+          </div>
         </aside>
         <main className="min-w-0">
           <Outlet />

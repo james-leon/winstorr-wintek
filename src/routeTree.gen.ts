@@ -19,6 +19,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProduitsSlugRouteImport } from './routes/produits.$slug'
+import { Route as ConnexionMotDePasseRouteImport } from './routes/connexion.mot-de-passe'
 import { Route as BoutiquesVendorSlugRouteImport } from './routes/boutiques_.$vendorSlug'
 import { Route as AuthenticatedVendeurRouteImport } from './routes/_authenticated/vendeur'
 import { Route as AuthenticatedMonCompteRouteImport } from './routes/_authenticated/mon-compte'
@@ -106,6 +107,11 @@ const ProduitsSlugRoute = ProduitsSlugRouteImport.update({
   id: '/produits/$slug',
   path: '/produits/$slug',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ConnexionMotDePasseRoute = ConnexionMotDePasseRouteImport.update({
+  id: '/mot-de-passe',
+  path: '/mot-de-passe',
+  getParentRoute: () => ConnexionRoute,
 } as any)
 const BoutiquesVendorSlugRoute = BoutiquesVendorSlugRouteImport.update({
   id: '/boutiques_/$vendorSlug',
@@ -335,13 +341,14 @@ export interface FileRoutesByFullPath {
   '/boutiques': typeof BoutiquesRoute
   '/catalogue': typeof CatalogueRoute
   '/commande': typeof CommandeRouteWithChildren
-  '/connexion': typeof ConnexionRoute
+  '/connexion': typeof ConnexionRouteWithChildren
   '/panier': typeof PanierRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/mon-compte': typeof AuthenticatedMonCompteRouteWithChildren
   '/vendeur': typeof AuthenticatedVendeurRouteWithChildren
   '/boutiques/$vendorSlug': typeof BoutiquesVendorSlugRoute
+  '/connexion/mot-de-passe': typeof ConnexionMotDePasseRoute
   '/produits/$slug': typeof ProduitsSlugRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/annonces-vendeurs': typeof AuthenticatedAdminAnnoncesVendeursRoute
@@ -384,11 +391,12 @@ export interface FileRoutesByTo {
   '/boutiques': typeof BoutiquesRoute
   '/catalogue': typeof CatalogueRoute
   '/commande': typeof CommandeRouteWithChildren
-  '/connexion': typeof ConnexionRoute
+  '/connexion': typeof ConnexionRouteWithChildren
   '/panier': typeof PanierRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vendeur': typeof AuthenticatedVendeurRouteWithChildren
   '/boutiques/$vendorSlug': typeof BoutiquesVendorSlugRoute
+  '/connexion/mot-de-passe': typeof ConnexionMotDePasseRoute
   '/produits/$slug': typeof ProduitsSlugRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/annonces-vendeurs': typeof AuthenticatedAdminAnnoncesVendeursRoute
@@ -433,13 +441,14 @@ export interface FileRoutesById {
   '/boutiques': typeof BoutiquesRoute
   '/catalogue': typeof CatalogueRoute
   '/commande': typeof CommandeRouteWithChildren
-  '/connexion': typeof ConnexionRoute
+  '/connexion': typeof ConnexionRouteWithChildren
   '/panier': typeof PanierRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/mon-compte': typeof AuthenticatedMonCompteRouteWithChildren
   '/_authenticated/vendeur': typeof AuthenticatedVendeurRouteWithChildren
   '/boutiques_/$vendorSlug': typeof BoutiquesVendorSlugRoute
+  '/connexion/mot-de-passe': typeof ConnexionMotDePasseRoute
   '/produits/$slug': typeof ProduitsSlugRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/admin/annonces-vendeurs': typeof AuthenticatedAdminAnnoncesVendeursRoute
@@ -491,6 +500,7 @@ export interface FileRouteTypes {
     | '/mon-compte'
     | '/vendeur'
     | '/boutiques/$vendorSlug'
+    | '/connexion/mot-de-passe'
     | '/produits/$slug'
     | '/admin/analytics'
     | '/admin/annonces-vendeurs'
@@ -538,6 +548,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/vendeur'
     | '/boutiques/$vendorSlug'
+    | '/connexion/mot-de-passe'
     | '/produits/$slug'
     | '/admin/analytics'
     | '/admin/annonces-vendeurs'
@@ -588,6 +599,7 @@ export interface FileRouteTypes {
     | '/_authenticated/mon-compte'
     | '/_authenticated/vendeur'
     | '/boutiques_/$vendorSlug'
+    | '/connexion/mot-de-passe'
     | '/produits/$slug'
     | '/_authenticated/admin/analytics'
     | '/_authenticated/admin/annonces-vendeurs'
@@ -632,7 +644,7 @@ export interface RootRouteChildren {
   BoutiquesRoute: typeof BoutiquesRoute
   CatalogueRoute: typeof CatalogueRoute
   CommandeRoute: typeof CommandeRouteWithChildren
-  ConnexionRoute: typeof ConnexionRoute
+  ConnexionRoute: typeof ConnexionRouteWithChildren
   PanierRoute: typeof PanierRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   BoutiquesVendorSlugRoute: typeof BoutiquesVendorSlugRoute
@@ -712,6 +724,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/produits/$slug'
       preLoaderRoute: typeof ProduitsSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/connexion/mot-de-passe': {
+      id: '/connexion/mot-de-passe'
+      path: '/mot-de-passe'
+      fullPath: '/connexion/mot-de-passe'
+      preLoaderRoute: typeof ConnexionMotDePasseRouteImport
+      parentRoute: typeof ConnexionRoute
     }
     '/boutiques_/$vendorSlug': {
       id: '/boutiques_/$vendorSlug'
@@ -1118,6 +1137,18 @@ const CommandeRouteWithChildren = CommandeRoute._addFileChildren(
   CommandeRouteChildren,
 )
 
+interface ConnexionRouteChildren {
+  ConnexionMotDePasseRoute: typeof ConnexionMotDePasseRoute
+}
+
+const ConnexionRouteChildren: ConnexionRouteChildren = {
+  ConnexionMotDePasseRoute: ConnexionMotDePasseRoute,
+}
+
+const ConnexionRouteWithChildren = ConnexionRoute._addFileChildren(
+  ConnexionRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -1125,7 +1156,7 @@ const rootRouteChildren: RootRouteChildren = {
   BoutiquesRoute: BoutiquesRoute,
   CatalogueRoute: CatalogueRoute,
   CommandeRoute: CommandeRouteWithChildren,
-  ConnexionRoute: ConnexionRoute,
+  ConnexionRoute: ConnexionRouteWithChildren,
   PanierRoute: PanierRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   BoutiquesVendorSlugRoute: BoutiquesVendorSlugRoute,
