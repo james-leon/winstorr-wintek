@@ -256,7 +256,7 @@ function ProductDetail() {
 
 function BuyBox({ p }: { p: Product }) {
   const { data: tiers } = useProductTiers(p.type === "physical" ? p.id : undefined);
-  const [qty, setQty] = useState(1);
+  const [qty, setQty] = useState(Math.max(1, p.min_order_quantity ?? 1));
   const hasTiers = (tiers?.length ?? 0) > 0;
   const effectiveUnit = hasTiers && p.price != null
     ? resolveUnitPrice(tiers, qty, p.price)
