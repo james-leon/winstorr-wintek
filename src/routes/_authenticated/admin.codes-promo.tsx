@@ -152,6 +152,7 @@ function AdminCoupons() {
           </tbody>
         </table>
       </div>
+      <Pagination page={page} pageCount={pageCount} total={total} rangeStart={rangeStart} rangeEnd={rangeEnd} onPageChange={setPage} label="codes" />
 
       {(creating || editing) && (
         <CouponDialog
