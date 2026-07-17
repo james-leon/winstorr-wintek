@@ -147,8 +147,8 @@ function VendorOrders() {
     mutationFn: async ({ id, reason, notes }: { id: string; reason: string; notes: string }) => {
       const { data, error } = await supabase.rpc("vendor_refuse_shipment", {
         _shipment_id: id,
-        _reason: reason,
-        _notes: notes || null,
+        _reason: reason as "rupture_stock" | "produit_endommage" | "prix_incorrect" | "autre",
+        _notes: notes || undefined,
       });
       if (error) throw error;
       return data;
