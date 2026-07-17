@@ -150,7 +150,7 @@ type FormState = {
   name: string; slug: string; type: ProductType; status: "draft" | "active" | "archived";
   short_description: string; description: string;
   price: string; price_type: "fixed" | "starting_at" | "quote_only";
-  stock_quantity: string; featured: boolean;
+  stock_quantity: string; featured: boolean; min_order_quantity: string;
   images: string[];
   warranty_duration: string;
   source_type: string;
