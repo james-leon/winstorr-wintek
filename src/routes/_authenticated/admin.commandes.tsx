@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { updateOrderStatus, confirmCashPayment } from "@/lib/orders.functions";
+import { Pagination, usePagination } from "@/components/pagination";
 import { cn } from "@/lib/utils";
 
 
@@ -103,6 +104,9 @@ function AdminOrdersPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const rows = data ?? [];
+  const { page, setPage, paged, total, pageCount, rangeStart, rangeEnd } = usePagination(rows, 25);
+
   return (
     <div>
       <div className="mb-4 flex items-center gap-2">
@@ -155,7 +159,7 @@ function AdminOrdersPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {data?.map((o) => (
+            {paged.map((o) => (
               <tr key={o.id} className="hover:bg-muted/50">
                 <td className="p-2 font-mono">{o.order_number}</td>
                 <td className="p-2">{o.customer_name}<div className="text-xs text-muted-foreground">{o.customer_phone}</div></td>
@@ -173,12 +177,13 @@ function AdminOrdersPage() {
                 <td className="p-2"><Button size="sm" variant="outline" onClick={() => { setSelected(o); setNewStatus(o.status); setNotes(o.notes || ""); }}>Détails</Button></td>
               </tr>
             ))}
-            {(!data || data.length === 0) && (
+            {total === 0 && (
               <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">Aucune commande.</td></tr>
             )}
           </tbody>
         </table>
       </div>
+      <Pagination page={page} pageCount={pageCount} total={total} rangeStart={rangeStart} rangeEnd={rangeEnd} onPageChange={setPage} label="commandes" />
 
       <Dialog open={!!selected} onOpenChange={(v) => !v && setSelected(null)}>
         <DialogContent className="max-w-2xl">

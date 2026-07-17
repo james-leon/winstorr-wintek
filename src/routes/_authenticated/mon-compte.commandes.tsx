@@ -83,17 +83,17 @@ function MyOrders() {
               key={o.id}
               to="/mon-compte/commandes/$orderNumber"
               params={{ orderNumber: o.order_number }}
-              className="flex items-center justify-between gap-3 p-4 hover:bg-muted no-link-color"
+              className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 p-4 hover:bg-muted no-link-color"
             >
-              <div>
-                <div className="font-mono text-sm">{o.order_number}</div>
+              <div className="min-w-0">
+                <div className="font-mono text-sm truncate">{o.order_number}</div>
                 <div className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleString("fr-FR")}</div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className={cn("rounded-sm px-2 py-0.5 text-xs font-medium", STATUS_TONE[o.status] || "bg-muted")}>
+              <div className="flex flex-col items-end gap-1 shrink-0 sm:flex-row sm:items-center sm:gap-3">
+                <span className={cn("rounded-sm px-2 py-0.5 text-xs font-medium whitespace-nowrap", STATUS_TONE[o.status] || "bg-muted")}>
                   {STATUS_LABEL[o.status] || o.status}
                 </span>
-                <span className="font-bold text-accent">{formatFcfa(Number(o.total))}</span>
+                <span className="font-bold text-accent whitespace-nowrap">{formatFcfa(Number(o.total))}</span>
               </div>
             </Link>
           ))}

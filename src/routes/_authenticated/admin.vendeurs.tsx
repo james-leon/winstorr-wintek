@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { Pagination, usePagination } from "@/components/pagination";
 import {
   createVendorInvitation,
   revokeVendorInvitation,
@@ -66,6 +67,9 @@ function AdminVendors() {
     return invitations.filter((i) => i.status === statusFilter);
   }, [invitations, statusFilter]);
 
+  const vendorsPg = usePagination(vendors, 25);
+  const invitationsPg = usePagination(filteredInvitations, 25);
+
   const suspend = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: "active" | "suspended" }) => {
       const { error } = await supabase.from("vendors").update({ status }).eq("id", id);
@@ -119,7 +123,7 @@ function AdminVendors() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {vendors.map((v) => (
+              {vendorsPg.paged.map((v) => (
                 <tr key={v.id}>
                   <td className="p-3 font-medium">{v.name}<div className="text-xs text-muted-foreground">{v.slug}{v.contact_email && ` · ${v.contact_email}`}</div></td>
                   <td className="p-3 text-xs">{v.type === "internal" ? "Officiel" : "Externe"}</td>
@@ -143,6 +147,7 @@ function AdminVendors() {
             </tbody>
           </table>
         </div>
+        <Pagination page={vendorsPg.page} pageCount={vendorsPg.pageCount} total={vendorsPg.total} rangeStart={vendorsPg.rangeStart} rangeEnd={vendorsPg.rangeEnd} onPageChange={vendorsPg.setPage} label="vendeurs" />
       </section>
 
       <section>
@@ -176,7 +181,7 @@ function AdminVendors() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filteredInvitations.map((i) => {
+              {invitationsPg.paged.map((i) => {
                 const link = typeof window !== "undefined" ? `${window.location.origin}/vendeur/invitation/${i.token}` : `/vendeur/invitation/${i.token}`;
                 const expiredByDate = new Date(i.expires_at) < new Date();
                 const effectiveStatus = i.status === "pending" && expiredByDate ? "expired" : i.status;
@@ -284,6 +289,7 @@ function AdminVendors() {
             </tbody>
           </table>
         </div>
+        <Pagination page={invitationsPg.page} pageCount={invitationsPg.pageCount} total={invitationsPg.total} rangeStart={invitationsPg.rangeStart} rangeEnd={invitationsPg.rangeEnd} onPageChange={invitationsPg.setPage} label="invitations" />
       </section>
 
       {inviteOpen && (

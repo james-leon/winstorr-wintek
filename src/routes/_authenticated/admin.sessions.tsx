@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { formatFcfa } from "@/lib/format";
+import { Pagination, usePagination } from "@/components/pagination";
 
 export const Route = createFileRoute("/_authenticated/admin/sessions")({
   component: AdminSessions,
@@ -54,6 +55,8 @@ function AdminSessions() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const { page, setPage, paged, total, pageCount, rangeStart, rangeEnd } = usePagination(rows, 25);
+
   return (
     <div>
       <div className="mb-4 flex justify-between">
@@ -69,7 +72,7 @@ function AdminSessions() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((r) => (
+            {paged.map((r) => (
               <tr key={r.id} className="border-t border-border">
                 <td className="p-3 font-medium">{r.products?.name}</td>
                 <td className="p-3">{new Date(r.start_date).toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" })}</td>
@@ -87,6 +90,7 @@ function AdminSessions() {
           </tbody>
         </table>
       </div>
+      <Pagination page={page} pageCount={pageCount} total={total} rangeStart={rangeStart} rangeEnd={rangeEnd} onPageChange={setPage} label="sessions" />
       {open && <SessionDialog trainings={trainings} onClose={() => setOpen(false)} onSaved={() => { setOpen(false); qc.invalidateQueries({ queryKey: ["admin-sessions"] }); }} />}
     </div>
   );

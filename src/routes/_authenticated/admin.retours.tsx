@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { updateReturnRequest } from "@/lib/returns.functions";
 import { formatFcfa } from "@/lib/format";
+import { Pagination, usePagination } from "@/components/pagination";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/admin/retours")({
@@ -90,6 +91,9 @@ function AdminReturnsPage() {
     setRefund(r.refund_amount ? String(r.refund_amount) : "");
   };
 
+  const rows = data ?? [];
+  const { page, setPage, paged, total, pageCount, rangeStart, rangeEnd } = usePagination(rows, 25);
+
   return (
     <div>
       <div className="mb-4 flex items-center gap-2">
@@ -117,7 +121,7 @@ function AdminReturnsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {data?.map((r: any) => (
+            {paged.map((r: any) => (
               <tr key={r.id} className="hover:bg-muted/50">
                 <td className="p-2 font-mono">{r.orders?.order_number}</td>
                 <td className="p-2">{r.orders?.customer_name}<div className="text-xs text-muted-foreground">{r.orders?.customer_phone}</div></td>
@@ -127,12 +131,13 @@ function AdminReturnsPage() {
                 <td className="p-2"><Button size="sm" variant="outline" onClick={() => openDetail(r)}>Traiter</Button></td>
               </tr>
             ))}
-            {(!data || data.length === 0) && (
+            {total === 0 && (
               <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">Aucune demande.</td></tr>
             )}
           </tbody>
         </table>
       </div>
+      <Pagination page={page} pageCount={pageCount} total={total} rangeStart={rangeStart} rangeEnd={rangeEnd} onPageChange={setPage} label="retours" />
 
       <Dialog open={!!selected} onOpenChange={(v) => !v && setSelected(null)}>
         <DialogContent className="max-w-xl">

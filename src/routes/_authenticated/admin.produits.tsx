@@ -15,6 +15,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { TypeBadge } from "@/components/type-badge";
 import { displayPrice, slugify, PRODUCT_TYPE_LABELS, type ProductType } from "@/lib/format";
 import { ImageGalleryManager } from "@/components/image-gallery-manager";
+import { Pagination, usePagination } from "@/components/pagination";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/admin/produits")({
@@ -116,6 +117,8 @@ function AdminProducts() {
     return r;
   }, [rows, search, typeF, statusF, categoryF, stockF, sortKey, sortDir]);
 
+  const { page, setPage, paged, total, pageCount, rangeStart, rangeEnd } = usePagination(filtered, 25);
+
   const toggleSort = (k: SortKey) => {
     if (sortKey === k) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     else { setSortKey(k); setSortDir("asc"); }
@@ -208,7 +211,7 @@ function AdminProducts() {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h1 className="font-display text-2xl text-foreground">Produits</h1>
-          <p className="text-xs text-muted-foreground">{filtered.length} sur {rows.length} produit(s)</p>
+          <p className="text-xs text-muted-foreground">{filtered.length} sur {rows.length} produit(s) — page {page}/{pageCount}</p>
         </div>
         <Button onClick={() => setEditing("new")}><Plus className="mr-1 h-4 w-4" /> Nouveau</Button>
       </div>
@@ -312,7 +315,7 @@ function AdminProducts() {
           </thead>
           <tbody className="divide-y divide-border">
             {isLoading && <tr><td colSpan={10} className="p-6 text-center text-muted-foreground">Chargement...</td></tr>}
-            {filtered.map((r) => {
+            {paged.map((r) => {
               const isQE = quickEditId === r.id;
               const cover = r.images?.[0];
               return (
@@ -401,6 +404,8 @@ function AdminProducts() {
           </tbody>
         </table>
       </div>
+      <Pagination page={page} pageCount={pageCount} total={total} rangeStart={rangeStart} rangeEnd={rangeEnd} onPageChange={setPage} label="produits" />
+
 
       {editing && (
         <ProductDialog
