@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Minus, Plus, Trash2, ShoppingBag, Tag, X, Check } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, Tag, X, Check, AlertTriangle } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { validateCouponFn } from "@/lib/coupons.functions";
 import { useCartTiers, resolveUnitPrice } from "@/lib/tiers";
 import { EmptyState } from "@/components/empty-state";
 import { TrustStrip } from "@/components/trust-strip";
+import { supabase } from "@/integrations/supabase/client";
 
 
 
