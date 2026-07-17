@@ -490,7 +490,7 @@ type FormState = {
   vendor_id: string; category_id: string;
   short_description: string; description: string;
   price: string; price_type: "fixed" | "starting_at" | "quote_only";
-  stock_quantity: string; sku: string; featured: boolean;
+  stock_quantity: string; sku: string; featured: boolean; min_order_quantity: string;
   images: string[];
   quality_verified: boolean;
   warranty_duration: string;
