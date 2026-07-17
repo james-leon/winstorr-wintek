@@ -536,6 +536,7 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
         service_area: data.service_area ?? "",
         estimated_duration: data.estimated_duration ?? "",
         delivery_mode: data.delivery_mode ?? "",
+        min_order_quantity: String((data as { min_order_quantity?: number | null }).min_order_quantity ?? 1),
       }));
     });
     supabase.from("product_price_tiers")
