@@ -150,7 +150,7 @@ type FormState = {
   name: string; slug: string; type: ProductType; status: "draft" | "active" | "archived";
   short_description: string; description: string;
   price: string; price_type: "fixed" | "starting_at" | "quote_only";
-  stock_quantity: string; featured: boolean;
+  stock_quantity: string; featured: boolean; min_order_quantity: string;
   images: string[];
   warranty_duration: string;
   source_type: string;
@@ -164,7 +164,7 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
     type: row?.type ?? "physical", status: (row?.status as "draft" | "active" | "archived") ?? "draft",
     short_description: "", description: "",
     price: row?.price?.toString() ?? "", price_type: row?.price_type ?? "fixed",
-    stock_quantity: row?.stock_quantity?.toString() ?? "", featured: row?.featured ?? false,
+    stock_quantity: row?.stock_quantity?.toString() ?? "", featured: row?.featured ?? false, min_order_quantity: "1",
     images: [],
     warranty_duration: "",
     source_type: "",
@@ -186,6 +186,7 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
         service_area: data.service_area ?? "",
         estimated_duration: data.estimated_duration ?? "",
         delivery_mode: data.delivery_mode ?? "",
+        min_order_quantity: String((data as { min_order_quantity?: number | null }).min_order_quantity ?? 1),
       }));
     });
   }, [row]);
@@ -203,6 +204,7 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
         price: f.price_type === "quote_only" ? null : (f.price ? Number(f.price) : null),
         price_type: f.price_type,
         stock_quantity: f.type === "physical" && f.stock_quantity ? Number(f.stock_quantity) : null,
+        min_order_quantity: f.type === "physical" ? Math.max(1, parseInt(f.min_order_quantity || "1", 10) || 1) : 1,
         featured: f.featured,
         images: f.images.map((s) => s.trim()).filter(Boolean),
         warranty_duration: f.type === "physical" && f.warranty_duration ? f.warranty_duration : null,
@@ -289,6 +291,12 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
             <div><Label>Prix (FCFA)</Label><Input type="number" min="0" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} disabled={f.price_type === "quote_only"} /></div>
             {f.type === "physical" && (
               <div><Label>Stock</Label><Input type="number" min="0" value={f.stock_quantity} onChange={(e) => setF({ ...f, stock_quantity: e.target.value })} /></div>
+            )}
+            {f.type === "physical" && (
+              <div>
+                <Label>Quantité minimum</Label>
+                <Input type="number" min="1" value={f.min_order_quantity} onChange={(e) => setF({ ...f, min_order_quantity: e.target.value })} />
+              </div>
             )}
           </div>
 

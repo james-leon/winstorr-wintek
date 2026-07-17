@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Minus, Plus, Trash2, ShoppingBag, Tag, X, Check } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, Tag, X, Check, AlertTriangle } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { validateCouponFn } from "@/lib/coupons.functions";
 import { useCartTiers, resolveUnitPrice } from "@/lib/tiers";
 import { EmptyState } from "@/components/empty-state";
 import { TrustStrip } from "@/components/trust-strip";
+import { supabase } from "@/integrations/supabase/client";
 
 
 
@@ -23,10 +24,23 @@ export const Route = createFileRoute("/panier")({
 function CartPage() {
   const { items, add, remove, coupon, setCoupon } = useCart();
   const { data: tiersMap } = useCartTiers(items.map((i) => i.productId));
+  const productIds = items.map((i) => i.productId);
+  const { data: moqMap } = useQuery({
+    enabled: productIds.length > 0,
+    queryKey: ["cart-moq", productIds.slice().sort().join(",")],
+    queryFn: async (): Promise<Record<string, number>> => {
+      const { data, error } = await supabase.from("products").select("id, min_order_quantity").in("id", productIds);
+      if (error) throw error;
+      const m: Record<string, number> = {};
+      for (const r of data ?? []) m[r.id] = Math.max(1, (r.min_order_quantity as number | null) ?? 1);
+      return m;
+    },
+  });
   const effectiveUnit = (productId: string, basePrice: number, qty: number) =>
     resolveUnitPrice(tiersMap?.[productId], qty, basePrice) ?? basePrice;
   const subtotal = items.reduce((n, i) => n + effectiveUnit(i.productId, i.price, i.quantity) * i.quantity, 0);
   const discount = coupon ? Math.min(coupon.discountAmount, subtotal) : 0;
+  const hasMoqViolation = items.some((i) => i.quantity < (moqMap?.[i.productId] ?? 1));
 
   const { user } = useAuth();
   const nav = useNavigate();
@@ -101,6 +115,8 @@ function CartPage() {
             const unit = effectiveUnit(i.productId, i.price, i.quantity);
             const sorted = [...productTiers].sort((a, b) => a.min_quantity - b.min_quantity);
             const nextTier = sorted.find((t) => t.min_quantity > i.quantity);
+            const moq = moqMap?.[i.productId] ?? 1;
+            const belowMoq = i.quantity < moq;
             return (
               <div key={i.productId} className="flex items-start gap-3 p-3">
                 <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-sm bg-muted">
@@ -123,8 +139,17 @@ function CartPage() {
                       Ajoutez {nextTier.min_quantity - i.quantity} de plus pour {formatFcfa(nextTier.unit_price)}/unité
                     </div>
                   )}
+                  {moq > 1 && !belowMoq && (
+                    <div className="mt-1 text-[11px] text-muted-foreground">Quantité minimum : {moq} unités</div>
+                  )}
+                  {belowMoq && (
+                    <div className="mt-1 flex items-start gap-1.5 rounded-sm bg-destructive/10 px-2 py-1 text-[11px] text-destructive">
+                      <AlertTriangle className="mt-0.5 h-3 w-3 flex-shrink-0" />
+                      <span>Quantité minimum requise : {moq}. Augmentez la quantité ou retirez l'article.</span>
+                    </div>
+                  )}
                   <div className="mt-2 inline-flex items-center gap-1 rounded-sm border border-border">
-                    <button className="p-1.5 hover:bg-muted" onClick={() => dec(i)} aria-label="Diminuer"><Minus className="h-4 w-4" /></button>
+                    <button className="p-1.5 hover:bg-muted disabled:opacity-40" onClick={() => dec(i)} disabled={i.quantity <= moq} aria-label="Diminuer"><Minus className="h-4 w-4" /></button>
                     <span className="min-w-8 text-center text-sm font-medium">{i.quantity}</span>
                     <button className="p-1.5 hover:bg-muted" onClick={() => inc(i)} aria-label="Augmenter"><Plus className="h-4 w-4" /></button>
                   </div>
@@ -207,9 +232,14 @@ function CartPage() {
             <span className="font-semibold">Total estimé</span>
             <span className="text-lg font-bold text-accent">{formatFcfa(total)}</span>
           </div>
-          <Button className="mt-4 w-full bg-accent hover:bg-accent/90 text-accent-foreground" onClick={() => nav({ to: "/commande" })}>
+          <Button className="mt-4 w-full bg-accent hover:bg-accent/90 text-accent-foreground" onClick={() => nav({ to: "/commande" })} disabled={hasMoqViolation}>
             Passer commande
           </Button>
+          {hasMoqViolation && (
+            <p className="mt-2 text-center text-xs text-destructive">
+              Ajustez les quantités minimums avant de continuer.
+            </p>
+          )}
           <Link to="/catalogue" className="mt-3 block text-center text-sm text-secondary hover:underline">
             Continuer mes achats
           </Link>

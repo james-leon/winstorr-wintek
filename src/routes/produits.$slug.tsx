@@ -36,6 +36,7 @@ type Product = {
   price_type: "fixed" | "starting_at" | "quote_only";
   compare_at_price: number | null;
   stock_quantity: number | null;
+  min_order_quantity: number;
   delivery_type: "file_download" | "license_key" | "access_link" | null;
   delivery_instructions: string | null;
   service_area: "on_site" | "in_shop" | "remote" | "both" | null;
@@ -55,7 +56,7 @@ const productQuery = (slug: string) =>
     queryFn: async (): Promise<Product> => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, slug, name, short_description, description, images, type, price, price_type, compare_at_price, stock_quantity, delivery_type, delivery_instructions, service_area, estimated_duration, delivery_mode, rating_average, rating_count, quality_verified, warranty_duration, source_type, vendor:vendors(id, name, slug, type)")
+        .select("id, slug, name, short_description, description, images, type, price, price_type, compare_at_price, stock_quantity, min_order_quantity, delivery_type, delivery_instructions, service_area, estimated_duration, delivery_mode, rating_average, rating_count, quality_verified, warranty_duration, source_type, vendor:vendors(id, name, slug, type)")
         .eq("slug", slug)
         .eq("status", "active")
         .maybeSingle();
@@ -255,7 +256,7 @@ function ProductDetail() {
 
 function BuyBox({ p }: { p: Product }) {
   const { data: tiers } = useProductTiers(p.type === "physical" ? p.id : undefined);
-  const [qty, setQty] = useState(1);
+  const [qty, setQty] = useState(Math.max(1, p.min_order_quantity ?? 1));
   const hasTiers = (tiers?.length ?? 0) > 0;
   const effectiveUnit = hasTiers && p.price != null
     ? resolveUnitPrice(tiers, qty, p.price)
@@ -374,6 +375,7 @@ function PhysicalActions({
     add({ productId: p.id, slug: p.slug, name: p.name, price: p.price, image: p.images[0] ?? null }, qty);
   };
 
+  const moq = Math.max(1, p.min_order_quantity ?? 1);
   return (
     <div className="space-y-3">
       <div className={`flex items-center gap-2 text-sm font-medium ${stockLabel.cls}`}>
@@ -381,11 +383,14 @@ function PhysicalActions({
       </div>
       <div className="flex items-center gap-3">
         <div className="flex items-center rounded-md border border-input">
-          <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))} className="px-3 py-2 text-lg">−</button>
+          <button type="button" onClick={() => setQty((q) => Math.max(moq, q - 1))} className="px-3 py-2 text-lg" disabled={qty <= moq}>−</button>
           <span className="min-w-8 text-center">{qty}</span>
           <button type="button" onClick={() => setQty((q) => q + 1)} className="px-3 py-2 text-lg">+</button>
         </div>
       </div>
+      {moq > 1 && (
+        <div className="text-xs text-muted-foreground">Quantité minimum : {moq} unités</div>
+      )}
       <Button
         size="lg"
         className="w-full bg-accent text-accent-foreground hover:bg-accent/90"

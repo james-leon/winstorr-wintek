@@ -41,7 +41,7 @@ export const createOrder = createServerFn({ method: "POST" })
     const ids = data.items.map((i) => i.productId);
     const { data: products, error: pErr } = await supabaseAdmin
       .from("products")
-      .select("id, name, slug, images, type, price, price_type, stock_quantity, vendor_id, status")
+      .select("id, name, slug, images, type, price, price_type, stock_quantity, min_order_quantity, vendor_id, status")
       .in("id", ids);
     if (pErr) throw new Error(pErr.message);
     if (!products || products.length !== ids.length) throw new Error("Un produit du panier n'est plus disponible.");
@@ -83,6 +83,8 @@ export const createOrder = createServerFn({ method: "POST" })
       }
       if (p.type === "physical") {
         hasPhysical = true;
+        const moq = Math.max(1, (p as { min_order_quantity?: number }).min_order_quantity ?? 1);
+        if (it.quantity < moq) throw new Error(`Quantité minimum pour ${p.name} : ${moq} unités.`);
         if ((p.stock_quantity ?? 0) < it.quantity) throw new Error(`Stock insuffisant pour ${p.name}.`);
       }
       const unit = p.type === "physical" ? resolveUnit(p.id, Number(p.price), it.quantity) : Number(p.price);

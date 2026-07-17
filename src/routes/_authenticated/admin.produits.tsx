@@ -490,7 +490,7 @@ type FormState = {
   vendor_id: string; category_id: string;
   short_description: string; description: string;
   price: string; price_type: "fixed" | "starting_at" | "quote_only";
-  stock_quantity: string; sku: string; featured: boolean;
+  stock_quantity: string; sku: string; featured: boolean; min_order_quantity: string;
   images: string[];
   quality_verified: boolean;
   warranty_duration: string;
@@ -510,6 +510,7 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
     short_description: "", description: "",
     price: row?.price?.toString() ?? "", price_type: row?.price_type ?? "fixed",
     stock_quantity: row?.stock_quantity?.toString() ?? "", sku: row?.sku ?? "",
+    min_order_quantity: "1",
     featured: row?.featured ?? false,
     images: row?.images ?? [],
     quality_verified: row?.quality_verified ?? false,
@@ -535,6 +536,7 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
         service_area: data.service_area ?? "",
         estimated_duration: data.estimated_duration ?? "",
         delivery_mode: data.delivery_mode ?? "",
+        min_order_quantity: String((data as { min_order_quantity?: number | null }).min_order_quantity ?? 1),
       }));
     });
     supabase.from("product_price_tiers")
@@ -565,6 +567,7 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
         price: f.price_type === "quote_only" ? null : (f.price ? Number(f.price) : null),
         price_type: f.price_type,
         stock_quantity: f.type === "physical" && f.stock_quantity ? Number(f.stock_quantity) : null,
+        min_order_quantity: f.type === "physical" ? Math.max(1, parseInt(f.min_order_quantity || "1", 10) || 1) : 1,
         sku: f.sku.trim() || null,
         featured: f.featured,
         images: f.images.map((s) => s.trim()).filter(Boolean),
@@ -714,6 +717,13 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
                 <div><Label>SKU</Label><Input value={f.sku} onChange={(e) => setF({ ...f, sku: e.target.value })} /></div>
                 {f.type === "physical" && (
                   <div><Label>Stock</Label><Input type="number" min="0" value={f.stock_quantity} onChange={(e) => setF({ ...f, stock_quantity: e.target.value })} /></div>
+                )}
+                {f.type === "physical" && (
+                  <div>
+                    <Label>Quantité minimum (MOQ)</Label>
+                    <Input type="number" min="1" value={f.min_order_quantity} onChange={(e) => setF({ ...f, min_order_quantity: e.target.value })} />
+                    <p className="mt-1 text-[11px] text-muted-foreground">Quantité minimum par commande. Défaut : 1.</p>
+                  </div>
                 )}
               </div>
 

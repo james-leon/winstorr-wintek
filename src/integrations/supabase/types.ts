@@ -956,6 +956,7 @@ export type Database = {
           featured: boolean
           id: string
           images: Json
+          min_order_quantity: number
           name: string
           price: number | null
           price_type: Database["public"]["Enums"]["price_type"]
@@ -992,6 +993,7 @@ export type Database = {
           featured?: boolean
           id?: string
           images?: Json
+          min_order_quantity?: number
           name: string
           price?: number | null
           price_type?: Database["public"]["Enums"]["price_type"]
@@ -1028,6 +1030,7 @@ export type Database = {
           featured?: boolean
           id?: string
           images?: Json
+          min_order_quantity?: number
           name?: string
           price?: number | null
           price_type?: Database["public"]["Enums"]["price_type"]
