@@ -375,6 +375,7 @@ function PhysicalActions({
     add({ productId: p.id, slug: p.slug, name: p.name, price: p.price, image: p.images[0] ?? null }, qty);
   };
 
+  const moq = Math.max(1, p.min_order_quantity ?? 1);
   return (
     <div className="space-y-3">
       <div className={`flex items-center gap-2 text-sm font-medium ${stockLabel.cls}`}>
@@ -382,11 +383,14 @@ function PhysicalActions({
       </div>
       <div className="flex items-center gap-3">
         <div className="flex items-center rounded-md border border-input">
-          <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))} className="px-3 py-2 text-lg">−</button>
+          <button type="button" onClick={() => setQty((q) => Math.max(moq, q - 1))} className="px-3 py-2 text-lg" disabled={qty <= moq}>−</button>
           <span className="min-w-8 text-center">{qty}</span>
           <button type="button" onClick={() => setQty((q) => q + 1)} className="px-3 py-2 text-lg">+</button>
         </div>
       </div>
+      {moq > 1 && (
+        <div className="text-xs text-muted-foreground">Quantité minimum : {moq} unités</div>
+      )}
       <Button
         size="lg"
         className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
