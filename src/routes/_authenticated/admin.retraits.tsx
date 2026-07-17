@@ -84,7 +84,7 @@ function AdminWithdrawals() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {rows.map((r) => (
+            {paged.map((r) => (
               <tr key={r.id}>
                 <td className="p-3 font-medium">{r.vendors?.name ?? r.vendor_id.slice(0, 8)}</td>
                 <td className="p-3 font-semibold">{formatFcfa(Number(r.amount_requested))}</td>
@@ -103,10 +103,11 @@ function AdminWithdrawals() {
                 </td>
               </tr>
             ))}
-            {rows.length === 0 && <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">Aucun retrait.</td></tr>}
+            {total === 0 && <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">Aucun retrait.</td></tr>}
           </tbody>
         </table>
       </div>
+      <Pagination page={page} pageCount={pageCount} total={total} rangeStart={rangeStart} rangeEnd={rangeEnd} onPageChange={setPage} label="retraits" />
 
       {active && <ProcessDialog w={active} onClose={() => setActive(null)} onDone={(status, notes) => setStatus.mutate({ id: active.id, status, notes })} />}
     </div>
