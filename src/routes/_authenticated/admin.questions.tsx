@@ -36,6 +36,8 @@ function AdminQuestions() {
     onSuccess: () => { toast.success("Mis à jour"); qc.invalidateQueries({ queryKey: ["admin-questions"] }); },
   });
 
+  const { page, setPage, paged, total, pageCount, rangeStart, rangeEnd } = usePagination(rows, 25);
+
   return (
     <div className="space-y-4">
       <h2 className="font-display text-2xl text-foreground">Questions produits — modération</h2>
@@ -49,7 +51,7 @@ function AdminQuestions() {
       </div>
 
       <div className="space-y-3">
-        {rows.map((q) => {
+        {paged.map((q) => {
           const p = (q as { products?: { name?: string; vendors?: { name?: string } } }).products;
           return (
             <div key={q.id} className="rounded-sm border border-border bg-card p-4">
@@ -69,8 +71,9 @@ function AdminQuestions() {
             </div>
           );
         })}
-        {rows.length === 0 && <div className="rounded-sm border border-border bg-card p-6 text-center text-sm text-muted-foreground">Aucune question.</div>}
+        {total === 0 && <div className="rounded-sm border border-border bg-card p-6 text-center text-sm text-muted-foreground">Aucune question.</div>}
       </div>
+      <Pagination page={page} pageCount={pageCount} total={total} rangeStart={rangeStart} rangeEnd={rangeEnd} onPageChange={setPage} label="questions" />
     </div>
   );
 }
