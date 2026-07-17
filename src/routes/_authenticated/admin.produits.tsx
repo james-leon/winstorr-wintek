@@ -404,6 +404,8 @@ function AdminProducts() {
           </tbody>
         </table>
       </div>
+      <Pagination page={page} pageCount={pageCount} total={total} rangeStart={rangeStart} rangeEnd={rangeEnd} onPageChange={setPage} label="produits" />
+
 
       {editing && (
         <ProductDialog
