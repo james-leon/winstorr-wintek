@@ -519,8 +519,12 @@ export type Database = {
           acceptance_deadline: string | null
           acceptance_status: Database["public"]["Enums"]["shipment_acceptance_status"]
           accepted_at: string | null
+          auto_confirmed: boolean
+          confirmation_deadline: string | null
           created_at: string
           currency: string
+          customer_confirmed_at: string | null
+          delivered_at: string | null
           delivery_mode: string | null
           id: string
           notes: string | null
@@ -531,6 +535,7 @@ export type Database = {
             | Database["public"]["Enums"]["shipment_refusal_reason"]
             | null
           refused_at: string | null
+          reminder_sent_at: string | null
           shipment_number: string | null
           status: Database["public"]["Enums"]["shipment_status"]
           subtotal: number
@@ -541,8 +546,12 @@ export type Database = {
           acceptance_deadline?: string | null
           acceptance_status?: Database["public"]["Enums"]["shipment_acceptance_status"]
           accepted_at?: string | null
+          auto_confirmed?: boolean
+          confirmation_deadline?: string | null
           created_at?: string
           currency?: string
+          customer_confirmed_at?: string | null
+          delivered_at?: string | null
           delivery_mode?: string | null
           id?: string
           notes?: string | null
@@ -553,6 +562,7 @@ export type Database = {
             | Database["public"]["Enums"]["shipment_refusal_reason"]
             | null
           refused_at?: string | null
+          reminder_sent_at?: string | null
           shipment_number?: string | null
           status?: Database["public"]["Enums"]["shipment_status"]
           subtotal?: number
@@ -563,8 +573,12 @@ export type Database = {
           acceptance_deadline?: string | null
           acceptance_status?: Database["public"]["Enums"]["shipment_acceptance_status"]
           accepted_at?: string | null
+          auto_confirmed?: boolean
+          confirmation_deadline?: string | null
           created_at?: string
           currency?: string
+          customer_confirmed_at?: string | null
+          delivered_at?: string | null
           delivery_mode?: string | null
           id?: string
           notes?: string | null
@@ -575,6 +589,7 @@ export type Database = {
             | Database["public"]["Enums"]["shipment_refusal_reason"]
             | null
           refused_at?: string | null
+          reminder_sent_at?: string | null
           shipment_number?: string | null
           status?: Database["public"]["Enums"]["shipment_status"]
           subtotal?: number
@@ -1696,6 +1711,7 @@ export type Database = {
         }
         Returns: Json
       }
+      auto_confirm_delivered_shipments: { Args: never; Returns: number }
       auto_refuse_expired_shipments: { Args: never; Returns: number }
       can_manage_product_image: { Args: { _name: string }; Returns: boolean }
       confirm_cash_payment: {
@@ -1708,6 +1724,10 @@ export type Database = {
           _order_id: string
           _txn_id: string
         }
+        Returns: Json
+      }
+      customer_confirm_shipment: {
+        Args: { _shipment_id: string }
         Returns: Json
       }
       generate_order_number: { Args: never; Returns: string }
@@ -1856,6 +1876,7 @@ export type Database = {
         Args: { _line_amount: number; _product_id: string }
         Returns: Json
       }
+      send_delivery_reminders: { Args: never; Returns: number }
       snapshot_order_commissions: {
         Args: { _order_id: string }
         Returns: undefined
@@ -1872,6 +1893,10 @@ export type Database = {
       }
       vendor_accept_shipment: { Args: { _shipment_id: string }; Returns: Json }
       vendor_available_balance: {
+        Args: { _vendor_id: string }
+        Returns: number
+      }
+      vendor_pending_confirmation_amount: {
         Args: { _vendor_id: string }
         Returns: number
       }
