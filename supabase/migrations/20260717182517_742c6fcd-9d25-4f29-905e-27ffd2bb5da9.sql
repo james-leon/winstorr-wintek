@@ -1,0 +1,1 @@
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS min_order_quantity integer NOT NULL DEFAULT 1 CHECK (min_order_quantity >= 1);
