@@ -150,7 +150,11 @@ function CheckoutPage() {
     mutationFn: async () => {
       const order = await createFn({
         data: {
-          items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+          items: items.map((i) => ({
+            productId: i.productId,
+            variantId: i.variantId,
+            quantity: i.quantity,
+          })),
           contact: { name, phone, email: email || null },
           shipping_address:
             hasPhysical && deliveryMode === "home_delivery"
@@ -394,12 +398,19 @@ function CheckoutPage() {
         <aside className="h-fit rounded-sm border border-border bg-card p-4 sticky top-4">
           <h2 className="font-semibold mb-3">Votre commande</h2>
           <ul className="space-y-2 mb-3 max-h-56 overflow-auto">
-            {items.map((i) => (
-              <li key={i.productId} className="flex justify-between gap-2 text-sm">
-                <span className="line-clamp-1">{i.name} × {i.quantity}</span>
-                <span className="font-medium whitespace-nowrap">{formatFcfa(effectiveUnit(i.productId, i.price, i.quantity) * i.quantity)}</span>
-              </li>
-            ))}
+            {items.map((i) => {
+              const key = `${i.productId}::${i.variantId ?? ""}`;
+              const attrs = i.variantAttributes ? Object.entries(i.variantAttributes).map(([k, v]) => `${k}: ${v}`).join(" · ") : "";
+              return (
+                <li key={key} className="flex justify-between gap-2 text-sm">
+                  <span className="line-clamp-1">
+                    {i.name} × {i.quantity}
+                    {attrs && <span className="ml-1 text-muted-foreground">({attrs})</span>}
+                  </span>
+                  <span className="font-medium whitespace-nowrap">{formatFcfa(effectiveUnit(i, i.quantity) * i.quantity)}</span>
+                </li>
+              );
+            })}
           </ul>
           <div className="border-t border-border pt-3 space-y-1 text-sm">
             <div className="flex justify-between"><span className="text-muted-foreground">Sous-total</span><span>{formatFcfa(subtotal)}</span></div>
