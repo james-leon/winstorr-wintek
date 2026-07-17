@@ -3,18 +3,16 @@ import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Minus, Plus, Trash2, ShoppingBag, Tag, X, Check, AlertTriangle } from "lucide-react";
-import { useCart } from "@/lib/cart-context";
+import { useCart, cartItemKey, type CartItem } from "@/lib/cart-context";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatFcfa } from "@/lib/format";
 import { validateCouponFn } from "@/lib/coupons.functions";
-import { useCartTiers, resolveUnitPrice } from "@/lib/tiers";
+import { useCartTiers, resolveUnitPrice, tierKey } from "@/lib/tiers";
 import { EmptyState } from "@/components/empty-state";
 import { TrustStrip } from "@/components/trust-strip";
 import { supabase } from "@/integrations/supabase/client";
-
-
 
 export const Route = createFileRoute("/panier")({
   head: () => ({ meta: [{ title: "Panier — Winstorr" }, { name: "description", content: "Votre panier Winstorr." }] }),
@@ -23,24 +21,53 @@ export const Route = createFileRoute("/panier")({
 
 function CartPage() {
   const { items, add, remove, coupon, setCoupon } = useCart();
-  const { data: tiersMap } = useCartTiers(items.map((i) => i.productId));
+  const { data: tiersMap } = useCartTiers(items.map((i) => ({ productId: i.productId, variantId: i.variantId })));
+
   const productIds = items.map((i) => i.productId);
+  const variantIds = items.map((i) => i.variantId).filter((v): v is string => !!v);
+
   const { data: moqMap } = useQuery({
-    enabled: productIds.length > 0,
-    queryKey: ["cart-moq", productIds.slice().sort().join(",")],
+    enabled: productIds.length > 0 || variantIds.length > 0,
+    queryKey: ["cart-moq", productIds.slice().sort().join(","), variantIds.slice().sort().join(",")],
     queryFn: async (): Promise<Record<string, number>> => {
-      const { data, error } = await supabase.from("products").select("id, min_order_quantity").in("id", productIds);
-      if (error) throw error;
+      // Keyed by cartItemKey(item) so per-variant MOQ overrides the product default.
       const m: Record<string, number> = {};
-      for (const r of data ?? []) m[r.id] = Math.max(1, (r.min_order_quantity as number | null) ?? 1);
+      if (productIds.length > 0) {
+        const { data, error } = await supabase.from("products").select("id, min_order_quantity").in("id", productIds);
+        if (error) throw error;
+        for (const r of data ?? []) {
+          // For non-variant lines, key is `${id}::`; also stored as `${id}::__base` for fallback.
+          m[`${r.id}::__base`] = Math.max(1, (r.min_order_quantity as number | null) ?? 1);
+        }
+      }
+      if (variantIds.length > 0) {
+        const { data, error } = await supabase
+          .from("product_variants")
+          .select("id, product_id, min_order_quantity")
+          .in("id", variantIds);
+        if (error) throw error;
+        for (const r of data ?? []) {
+          const v = (r as { min_order_quantity: number | null }).min_order_quantity;
+          if (v != null) m[`${r.product_id}::${r.id}`] = Math.max(1, v);
+        }
+      }
       return m;
     },
   });
-  const effectiveUnit = (productId: string, basePrice: number, qty: number) =>
-    resolveUnitPrice(tiersMap?.[productId], qty, basePrice) ?? basePrice;
-  const subtotal = items.reduce((n, i) => n + effectiveUnit(i.productId, i.price, i.quantity) * i.quantity, 0);
+
+  const moqFor = (i: CartItem): number => {
+    if (i.variantId) {
+      const vm = moqMap?.[`${i.productId}::${i.variantId}`];
+      if (vm) return vm;
+    }
+    return moqMap?.[`${i.productId}::__base`] ?? 1;
+  };
+
+  const effectiveUnit = (i: CartItem) =>
+    resolveUnitPrice(tiersMap?.[tierKey(i.productId, i.variantId)], i.quantity, i.price) ?? i.price;
+  const subtotal = items.reduce((n, i) => n + effectiveUnit(i) * i.quantity, 0);
   const discount = coupon ? Math.min(coupon.discountAmount, subtotal) : 0;
-  const hasMoqViolation = items.some((i) => i.quantity < (moqMap?.[i.productId] ?? 1));
+  const hasMoqViolation = items.some((i) => i.quantity < moqFor(i));
 
   const { user } = useAuth();
   const nav = useNavigate();
@@ -94,13 +121,35 @@ function CartPage() {
     );
   }
 
-
-  const inc = (i: typeof items[number]) =>
-    add({ productId: i.productId, slug: i.slug, name: i.name, price: i.price, image: i.image }, 1);
-  const dec = (i: typeof items[number]) => {
-    if (i.quantity <= 1) return remove(i.productId);
-    remove(i.productId);
-    add({ productId: i.productId, slug: i.slug, name: i.name, price: i.price, image: i.image }, i.quantity - 1);
+  const inc = (i: CartItem) =>
+    add(
+      {
+        productId: i.productId,
+        variantId: i.variantId,
+        variantAttributes: i.variantAttributes,
+        slug: i.slug,
+        name: i.name,
+        price: i.price,
+        image: i.image,
+      },
+      1,
+    );
+  const dec = (i: CartItem) => {
+    const k = cartItemKey(i);
+    if (i.quantity <= 1) return remove(k);
+    remove(k);
+    add(
+      {
+        productId: i.productId,
+        variantId: i.variantId,
+        variantAttributes: i.variantAttributes,
+        slug: i.slug,
+        name: i.name,
+        price: i.price,
+        image: i.image,
+      },
+      i.quantity - 1,
+    );
   };
 
   const total = subtotal - discount;
@@ -111,14 +160,16 @@ function CartPage() {
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <div className="rounded-sm border border-border bg-card divide-y divide-border">
           {items.map((i) => {
-            const productTiers = tiersMap?.[i.productId] ?? [];
-            const unit = effectiveUnit(i.productId, i.price, i.quantity);
+            const productTiers = tiersMap?.[tierKey(i.productId, i.variantId)] ?? [];
+            const unit = effectiveUnit(i);
             const sorted = [...productTiers].sort((a, b) => a.min_quantity - b.min_quantity);
             const nextTier = sorted.find((t) => t.min_quantity > i.quantity);
-            const moq = moqMap?.[i.productId] ?? 1;
+            const moq = moqFor(i);
             const belowMoq = i.quantity < moq;
+            const key = cartItemKey(i);
+            const attrs = i.variantAttributes ? Object.entries(i.variantAttributes) : [];
             return (
-              <div key={i.productId} className="flex items-start gap-3 p-3">
+              <div key={key} className="flex items-start gap-3 p-3">
                 <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-sm bg-muted">
                   {i.image ? <img src={i.image} alt={i.name} className="h-full w-full object-cover" /> : null}
                 </div>
@@ -126,6 +177,11 @@ function CartPage() {
                   <Link to="/produits/$slug" params={{ slug: i.slug }} className="block font-medium text-foreground line-clamp-2">
                     {i.name}
                   </Link>
+                  {attrs.length > 0 && (
+                    <div className="mt-0.5 text-xs text-muted-foreground">
+                      {attrs.map(([k, v]) => `${k}: ${v}`).join(" · ")}
+                    </div>
+                  )}
                   <div className="mt-1 text-sm text-muted-foreground">
                     {formatFcfa(unit)} / unité
                     {unit < i.price && (
@@ -157,7 +213,7 @@ function CartPage() {
                 <div className="text-right">
                   <div className="font-bold text-accent">{formatFcfa(unit * i.quantity)}</div>
                   <button
-                    onClick={() => remove(i.productId)}
+                    onClick={() => remove(key)}
                     className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive"
                   >
                     <Trash2 className="h-3.5 w-3.5" /> Retirer
@@ -166,7 +222,6 @@ function CartPage() {
               </div>
             );
           })}
-
         </div>
 
         <aside className="h-fit rounded-sm border border-border bg-card p-4 sticky top-4">
@@ -246,7 +301,6 @@ function CartPage() {
           <div className="mt-4 border-t border-border pt-3">
             <TrustStrip />
           </div>
-
         </aside>
       </div>
     </div>

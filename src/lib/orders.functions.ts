@@ -4,6 +4,7 @@ import { z } from "zod";
 
 const itemSchema = z.object({
   productId: z.string().uuid(),
+  variantId: z.string().uuid().nullable().optional(),
   quantity: z.number().int().min(1).max(50),
 });
 
@@ -29,37 +30,60 @@ const checkoutSchema = z.object({
   payment_method: z.enum(["cinetpay", "cash_on_pickup"]).default("cinetpay"),
 });
 
-
-
-
 export const createOrder = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => checkoutSchema.parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Load canonical product info (never trust client price)
-    const ids = data.items.map((i) => i.productId);
+    const ids = Array.from(new Set(data.items.map((i) => i.productId)));
+    const variantIds = Array.from(new Set(data.items.map((i) => i.variantId).filter((v): v is string => !!v)));
+
     const { data: products, error: pErr } = await supabaseAdmin
       .from("products")
-      .select("id, name, slug, images, type, price, price_type, stock_quantity, min_order_quantity, vendor_id, status")
+      .select("id, name, slug, images, type, price, price_type, stock_quantity, min_order_quantity, vendor_id, status, has_variants")
       .in("id", ids);
     if (pErr) throw new Error(pErr.message);
     if (!products || products.length !== ids.length) throw new Error("Un produit du panier n'est plus disponible.");
 
-    // Load all price tiers for these products (server-side, never trust client)
+    // Load variants for any lines that reference them
+    type VariantRow = {
+      id: string;
+      product_id: string;
+      attributes: Record<string, string> | null;
+      price: number | null;
+      stock_quantity: number;
+      min_order_quantity: number | null;
+      image_url: string | null;
+      status: string;
+    };
+    let variants: VariantRow[] = [];
+    if (variantIds.length > 0) {
+      const { data: vRows, error: vErr } = await supabaseAdmin
+        .from("product_variants")
+        .select("id, product_id, attributes, price, stock_quantity, min_order_quantity, image_url, status")
+        .in("id", variantIds);
+      if (vErr) throw new Error(vErr.message);
+      variants = (vRows ?? []) as VariantRow[];
+      if (variants.length !== variantIds.length) throw new Error("Une variante du panier n'est plus disponible.");
+    }
+    const variantById = new Map(variants.map((v) => [v.id, v]));
+
+    // Load all price tiers (both product-level and variant-scoped) in one shot
     const { data: tierRows, error: tErr } = await supabaseAdmin
       .from("product_price_tiers")
-      .select("product_id, min_quantity, unit_price")
+      .select("product_id, variant_id, min_quantity, unit_price")
       .in("product_id", ids);
     if (tErr) throw new Error(tErr.message);
-    const tiersByProduct = new Map<string, { min_quantity: number; unit_price: number }[]>();
+    const tiersByKey = new Map<string, { min_quantity: number; unit_price: number }[]>();
     for (const r of tierRows ?? []) {
-      const list = tiersByProduct.get(r.product_id) ?? [];
+      const k = `${r.product_id}::${(r as { variant_id: string | null }).variant_id ?? ""}`;
+      const list = tiersByKey.get(k) ?? [];
       list.push({ min_quantity: r.min_quantity, unit_price: Number(r.unit_price) });
-      tiersByProduct.set(r.product_id, list);
+      tiersByKey.set(k, list);
     }
-    const resolveUnit = (pid: string, basePrice: number, qty: number): number => {
-      const list = (tiersByProduct.get(pid) ?? []).slice().sort((a, b) => a.min_quantity - b.min_quantity);
+    const resolveUnit = (productId: string, variantId: string | null, basePrice: number, qty: number): number => {
+      const list = (tiersByKey.get(`${productId}::${variantId ?? ""}`) ?? []).slice().sort((a, b) => a.min_quantity - b.min_quantity);
       let match: { min_quantity: number; unit_price: number } | null = null;
       for (const t of list) {
         if (qty >= t.min_quantity) match = t;
@@ -78,25 +102,51 @@ export const createOrder = createServerFn({ method: "POST" })
       if (p.type !== "physical" && p.type !== "digital") {
         throw new Error(`${p.name} ne peut pas être commandé via le panier.`);
       }
-      if (p.price == null || p.price_type === "quote_only") {
+
+      let variant: VariantRow | undefined;
+      if (it.variantId) {
+        variant = variantById.get(it.variantId);
+        if (!variant || variant.product_id !== p.id) throw new Error(`Variante invalide pour ${p.name}.`);
+        if (variant.status !== "active") throw new Error(`Variante indisponible pour ${p.name}.`);
+      } else if ((p as { has_variants?: boolean }).has_variants) {
+        throw new Error(`Merci de choisir une variante pour ${p.name}.`);
+      }
+
+      // Resolve base unit price: variant.price ?? product.price
+      const basePrice = variant?.price ?? p.price;
+      if (basePrice == null || p.price_type === "quote_only") {
         throw new Error(`${p.name} n'a pas de prix fixe.`);
       }
+
       if (p.type === "physical") {
         hasPhysical = true;
-        const moq = Math.max(1, (p as { min_order_quantity?: number }).min_order_quantity ?? 1);
+        // MOQ resolution: variant MOQ overrides product MOQ when set
+        const moq = Math.max(
+          1,
+          (variant?.min_order_quantity ?? (p as { min_order_quantity?: number }).min_order_quantity) ?? 1,
+        );
         if (it.quantity < moq) throw new Error(`Quantité minimum pour ${p.name} : ${moq} unités.`);
-        if ((p.stock_quantity ?? 0) < it.quantity) throw new Error(`Stock insuffisant pour ${p.name}.`);
+        const stock = variant ? variant.stock_quantity : (p.stock_quantity ?? 0);
+        if (stock < it.quantity) throw new Error(`Stock insuffisant pour ${p.name}.`);
       }
-      const unit = p.type === "physical" ? resolveUnit(p.id, Number(p.price), it.quantity) : Number(p.price);
+
+      const unit = p.type === "physical"
+        ? resolveUnit(p.id, variant?.id ?? null, Number(basePrice), it.quantity)
+        : Number(basePrice);
       const line = unit * it.quantity;
       subtotal += line;
+
       const imgs = Array.isArray(p.images) ? (p.images as unknown[]) : [];
+      const productImg = typeof imgs[0] === "string" ? (imgs[0] as string) : null;
+
       return {
         product_id: p.id,
+        variant_id: variant?.id ?? null,
+        variant_attributes: variant?.attributes ?? null,
         product_type: p.type,
         product_name: p.name,
         product_slug: p.slug,
-        product_image: typeof imgs[0] === "string" ? (imgs[0] as string) : null,
+        product_image: variant?.image_url ?? productImg,
         unit_price: unit,
         quantity: it.quantity,
         subtotal: line,
@@ -113,7 +163,6 @@ export const createOrder = createServerFn({ method: "POST" })
       throw new Error("Point de retrait requis.");
     }
 
-    // Shipping fee lookup — 0 for pickup
     let shipping = 0;
     if (hasPhysical && deliveryMode === "home_delivery") {
       const { data: setting } = await supabaseAdmin
@@ -126,7 +175,6 @@ export const createOrder = createServerFn({ method: "POST" })
       shipping = Number(fees[city] ?? fees.autre ?? 0);
     }
     const total_before_discount = subtotal + shipping;
-
 
     // Attach customer_id if the caller is signed in (bearer forwarded by middleware).
     let customerId: string | null = null;
@@ -141,7 +189,6 @@ export const createOrder = createServerFn({ method: "POST" })
       }
     } catch { /* guest checkout */ }
 
-    // Server-side coupon re-validation (never trust client-computed discount)
     let couponCode: string | null = null;
     let discountAmount = 0;
     if (data.couponCode) {
@@ -183,14 +230,12 @@ export const createOrder = createServerFn({ method: "POST" })
       .single();
     if (oErr || !order) throw new Error(oErr?.message || "Impossible de créer la commande.");
 
-
     const { error: iErr } = await supabaseAdmin
       .from("order_items")
       .insert(itemsRows.map((r) => ({ ...r, order_id: order.id })));
     if (iErr) throw new Error(iErr.message);
 
     return { orderId: order.id, orderNumber: order.order_number, total, hasPhysical, isCash };
-
   });
 
 export const initiatePayment = createServerFn({ method: "POST" })
@@ -264,7 +309,6 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
   });
 
 // Staff-only: confirm a cash-on-pickup order as paid.
-// The underlying RPC (confirm_cash_payment) also enforces is_staff via auth.uid().
 export const confirmCashPayment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>
@@ -274,7 +318,6 @@ export const confirmCashPayment = createServerFn({ method: "POST" })
     const { data: isStaff, error: rErr } = await context.supabase.rpc("is_staff", { _user_id: context.userId });
     if (rErr) throw new Error(rErr.message);
     if (!isStaff) throw new Error("Forbidden");
-    // Use user-scoped supabase client so the RPC's auth.uid() check passes.
     const { data: res, error } = await context.supabase.rpc("confirm_cash_payment", {
       _order_id: data.orderId,
       _notes: data.notes ?? undefined,
@@ -286,6 +329,3 @@ export const confirmCashPayment = createServerFn({ method: "POST" })
     await redeemOrderCouponIfAny(data.orderId).catch((e) => console.error("[redeem]", e));
     return res;
   });
-
-
-

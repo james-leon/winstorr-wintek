@@ -20,36 +20,50 @@ export function resolveUnitPrice(
   return fallback == null ? null : Number(fallback);
 }
 
-export function useProductTiers(productId: string | undefined) {
+/** Cart lookup key for a (product, variant) pair. Variant `null` means product-level tiers. */
+export const tierKey = (productId: string, variantId: string | null | undefined) =>
+  `${productId}::${variantId ?? ""}`;
+
+/** Tiers for a single (product, variant?) pair. When variantId is null the query returns
+ *  ONLY product-level tiers (variant_id IS NULL); when set, ONLY variant-scoped tiers. */
+export function useProductTiers(productId: string | undefined, variantId: string | null = null) {
   return useQuery({
     enabled: !!productId,
-    queryKey: ["product-tiers", productId],
+    queryKey: ["product-tiers", productId, variantId ?? null],
     queryFn: async (): Promise<PriceTier[]> => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("product_price_tiers")
         .select("min_quantity, unit_price")
-        .eq("product_id", productId!)
-        .order("min_quantity", { ascending: true });
+        .eq("product_id", productId!);
+      if (variantId) q = q.eq("variant_id", variantId);
+      else q = q.is("variant_id", null);
+      const { data, error } = await q.order("min_quantity", { ascending: true });
       if (error) throw error;
       return (data ?? []).map((r) => ({ min_quantity: r.min_quantity, unit_price: Number(r.unit_price) }));
     },
   });
 }
 
-export function useCartTiers(productIds: string[]) {
-  const key = productIds.slice().sort().join(",");
+/** Batched tier fetch for the cart. Returns a map keyed by tierKey(productId, variantId). */
+export function useCartTiers(items: { productId: string; variantId: string | null }[]) {
+  const productIds = Array.from(new Set(items.map((i) => i.productId)));
+  const cacheKey = items
+    .map((i) => `${i.productId}:${i.variantId ?? ""}`)
+    .sort()
+    .join(",");
   return useQuery({
     enabled: productIds.length > 0,
-    queryKey: ["cart-tiers", key],
+    queryKey: ["cart-tiers", cacheKey],
     queryFn: async (): Promise<Record<string, PriceTier[]>> => {
       const { data, error } = await supabase
         .from("product_price_tiers")
-        .select("product_id, min_quantity, unit_price")
+        .select("product_id, variant_id, min_quantity, unit_price")
         .in("product_id", productIds);
       if (error) throw error;
       const map: Record<string, PriceTier[]> = {};
       for (const r of data ?? []) {
-        (map[r.product_id] ??= []).push({ min_quantity: r.min_quantity, unit_price: Number(r.unit_price) });
+        const k = tierKey(r.product_id, (r as { variant_id: string | null }).variant_id);
+        (map[k] ??= []).push({ min_quantity: r.min_quantity, unit_price: Number(r.unit_price) });
       }
       return map;
     },

@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { TypeBadge } from "@/components/type-badge";
 import { displayPrice, slugify, PRODUCT_TYPE_LABELS, type ProductType } from "@/lib/format";
 import { ImageGalleryManager } from "@/components/image-gallery-manager";
+import { VariantsManager } from "@/components/variants-manager";
 import { useMyVendors } from "@/lib/vendor";
 
 export const Route = createFileRoute("/_authenticated/vendeur/produits")({
@@ -275,6 +276,12 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
           <div><Label>Description courte</Label><Input value={f.short_description} onChange={(e) => setF({ ...f, short_description: e.target.value })} /></div>
           <div><Label>Description complète</Label><Textarea rows={4} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></div>
           <ImageGalleryManager value={f.images} onChange={(next) => setF({ ...f, images: next })} />
+
+          {!isNew && row && (f.type === "physical" || f.type === "digital") && (
+            <div className="rounded-sm border border-border bg-muted/20 p-3">
+              <VariantsManager productId={row.id} />
+            </div>
+          )}
 
           <div className="grid gap-3 sm:grid-cols-3">
             <div>
