@@ -718,6 +718,13 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
                 {f.type === "physical" && (
                   <div><Label>Stock</Label><Input type="number" min="0" value={f.stock_quantity} onChange={(e) => setF({ ...f, stock_quantity: e.target.value })} /></div>
                 )}
+                {f.type === "physical" && (
+                  <div>
+                    <Label>Quantité minimum (MOQ)</Label>
+                    <Input type="number" min="1" value={f.min_order_quantity} onChange={(e) => setF({ ...f, min_order_quantity: e.target.value })} />
+                    <p className="mt-1 text-[11px] text-muted-foreground">Quantité minimum par commande. Défaut : 1.</p>
+                  </div>
+                )}
               </div>
 
               {f.type === "physical" && (
