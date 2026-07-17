@@ -94,6 +94,11 @@ function ConnexionStep1() {
                 placeholder="vous@exemple.com ou +237…"
               />
             </div>
+            {errorMsg && (
+              <div role="alert" className="rounded-sm border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {errorMsg}
+              </div>
+            )}
             <Button
               type="submit"
               disabled={busy || !identifier.trim()}
