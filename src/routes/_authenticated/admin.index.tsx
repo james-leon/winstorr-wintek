@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
   ShoppingCart, TrendingUp, PackageX, MessageSquareWarning, UserPlus, Wallet,
-  Plus, Wrench, Tag, ArrowRight,
+  Plus, Wrench, Tag, ArrowRight, AlarmClock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatFcfa } from "@/lib/format";
