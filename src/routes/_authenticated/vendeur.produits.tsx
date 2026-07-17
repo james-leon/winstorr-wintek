@@ -164,7 +164,7 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
     type: row?.type ?? "physical", status: (row?.status as "draft" | "active" | "archived") ?? "draft",
     short_description: "", description: "",
     price: row?.price?.toString() ?? "", price_type: row?.price_type ?? "fixed",
-    stock_quantity: row?.stock_quantity?.toString() ?? "", featured: row?.featured ?? false,
+    stock_quantity: row?.stock_quantity?.toString() ?? "", featured: row?.featured ?? false, min_order_quantity: "1",
     images: [],
     warranty_duration: "",
     source_type: "",
