@@ -289,6 +289,7 @@ function AdminVendors() {
             </tbody>
           </table>
         </div>
+        <Pagination page={invitationsPg.page} pageCount={invitationsPg.pageCount} total={invitationsPg.total} rangeStart={invitationsPg.rangeStart} rangeEnd={invitationsPg.rangeEnd} onPageChange={invitationsPg.setPage} label="invitations" />
       </section>
 
       {inviteOpen && (
