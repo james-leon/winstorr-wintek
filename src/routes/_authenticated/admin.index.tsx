@@ -92,6 +92,7 @@ function AdminDashboard() {
     { label: "Avis à modérer", value: String(stats?.pendingReviews ?? "—"), icon: MessageSquareWarning, tint: "text-secondary", to: "/admin/avis" },
     { label: "Invitations vendeur", value: String(stats?.pendingInvites ?? "—"), icon: UserPlus, tint: "text-primary", to: "/admin/vendeurs" },
     { label: "Espèces en attente 7j+", value: String(stats?.staleCash ?? "—"), icon: Wallet, tint: "text-accent", to: "/admin/commandes" },
+    { label: "Expéditions à confirmer <4h", value: String(stats?.pendingShipments ?? "—"), icon: AlarmClock, tint: "text-destructive" },
   ];
 
   const shortcuts = [
