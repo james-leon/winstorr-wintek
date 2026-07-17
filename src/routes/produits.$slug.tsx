@@ -36,6 +36,7 @@ type Product = {
   price_type: "fixed" | "starting_at" | "quote_only";
   compare_at_price: number | null;
   stock_quantity: number | null;
+  min_order_quantity: number;
   delivery_type: "file_download" | "license_key" | "access_link" | null;
   delivery_instructions: string | null;
   service_area: "on_site" | "in_shop" | "remote" | "both" | null;
