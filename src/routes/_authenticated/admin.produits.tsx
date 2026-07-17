@@ -567,6 +567,7 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
         price: f.price_type === "quote_only" ? null : (f.price ? Number(f.price) : null),
         price_type: f.price_type,
         stock_quantity: f.type === "physical" && f.stock_quantity ? Number(f.stock_quantity) : null,
+        min_order_quantity: f.type === "physical" ? Math.max(1, parseInt(f.min_order_quantity || "1", 10) || 1) : 1,
         sku: f.sku.trim() || null,
         featured: f.featured,
         images: f.images.map((s) => s.trim()).filter(Boolean),
