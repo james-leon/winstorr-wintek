@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as PanierRouteImport } from './routes/panier'
+import { Route as DevenirVendeurRouteImport } from './routes/devenir-vendeur'
 import { Route as ConnexionRouteImport } from './routes/connexion'
 import { Route as CommandeRouteImport } from './routes/commande'
 import { Route as CatalogueRouteImport } from './routes/catalogue'
@@ -67,6 +68,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const PanierRoute = PanierRouteImport.update({
   id: '/panier',
   path: '/panier',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevenirVendeurRoute = DevenirVendeurRouteImport.update({
+  id: '/devenir-vendeur',
+  path: '/devenir-vendeur',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConnexionRoute = ConnexionRouteImport.update({
@@ -342,6 +348,7 @@ export interface FileRoutesByFullPath {
   '/catalogue': typeof CatalogueRoute
   '/commande': typeof CommandeRouteWithChildren
   '/connexion': typeof ConnexionRoute
+  '/devenir-vendeur': typeof DevenirVendeurRoute
   '/panier': typeof PanierRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -392,6 +399,7 @@ export interface FileRoutesByTo {
   '/catalogue': typeof CatalogueRoute
   '/commande': typeof CommandeRouteWithChildren
   '/connexion': typeof ConnexionRoute
+  '/devenir-vendeur': typeof DevenirVendeurRoute
   '/panier': typeof PanierRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vendeur': typeof AuthenticatedVendeurRouteWithChildren
@@ -442,6 +450,7 @@ export interface FileRoutesById {
   '/catalogue': typeof CatalogueRoute
   '/commande': typeof CommandeRouteWithChildren
   '/connexion': typeof ConnexionRoute
+  '/devenir-vendeur': typeof DevenirVendeurRoute
   '/panier': typeof PanierRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -494,6 +503,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/commande'
     | '/connexion'
+    | '/devenir-vendeur'
     | '/panier'
     | '/sitemap.xml'
     | '/admin'
@@ -544,6 +554,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/commande'
     | '/connexion'
+    | '/devenir-vendeur'
     | '/panier'
     | '/sitemap.xml'
     | '/vendeur'
@@ -593,6 +604,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/commande'
     | '/connexion'
+    | '/devenir-vendeur'
     | '/panier'
     | '/sitemap.xml'
     | '/_authenticated/admin'
@@ -645,6 +657,7 @@ export interface RootRouteChildren {
   CatalogueRoute: typeof CatalogueRoute
   CommandeRoute: typeof CommandeRouteWithChildren
   ConnexionRoute: typeof ConnexionRoute
+  DevenirVendeurRoute: typeof DevenirVendeurRoute
   PanierRoute: typeof PanierRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   BoutiquesVendorSlugRoute: typeof BoutiquesVendorSlugRoute
@@ -668,6 +681,13 @@ declare module '@tanstack/react-router' {
       path: '/panier'
       fullPath: '/panier'
       preLoaderRoute: typeof PanierRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/devenir-vendeur': {
+      id: '/devenir-vendeur'
+      path: '/devenir-vendeur'
+      fullPath: '/devenir-vendeur'
+      preLoaderRoute: typeof DevenirVendeurRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/connexion': {
@@ -1146,6 +1166,7 @@ const rootRouteChildren: RootRouteChildren = {
   CatalogueRoute: CatalogueRoute,
   CommandeRoute: CommandeRouteWithChildren,
   ConnexionRoute: ConnexionRoute,
+  DevenirVendeurRoute: DevenirVendeurRoute,
   PanierRoute: PanierRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   BoutiquesVendorSlugRoute: BoutiquesVendorSlugRoute,
