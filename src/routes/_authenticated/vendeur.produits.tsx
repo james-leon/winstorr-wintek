@@ -204,6 +204,7 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
         price: f.price_type === "quote_only" ? null : (f.price ? Number(f.price) : null),
         price_type: f.price_type,
         stock_quantity: f.type === "physical" && f.stock_quantity ? Number(f.stock_quantity) : null,
+        min_order_quantity: f.type === "physical" ? Math.max(1, parseInt(f.min_order_quantity || "1", 10) || 1) : 1,
         featured: f.featured,
         images: f.images.map((s) => s.trim()).filter(Boolean),
         warranty_duration: f.type === "physical" && f.warranty_duration ? f.warranty_duration : null,
