@@ -46,6 +46,22 @@ function AdminOrdersPage() {
     },
   });
 
+  const { data: autoConfirmed } = useQuery({
+    queryKey: ["admin-auto-confirmed-shipments"],
+    queryFn: async () => {
+      const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
+      const { data, error } = await supabase
+        .from("order_shipments")
+        .select("id, shipment_number, subtotal, customer_confirmed_at, order_id, vendor_id, vendors:vendor_id(name), orders:order_id(order_number)")
+        .eq("auto_confirmed", true)
+        .gte("customer_confirmed_at", since)
+        .order("customer_confirmed_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   const { data: itemsData } = useQuery({
     queryKey: ["admin-order-items", selected?.id],
     enabled: !!selected,
