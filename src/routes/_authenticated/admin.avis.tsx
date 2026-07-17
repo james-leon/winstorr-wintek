@@ -132,6 +132,7 @@ function AdminReviews() {
           ))}
         </ul>
       )}
+      <Pagination page={page} pageCount={pageCount} total={total} rangeStart={rangeStart} rangeEnd={rangeEnd} onPageChange={setPage} label="avis" />
     </div>
   );
 }
