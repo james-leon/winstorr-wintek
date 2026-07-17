@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, PackageCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatFcfa } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -46,8 +46,33 @@ function OrderDetail() {
         supabase.rpc("get_order_items_by_number", { _order_number: orderNumber }),
         supabase.rpc("get_order_returns", { _order_number: orderNumber }),
       ]);
-      return { order: order?.[0] ?? null, items: items ?? [], returns: returns ?? [] };
+      const orderRow = order?.[0] ?? null;
+      let shipments: any[] = [];
+      if (orderRow?.id) {
+        const { data: sh } = await supabase
+          .from("order_shipments")
+          .select("id, shipment_number, status, delivered_at, confirmation_deadline, customer_confirmed_at, auto_confirmed, subtotal, vendor_id")
+          .eq("order_id", orderRow.id)
+          .order("created_at", { ascending: true });
+        shipments = sh ?? [];
+      }
+      return { order: orderRow, items: items ?? [], returns: returns ?? [], shipments };
     },
+  });
+
+  const confirmMut = useMutation({
+    mutationFn: async (shipmentId: string) => {
+      const { data, error } = await supabase.rpc("customer_confirm_shipment", { _shipment_id: shipmentId });
+      if (error) throw new Error(error.message);
+      const res = data as { ok: boolean; reason?: string };
+      if (!res?.ok) throw new Error(res?.reason ?? "unknown_error");
+      return res;
+    },
+    onSuccess: () => {
+      toast.success("Réception confirmée. Merci !");
+      qc.invalidateQueries({ queryKey: ["order-detail", orderNumber] });
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const [dlgOpen, setDlgOpen] = useState(false);
@@ -78,10 +103,13 @@ function OrderDetail() {
   if (!data) return <div className="mx-auto max-w-3xl px-4 py-8 text-center text-muted-foreground">Chargement…</div>;
   if (!data.order) return <div className="mx-auto max-w-3xl px-4 py-8 text-center">Commande introuvable.</div>;
 
-  const { order, items, returns } = data;
+  const { order, items, returns, shipments } = data;
   const eligible =
     (order.has_physical_items && order.status === "delivered") ||
     (!order.has_physical_items && order.payment_status === "paid");
+  const pendingShipments = shipments.filter(
+    (s: any) => s.status === "delivered" && !s.customer_confirmed_at,
+  );
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 space-y-6">
@@ -105,6 +133,74 @@ function OrderDetail() {
           <strong>Total</strong><span className="font-bold text-accent">{formatFcfa(Number(order.total))}</span>
         </div>
       </section>
+
+      {pendingShipments.length > 0 && (
+        <section className="rounded-sm border-2 border-accent bg-accent/5 p-4">
+          <div className="flex items-start gap-3">
+            <PackageCheck className="mt-0.5 h-5 w-5 flex-shrink-0 text-accent" />
+            <div className="flex-1 space-y-3">
+              <div>
+                <h2 className="font-semibold text-foreground">Confirmez la réception</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Une expédition a été marquée comme livrée. Confirmez sa bonne réception, ou signalez un problème.
+                  Sans action de votre part, elle sera automatiquement validée après la date limite.
+                </p>
+              </div>
+              <ul className="space-y-2">
+                {pendingShipments.map((s: any) => {
+                  const deadline = s.confirmation_deadline ? new Date(s.confirmation_deadline) : null;
+                  const overdue = deadline ? deadline < new Date() : false;
+                  return (
+                    <li key={s.id} className="rounded-sm border border-border bg-card p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="text-sm">
+                          <span className="font-mono text-xs">{s.shipment_number}</span>
+                          <span className="ml-2 font-medium">{formatFcfa(Number(s.subtotal))}</span>
+                        </div>
+                        {deadline && (
+                          <span className={cn("text-xs", overdue ? "text-destructive" : "text-muted-foreground")}>
+                            À confirmer avant le {deadline.toLocaleDateString("fr-FR")}
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => confirmMut.mutate(s.id)}
+                          disabled={confirmMut.isPending}
+                          className="bg-success text-white hover:bg-success/90"
+                        >
+                          <CheckCircle2 className="mr-1 h-4 w-4" /> Confirmer la réception
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => setDlgOpen(true)}>
+                          <AlertTriangle className="mr-1 h-4 w-4" /> Signaler un problème
+                        </Button>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {shipments.some((s: any) => s.customer_confirmed_at) && (
+        <section className="rounded-sm border border-border bg-card p-4">
+          <h2 className="font-semibold mb-2">Réceptions confirmées</h2>
+          <ul className="divide-y divide-border text-sm">
+            {shipments.filter((s: any) => s.customer_confirmed_at).map((s: any) => (
+              <li key={s.id} className="py-2 flex items-center justify-between">
+                <span className="font-mono text-xs">{s.shipment_number}</span>
+                <span className="flex items-center gap-1 text-success">
+                  <CheckCircle2 className="h-4 w-4" />
+                  {s.auto_confirmed ? "Validée automatiquement" : "Confirmée"} le {new Date(s.customer_confirmed_at).toLocaleDateString("fr-FR")}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="rounded-sm border border-border bg-card p-4">
         <div className="flex items-center justify-between">

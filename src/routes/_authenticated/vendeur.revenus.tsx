@@ -27,22 +27,24 @@ function VendorRevenues() {
     queryKey: ["vendor-revenues", vendorId],
     enabled: !!vendorId,
     queryFn: async () => {
-      const [{ data: items, error: e1 }, { data: bal, error: e2 }] = await Promise.all([
+      const [{ data: items, error: e1 }, { data: bal, error: e2 }, { data: pending, error: e3 }] = await Promise.all([
         supabase
           .from("order_items")
           .select("subtotal, commission_amount, orders!inner(payment_status,status,created_at)")
           .eq("vendor_id", vendorId!)
           .neq("orders.status", "cancelled"),
         supabase.rpc("vendor_available_balance", { _vendor_id: vendorId! }),
+        supabase.rpc("vendor_pending_confirmation_amount", { _vendor_id: vendorId! }),
       ]);
       if (e1) throw e1;
       if (e2) throw e2;
+      if (e3) throw e3;
       let gross = 0, commission = 0;
       for (const it of items ?? []) {
         gross += Number(it.subtotal ?? 0);
         commission += Number((it as { commission_amount: number | null }).commission_amount ?? 0);
       }
-      return { gross, commission, net: gross - commission, available: Number(bal ?? 0) };
+      return { gross, commission, net: gross - commission, available: Number(bal ?? 0), pending: Number(pending ?? 0) };
     },
   });
 
@@ -69,12 +71,19 @@ function VendorRevenues() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
         <Card label="Ventes brutes" value={summary ? formatFcfa(summary.gross) : "…"} />
         <Card label="Commission Winstorr" value={summary ? formatFcfa(summary.commission) : "…"} />
         <Card label="Net perçu" value={summary ? formatFcfa(summary.net) : "…"} />
-        <Card label="Solde disponible" value={summary ? formatFcfa(summary.available) : "…"} highlight />
+        <Card label="En attente confirmation client" value={summary ? formatFcfa(summary.pending) : "…"} />
+        <Card label="Disponible pour retrait" value={summary ? formatFcfa(summary.available) : "…"} highlight />
       </div>
+      {summary && summary.pending > 0 && (
+        <p className="text-xs text-muted-foreground">
+          Les expéditions livrées deviennent disponibles pour retrait une fois que le client confirme la réception
+          (ou automatiquement après 5 jours sans réponse).
+        </p>
+      )}
 
       <section>
         <h3 className="mb-2 text-sm font-semibold text-foreground">Historique des retraits</h3>
