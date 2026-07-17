@@ -24,10 +24,23 @@ export const Route = createFileRoute("/panier")({
 function CartPage() {
   const { items, add, remove, coupon, setCoupon } = useCart();
   const { data: tiersMap } = useCartTiers(items.map((i) => i.productId));
+  const productIds = items.map((i) => i.productId);
+  const { data: moqMap } = useQuery({
+    enabled: productIds.length > 0,
+    queryKey: ["cart-moq", productIds.slice().sort().join(",")],
+    queryFn: async (): Promise<Record<string, number>> => {
+      const { data, error } = await supabase.from("products").select("id, min_order_quantity").in("id", productIds);
+      if (error) throw error;
+      const m: Record<string, number> = {};
+      for (const r of data ?? []) m[r.id] = Math.max(1, (r.min_order_quantity as number | null) ?? 1);
+      return m;
+    },
+  });
   const effectiveUnit = (productId: string, basePrice: number, qty: number) =>
     resolveUnitPrice(tiersMap?.[productId], qty, basePrice) ?? basePrice;
   const subtotal = items.reduce((n, i) => n + effectiveUnit(i.productId, i.price, i.quantity) * i.quantity, 0);
   const discount = coupon ? Math.min(coupon.discountAmount, subtotal) : 0;
+  const hasMoqViolation = items.some((i) => i.quantity < (moqMap?.[i.productId] ?? 1));
 
   const { user } = useAuth();
   const nav = useNavigate();
