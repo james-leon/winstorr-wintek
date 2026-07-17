@@ -1505,6 +1505,75 @@ export type Database = {
           },
         ]
       }
+      vendor_applications: {
+        Row: {
+          admin_notes: string | null
+          business_name: string
+          city: string
+          contact_name: string
+          created_at: string
+          description: string
+          email: string | null
+          id: string
+          invitation_id: string | null
+          phone: string
+          product_types: Json
+          reviewed_by: string | null
+          social_link: string | null
+          status: Database["public"]["Enums"]["vendor_application_status"]
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          business_name: string
+          city: string
+          contact_name: string
+          created_at?: string
+          description: string
+          email?: string | null
+          id?: string
+          invitation_id?: string | null
+          phone: string
+          product_types?: Json
+          reviewed_by?: string | null
+          social_link?: string | null
+          status?: Database["public"]["Enums"]["vendor_application_status"]
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          business_name?: string
+          city?: string
+          contact_name?: string
+          created_at?: string
+          description?: string
+          email?: string | null
+          id?: string
+          invitation_id?: string | null
+          phone?: string
+          product_types?: Json
+          reviewed_by?: string | null
+          social_link?: string | null
+          status?: Database["public"]["Enums"]["vendor_application_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_applications_invitation_id_fkey"
+            columns: ["invitation_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_invitations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_applications_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendor_invitations: {
         Row: {
           accepted_at: string | null
@@ -2083,6 +2152,7 @@ export type Database = {
       training_enrollment_status: "pending" | "confirmed" | "cancelled"
       training_mode: "in_person" | "online" | "hybrid"
       training_session_status: "scheduled" | "full" | "cancelled" | "completed"
+      vendor_application_status: "new" | "contacted" | "approved" | "rejected"
       vendor_invitation_status: "pending" | "accepted" | "expired" | "revoked"
       vendor_member_role: "owner" | "staff"
       vendor_status: "active" | "suspended" | "pending_approval"
@@ -2306,6 +2376,7 @@ export const Constants = {
       training_enrollment_status: ["pending", "confirmed", "cancelled"],
       training_mode: ["in_person", "online", "hybrid"],
       training_session_status: ["scheduled", "full", "cancelled", "completed"],
+      vendor_application_status: ["new", "contacted", "approved", "rejected"],
       vendor_invitation_status: ["pending", "accepted", "expired", "revoked"],
       vendor_member_role: ["owner", "staff"],
       vendor_status: ["active", "suspended", "pending_approval"],
