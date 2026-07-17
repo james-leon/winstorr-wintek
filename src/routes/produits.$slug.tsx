@@ -21,6 +21,7 @@ import { displayPrice, formatFcfa, type ProductType } from "@/lib/format";
 import { useCart } from "@/lib/cart-context";
 import { useAuth } from "@/lib/auth-context";
 import { useProductTiers, resolveUnitPrice, type PriceTier } from "@/lib/tiers";
+import { useProductVariants, extractAttributeOptions, findVariantByAttrs, isValueAvailable, type Variant } from "@/lib/variants";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 
@@ -37,6 +38,7 @@ type Product = {
   compare_at_price: number | null;
   stock_quantity: number | null;
   min_order_quantity: number;
+  has_variants: boolean;
   delivery_type: "file_download" | "license_key" | "access_link" | null;
   delivery_instructions: string | null;
   service_area: "on_site" | "in_shop" | "remote" | "both" | null;
@@ -56,7 +58,7 @@ const productQuery = (slug: string) =>
     queryFn: async (): Promise<Product> => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, slug, name, short_description, description, images, type, price, price_type, compare_at_price, stock_quantity, min_order_quantity, delivery_type, delivery_instructions, service_area, estimated_duration, delivery_mode, rating_average, rating_count, quality_verified, warranty_duration, source_type, vendor:vendors(id, name, slug, type)")
+        .select("id, slug, name, short_description, description, images, type, price, price_type, compare_at_price, stock_quantity, min_order_quantity, has_variants, delivery_type, delivery_instructions, service_area, estimated_duration, delivery_mode, rating_average, rating_count, quality_verified, warranty_duration, source_type, vendor:vendors(id, name, slug, type)")
         .eq("slug", slug)
         .eq("status", "active")
         .maybeSingle();
