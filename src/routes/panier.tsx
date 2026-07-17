@@ -232,9 +232,14 @@ function CartPage() {
             <span className="font-semibold">Total estimé</span>
             <span className="text-lg font-bold text-accent">{formatFcfa(total)}</span>
           </div>
-          <Button className="mt-4 w-full bg-accent hover:bg-accent/90 text-accent-foreground" onClick={() => nav({ to: "/commande" })}>
+          <Button className="mt-4 w-full bg-accent hover:bg-accent/90 text-accent-foreground" onClick={() => nav({ to: "/commande" })} disabled={hasMoqViolation}>
             Passer commande
           </Button>
+          {hasMoqViolation && (
+            <p className="mt-2 text-center text-xs text-destructive">
+              Ajustez les quantités minimums avant de continuer.
+            </p>
+          )}
           <Link to="/catalogue" className="mt-3 block text-center text-sm text-secondary hover:underline">
             Continuer mes achats
           </Link>
