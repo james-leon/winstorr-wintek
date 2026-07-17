@@ -257,23 +257,59 @@ function ProductDetail() {
 }
 
 function BuyBox({ p }: { p: Product }) {
-  const { data: tiers } = useProductTiers(p.type === "physical" ? p.id : undefined);
-  const [qty, setQty] = useState(Math.max(1, p.min_order_quantity ?? 1));
+  const isPhysical = p.type === "physical";
+  const { data: variants = [] } = useProductVariants(isPhysical && p.has_variants ? p.id : undefined);
+  const attrOptions = extractAttributeOptions(variants);
+
+  // Default selection: from the `is_default` variant, or the first one.
+  const initialSelected: Record<string, string> = {};
+  if (variants.length > 0) {
+    const def = variants.find((v) => v.is_default) ?? variants[0];
+    for (const [k, v] of Object.entries(def.attributes || {})) initialSelected[k] = String(v);
+  }
+  const [selected, setSelected] = useState<Record<string, string>>(initialSelected);
+  const currentVariant: Variant | null = variants.length > 0 ? findVariantByAttrs(variants, selected) : null;
+  const fullySelected = attrOptions.every((o) => selected[o.key]);
+
+  const displayPricePoint = currentVariant?.price ?? p.price;
+  const displayCompare = currentVariant?.compare_at_price ?? p.compare_at_price;
+  const displayStock = currentVariant?.stock_quantity ?? p.stock_quantity;
+  const displayImage = currentVariant?.image_url ?? null;
+
+  const { data: tiers } = useProductTiers(
+    isPhysical ? p.id : undefined,
+    currentVariant?.id ?? null,
+  );
+  const [qty, setQty] = useState(() => {
+    const moq = currentVariant?.min_order_quantity ?? p.min_order_quantity ?? 1;
+    return Math.max(1, moq);
+  });
+  // Reset qty when variant changes so MOQ is respected.
+  useEffect(() => {
+    const moq = currentVariant?.min_order_quantity ?? p.min_order_quantity ?? 1;
+    setQty((q) => Math.max(moq, q));
+  }, [currentVariant?.id, currentVariant?.min_order_quantity, p.min_order_quantity]);
+
   const hasTiers = (tiers?.length ?? 0) > 0;
-  const effectiveUnit = hasTiers && p.price != null
-    ? resolveUnitPrice(tiers, qty, p.price)
-    : p.price;
+  const effectiveUnit = hasTiers && displayPricePoint != null
+    ? resolveUnitPrice(tiers, qty, displayPricePoint)
+    : displayPricePoint;
 
   return (
     <div className="rounded-sm border border-border bg-background p-4">
+      {displayImage && (
+        <div className="mb-3 overflow-hidden rounded-sm border border-border bg-muted">
+          <img src={displayImage} alt="" className="h-32 w-full object-cover" />
+        </div>
+      )}
       <div className="flex items-baseline gap-2">
         <div className="text-2xl font-bold text-accent leading-none">
           {p.price_type === "quote_only" || effectiveUnit == null
             ? displayPrice(p)
             : (p.price_type === "starting_at" ? "À partir de " : "") + formatFcfa(effectiveUnit)}
         </div>
-        {p.compare_at_price && p.price && p.compare_at_price > p.price && (
-          <div className="text-sm text-muted-foreground line-through">{formatFcfa(p.compare_at_price)}</div>
+        {displayCompare && displayPricePoint && displayCompare > displayPricePoint && (
+          <div className="text-sm text-muted-foreground line-through">{formatFcfa(displayCompare)}</div>
         )}
       </div>
       {hasTiers && (
@@ -281,10 +317,58 @@ function BuyBox({ p }: { p: Product }) {
           <Truck className="h-3 w-3" /> Tarif dégressif — prix de gros disponible
         </div>
       )}
-      {hasTiers && <TierTable tiers={tiers!} basePrice={p.price} qty={qty} />}
+      {hasTiers && <TierTable tiers={tiers!} basePrice={displayPricePoint} qty={qty} />}
+
+      {variants.length > 0 && (
+        <div className="mt-4 space-y-3 border-t border-border pt-3">
+          {attrOptions.map(({ key, values }) => (
+            <div key={key}>
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">{key}</Label>
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                {values.map((value) => {
+                  const isSelected = selected[key] === value;
+                  const otherKeys: Record<string, string> = { ...selected };
+                  delete otherKeys[key];
+                  const available = isValueAvailable(variants, key, value, otherKeys);
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      disabled={!available}
+                      onClick={() => setSelected({ ...selected, [key]: value })}
+                      className={cn(
+                        "rounded-sm border px-3 py-1.5 text-sm transition",
+                        isSelected
+                          ? "border-accent bg-accent/10 font-medium text-accent"
+                          : available
+                            ? "border-border hover:border-foreground/40"
+                            : "cursor-not-allowed border-border/40 text-muted-foreground line-through",
+                      )}
+                    >
+                      {value}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="mt-4">
-        {p.type === "physical" && <PhysicalActions p={p} tiers={tiers ?? []} qty={qty} setQty={setQty} />}
+        {p.type === "physical" && (
+          <PhysicalActions
+            p={p}
+            variant={currentVariant}
+            fullySelected={fullySelected}
+            hasVariants={variants.length > 0}
+            displayStock={displayStock}
+            displayPrice={displayPricePoint}
+            tiers={tiers ?? []}
+            qty={qty}
+            setQty={setQty}
+          />
+        )}
         {p.type === "digital" && <DigitalActions p={p} />}
         {p.type === "service" && <ServiceActions p={p} />}
         {p.type === "training" && <TrainingActions p={p} />}
@@ -313,7 +397,6 @@ function BuyBox({ p }: { p: Product }) {
 function TierTable({ tiers, basePrice, qty }: { tiers: PriceTier[]; basePrice: number | null; qty: number }) {
   const sorted = [...tiers].sort((a, b) => a.min_quantity - b.min_quantity);
   const rows: { label: string; price: number; active: boolean }[] = [];
-  // Optional implicit row for base price below the first tier
   if (basePrice != null && sorted[0] && sorted[0].min_quantity > 1) {
     const active = qty >= 1 && qty < sorted[0].min_quantity;
     rows.push({ label: `1-${sorted[0].min_quantity - 1} unités`, price: basePrice, active });
@@ -360,24 +443,45 @@ function WishlistToggle({ productId }: { productId: string }) {
 
 /* ----- physical ----- */
 function PhysicalActions({
-  p, tiers, qty, setQty,
-}: { p: Product; tiers: PriceTier[]; qty: number; setQty: (updater: (q: number) => number) => void }) {
+  p, variant, fullySelected, hasVariants, displayStock, displayPrice: pricePoint, tiers, qty, setQty,
+}: {
+  p: Product;
+  variant: Variant | null;
+  fullySelected: boolean;
+  hasVariants: boolean;
+  displayStock: number | null;
+  displayPrice: number | null;
+  tiers: PriceTier[];
+  qty: number;
+  setQty: (updater: (q: number) => number) => void;
+}) {
   const { add } = useCart();
   const nav = useNavigate();
-  const stock = p.stock_quantity ?? 0;
+  const stock = displayStock ?? 0;
   const stockLabel =
     stock <= 0 ? { text: "Rupture de stock", cls: "text-destructive" }
     : stock <= 3 ? { text: `Stock limité (${stock})`, cls: "text-accent" }
     : { text: "En stock", cls: "text-success" };
-  const unit = resolveUnitPrice(tiers, qty, p.price);
-  void tiers;
+  const unit = resolveUnitPrice(tiers, qty, pricePoint);
+  const moq = Math.max(1, variant?.min_order_quantity ?? p.min_order_quantity ?? 1);
+  const disabled = stock <= 0 || unit == null || (hasVariants && (!variant || !fullySelected));
 
   const addToCart = () => {
-    if (p.price == null) return;
-    add({ productId: p.id, slug: p.slug, name: p.name, price: p.price, image: p.images[0] ?? null }, qty);
+    if (pricePoint == null) return;
+    add(
+      {
+        productId: p.id,
+        variantId: variant?.id ?? null,
+        variantAttributes: variant?.attributes ?? null,
+        slug: p.slug,
+        name: p.name,
+        price: Number(pricePoint),
+        image: variant?.image_url ?? p.images[0] ?? null,
+      },
+      qty,
+    );
   };
 
-  const moq = Math.max(1, p.min_order_quantity ?? 1);
   return (
     <div className="space-y-3">
       <div className={`flex items-center gap-2 text-sm font-medium ${stockLabel.cls}`}>
@@ -393,14 +497,14 @@ function PhysicalActions({
       {moq > 1 && (
         <div className="text-xs text-muted-foreground">Quantité minimum : {moq} unités</div>
       )}
+      {hasVariants && !fullySelected && (
+        <div className="text-xs text-accent">Sélectionnez une combinaison pour continuer.</div>
+      )}
       <Button
         size="lg"
         className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
-        disabled={stock <= 0 || unit == null}
-        onClick={() => {
-          addToCart();
-          nav({ to: "/commande" });
-        }}
+        disabled={disabled}
+        onClick={() => { addToCart(); nav({ to: "/commande" }); }}
       >
         Acheter maintenant
       </Button>
@@ -408,11 +512,8 @@ function PhysicalActions({
         size="lg"
         variant="outline"
         className="w-full"
-        disabled={stock <= 0 || unit == null}
-        onClick={() => {
-          addToCart();
-          toast.success(`${p.name} ajouté au panier`);
-        }}
+        disabled={disabled}
+        onClick={() => { addToCart(); toast.success(`${p.name} ajouté au panier`); }}
       >
         Ajouter au panier
       </Button>
