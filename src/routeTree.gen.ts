@@ -19,7 +19,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProduitsSlugRouteImport } from './routes/produits.$slug'
-import { Route as ConnexionMotDePasseRouteImport } from './routes/connexion.mot-de-passe'
+import { Route as ConnexionMotDePasseRouteImport } from './routes/connexion_.mot-de-passe'
 import { Route as BoutiquesVendorSlugRouteImport } from './routes/boutiques_.$vendorSlug'
 import { Route as AuthenticatedVendeurRouteImport } from './routes/_authenticated/vendeur'
 import { Route as AuthenticatedMonCompteRouteImport } from './routes/_authenticated/mon-compte'
@@ -109,9 +109,9 @@ const ProduitsSlugRoute = ProduitsSlugRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConnexionMotDePasseRoute = ConnexionMotDePasseRouteImport.update({
-  id: '/mot-de-passe',
-  path: '/mot-de-passe',
-  getParentRoute: () => ConnexionRoute,
+  id: '/connexion_/mot-de-passe',
+  path: '/connexion/mot-de-passe',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const BoutiquesVendorSlugRoute = BoutiquesVendorSlugRouteImport.update({
   id: '/boutiques_/$vendorSlug',
@@ -341,7 +341,7 @@ export interface FileRoutesByFullPath {
   '/boutiques': typeof BoutiquesRoute
   '/catalogue': typeof CatalogueRoute
   '/commande': typeof CommandeRouteWithChildren
-  '/connexion': typeof ConnexionRouteWithChildren
+  '/connexion': typeof ConnexionRoute
   '/panier': typeof PanierRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -391,7 +391,7 @@ export interface FileRoutesByTo {
   '/boutiques': typeof BoutiquesRoute
   '/catalogue': typeof CatalogueRoute
   '/commande': typeof CommandeRouteWithChildren
-  '/connexion': typeof ConnexionRouteWithChildren
+  '/connexion': typeof ConnexionRoute
   '/panier': typeof PanierRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vendeur': typeof AuthenticatedVendeurRouteWithChildren
@@ -441,14 +441,14 @@ export interface FileRoutesById {
   '/boutiques': typeof BoutiquesRoute
   '/catalogue': typeof CatalogueRoute
   '/commande': typeof CommandeRouteWithChildren
-  '/connexion': typeof ConnexionRouteWithChildren
+  '/connexion': typeof ConnexionRoute
   '/panier': typeof PanierRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/mon-compte': typeof AuthenticatedMonCompteRouteWithChildren
   '/_authenticated/vendeur': typeof AuthenticatedVendeurRouteWithChildren
   '/boutiques_/$vendorSlug': typeof BoutiquesVendorSlugRoute
-  '/connexion/mot-de-passe': typeof ConnexionMotDePasseRoute
+  '/connexion_/mot-de-passe': typeof ConnexionMotDePasseRoute
   '/produits/$slug': typeof ProduitsSlugRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/admin/annonces-vendeurs': typeof AuthenticatedAdminAnnoncesVendeursRoute
@@ -599,7 +599,7 @@ export interface FileRouteTypes {
     | '/_authenticated/mon-compte'
     | '/_authenticated/vendeur'
     | '/boutiques_/$vendorSlug'
-    | '/connexion/mot-de-passe'
+    | '/connexion_/mot-de-passe'
     | '/produits/$slug'
     | '/_authenticated/admin/analytics'
     | '/_authenticated/admin/annonces-vendeurs'
@@ -644,10 +644,11 @@ export interface RootRouteChildren {
   BoutiquesRoute: typeof BoutiquesRoute
   CatalogueRoute: typeof CatalogueRoute
   CommandeRoute: typeof CommandeRouteWithChildren
-  ConnexionRoute: typeof ConnexionRouteWithChildren
+  ConnexionRoute: typeof ConnexionRoute
   PanierRoute: typeof PanierRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   BoutiquesVendorSlugRoute: typeof BoutiquesVendorSlugRoute
+  ConnexionMotDePasseRoute: typeof ConnexionMotDePasseRoute
   ProduitsSlugRoute: typeof ProduitsSlugRoute
   ApiPublicCinetpayWebhookRoute: typeof ApiPublicCinetpayWebhookRoute
   VendeurInvitationTokenRoute: typeof VendeurInvitationTokenRoute
@@ -725,12 +726,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProduitsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/connexion/mot-de-passe': {
-      id: '/connexion/mot-de-passe'
-      path: '/mot-de-passe'
+    '/connexion_/mot-de-passe': {
+      id: '/connexion_/mot-de-passe'
+      path: '/connexion/mot-de-passe'
       fullPath: '/connexion/mot-de-passe'
       preLoaderRoute: typeof ConnexionMotDePasseRouteImport
-      parentRoute: typeof ConnexionRoute
+      parentRoute: typeof rootRouteImport
     }
     '/boutiques_/$vendorSlug': {
       id: '/boutiques_/$vendorSlug'
@@ -1137,18 +1138,6 @@ const CommandeRouteWithChildren = CommandeRoute._addFileChildren(
   CommandeRouteChildren,
 )
 
-interface ConnexionRouteChildren {
-  ConnexionMotDePasseRoute: typeof ConnexionMotDePasseRoute
-}
-
-const ConnexionRouteChildren: ConnexionRouteChildren = {
-  ConnexionMotDePasseRoute: ConnexionMotDePasseRoute,
-}
-
-const ConnexionRouteWithChildren = ConnexionRoute._addFileChildren(
-  ConnexionRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -1156,10 +1145,11 @@ const rootRouteChildren: RootRouteChildren = {
   BoutiquesRoute: BoutiquesRoute,
   CatalogueRoute: CatalogueRoute,
   CommandeRoute: CommandeRouteWithChildren,
-  ConnexionRoute: ConnexionRouteWithChildren,
+  ConnexionRoute: ConnexionRoute,
   PanierRoute: PanierRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   BoutiquesVendorSlugRoute: BoutiquesVendorSlugRoute,
+  ConnexionMotDePasseRoute: ConnexionMotDePasseRoute,
   ProduitsSlugRoute: ProduitsSlugRoute,
   ApiPublicCinetpayWebhookRoute: ApiPublicCinetpayWebhookRoute,
   VendeurInvitationTokenRoute: VendeurInvitationTokenRoute,

@@ -26,6 +26,7 @@ function ConnexionStep1() {
   const { user, loading } = useAuth();
   const [identifier, setIdentifier] = useState("");
   const [busy, setBusy] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && user) void nav({ to: "/mon-compte" });
@@ -36,10 +37,13 @@ function ConnexionStep1() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setErrorMsg(null);
     const value = identifier.trim();
     if (!value) return;
     if (!looksLikeEmail(value) && !looksLikePhone(value)) {
-      toast.error("Entrez un email valide ou un numéro de téléphone.");
+      const msg = "Entrez un email valide ou un numéro de téléphone.";
+      setErrorMsg(msg);
+      toast.error(msg);
       return;
     }
     setBusy(true);
@@ -51,10 +55,12 @@ function ConnexionStep1() {
         IDENTIFIER_KEY,
         JSON.stringify({ identifier: value, exists, isEmail: looksLikeEmail(value), ts: Date.now() }),
       );
-      void nav({ to: "/connexion/mot-de-passe" });
+      await nav({ to: "/connexion/mot-de-passe" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erreur — réessayez.");
-    } finally {
+      console.error("[connexion] identifier check failed", err);
+      const msg = err instanceof Error ? err.message : "Une erreur est survenue. Veuillez réessayer.";
+      setErrorMsg(msg);
+      toast.error(msg);
       setBusy(false);
     }
   }
@@ -88,6 +94,11 @@ function ConnexionStep1() {
                 placeholder="vous@exemple.com ou +237…"
               />
             </div>
+            {errorMsg && (
+              <div role="alert" className="rounded-sm border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {errorMsg}
+              </div>
+            )}
             <Button
               type="submit"
               disabled={busy || !identifier.trim()}
