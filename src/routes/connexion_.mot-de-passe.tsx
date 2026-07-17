@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowRight, Pencil } from "lucide-react";
 
-export const Route = createFileRoute("/connexion/mot-de-passe")({
+export const Route = createFileRoute("/connexion_/mot-de-passe")({
   head: () => ({
     meta: [
       { title: "Mot de passe — Winstorr" },
