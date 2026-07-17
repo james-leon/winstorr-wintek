@@ -117,6 +117,35 @@ function AdminOrdersPage() {
         </select>
       </div>
 
+      {autoConfirmed && autoConfirmed.length > 0 && (
+        <details className="mb-4 rounded-sm border border-amber-500/40 bg-amber-500/5 p-3">
+          <summary className="cursor-pointer text-sm font-semibold text-foreground">
+            Expéditions auto-validées (30j) — {autoConfirmed.length}
+            <span className="ml-2 text-xs font-normal text-muted-foreground">
+              Livraisons validées automatiquement faute de réponse client — à surveiller si un vendeur en accumule anormalement.
+            </span>
+          </summary>
+          <div className="mt-2 overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className="text-left text-muted-foreground">
+                <tr><th className="p-1">Expédition</th><th className="p-1">Commande</th><th className="p-1">Vendeur</th><th className="p-1">Montant</th><th className="p-1">Validée le</th></tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {autoConfirmed.map((s: any) => (
+                  <tr key={s.id}>
+                    <td className="p-1 font-mono">{s.shipment_number}</td>
+                    <td className="p-1 font-mono">{s.orders?.order_number ?? "—"}</td>
+                    <td className="p-1">{s.vendors?.name ?? "—"}</td>
+                    <td className="p-1 font-medium">{formatFcfa(Number(s.subtotal))}</td>
+                    <td className="p-1">{new Date(s.customer_confirmed_at).toLocaleDateString("fr-FR")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      )}
+
       <div className="rounded-sm border border-border bg-card overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-muted text-left">
