@@ -71,12 +71,19 @@ function VendorRevenues() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
         <Card label="Ventes brutes" value={summary ? formatFcfa(summary.gross) : "…"} />
         <Card label="Commission Winstorr" value={summary ? formatFcfa(summary.commission) : "…"} />
         <Card label="Net perçu" value={summary ? formatFcfa(summary.net) : "…"} />
-        <Card label="Solde disponible" value={summary ? formatFcfa(summary.available) : "…"} highlight />
+        <Card label="En attente confirmation client" value={summary ? formatFcfa(summary.pending) : "…"} />
+        <Card label="Disponible pour retrait" value={summary ? formatFcfa(summary.available) : "…"} highlight />
       </div>
+      {summary && summary.pending > 0 && (
+        <p className="text-xs text-muted-foreground">
+          Les expéditions livrées deviennent disponibles pour retrait une fois que le client confirme la réception
+          (ou automatiquement après 5 jours sans réponse).
+        </p>
+      )}
 
       <section>
         <h3 className="mb-2 text-sm font-semibold text-foreground">Historique des retraits</h3>
