@@ -5,8 +5,10 @@ const MAX_SIZE = 1000; // square product images
 const QUALITY = 0.85;
 
 /**
- * Resize a File by center-cropping to fit a target width×height, output WebP.
- * Any input aspect ratio is accepted — the image is cropped to fill the target box.
+ * Resize a File to fit inside a target width×height canvas WITHOUT cropping
+ * or distorting. The image is scaled to fit ("contain"), centered, and the
+ * remaining space is filled with solid white (#FFFFFF) — Amazon-style
+ * letterboxing. Output is WebP.
  */
 export async function resizeToWebp(
   file: File,
@@ -27,24 +29,21 @@ export async function resizeToWebp(
     im.src = dataUrl;
   });
 
-  const targetRatio = targetWidth / targetHeight;
-  const srcRatio = img.naturalWidth / img.naturalHeight;
-  let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
-  if (srcRatio > targetRatio) {
-    sw = Math.round(img.naturalHeight * targetRatio);
-    sx = Math.round((img.naturalWidth - sw) / 2);
-  } else if (srcRatio < targetRatio) {
-    sh = Math.round(img.naturalWidth / targetRatio);
-    sy = Math.round((img.naturalHeight - sh) / 2);
-  }
+  const scale = Math.min(targetWidth / img.naturalWidth, targetHeight / img.naturalHeight);
+  const dw = Math.round(img.naturalWidth * scale);
+  const dh = Math.round(img.naturalHeight * scale);
+  const dx = Math.round((targetWidth - dw) / 2);
+  const dy = Math.round((targetHeight - dh) / 2);
 
   const canvas = document.createElement("canvas");
   canvas.width = targetWidth;
   canvas.height = targetHeight;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas non supporté");
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, targetWidth, targetHeight);
   ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, targetWidth, targetHeight);
+  ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, dx, dy, dw, dh);
 
   return await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
