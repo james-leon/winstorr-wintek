@@ -122,7 +122,7 @@ export function SiteHeader() {
           {/* Search — dominant, desktop */}
           <form
             onSubmit={submit}
-            className="hidden md:flex flex-1 max-w-3xl items-stretch rounded-md overflow-hidden bg-background text-foreground focus-within:ring-2 focus-within:ring-white/70"
+            className="hidden md:flex flex-1 items-stretch rounded-md overflow-hidden bg-background text-foreground focus-within:ring-2 focus-within:ring-white/70"
           >
             <div className="relative flex items-center border-r border-border bg-muted">
               <select
