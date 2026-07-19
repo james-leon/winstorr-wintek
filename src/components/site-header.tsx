@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ShoppingCart, Menu, Search, MapPin, ChevronDown, Package, LayoutDashboard, Store } from "lucide-react";
+import { ShoppingCart, Menu, Search, MapPin, ChevronDown, Package, LayoutDashboard, Store, User as UserIcon, Heart, LogOut, LogIn, UserPlus } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
