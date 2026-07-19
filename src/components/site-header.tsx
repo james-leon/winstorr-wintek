@@ -62,9 +62,12 @@ export function SiteHeader() {
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
       const details = moreDetailsRef.current;
-      if (!details || !details.open) return;
-      if (!details.contains(e.target as Node)) {
+      if (details && details.open && !details.contains(e.target as Node)) {
         details.open = false;
+      }
+      const menu = accountMenuRef.current;
+      if (menu && !menu.contains(e.target as Node)) {
+        setAccountMenuOpen(false);
       }
     };
     document.addEventListener("click", onDocClick);
