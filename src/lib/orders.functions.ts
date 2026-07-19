@@ -126,8 +126,18 @@ export const createOrder = createServerFn({ method: "POST" })
           (variant?.min_order_quantity ?? (p as { min_order_quantity?: number }).min_order_quantity) ?? 1,
         );
         if (it.quantity < moq) throw new Error(`Quantité minimum pour ${p.name} : ${moq} unités.`);
-        const stock = variant ? variant.stock_quantity : (p.stock_quantity ?? 0);
-        if (stock < it.quantity) throw new Error(`Stock insuffisant pour ${p.name}.`);
+        // Stock check: variant-scoped when a variant is selected, otherwise product-level.
+        // We branch on `variant` (not on `has_variants`) so a legacy product whose
+        // has_variants flag drifted still checks the correct field.
+        const stock = Number(
+          variant ? variant.stock_quantity : (p.stock_quantity ?? 0),
+        );
+        if (!Number.isFinite(stock) || stock < it.quantity) {
+          const label = variant ? `${p.name} (variante sélectionnée)` : p.name;
+          throw new Error(
+            `Stock insuffisant pour ${label} : ${stock} disponible(s), ${it.quantity} demandé(s).`,
+          );
+        }
       }
 
       const unit = p.type === "physical"
