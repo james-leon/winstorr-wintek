@@ -38,6 +38,8 @@ export function SiteHeader() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<CatSel>("all");
   const moreDetailsRef = useRef<HTMLDetailsElement>(null);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
   const { data: topCategories = [] } = useQuery({
     queryKey: ["header-top-categories-v2"],
