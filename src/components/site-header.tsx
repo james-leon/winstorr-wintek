@@ -155,34 +155,66 @@ export function SiteHeader() {
 
           {/* Right cluster */}
           <div className="ml-auto flex items-center gap-1 md:gap-2">
-            {user ? (
-              <div className="hidden md:flex flex-col leading-tight px-2 py-1 rounded-sm hover:ring-1 hover:ring-white/40 cursor-pointer" onClick={() => void signOut()} title="Déconnexion">
-                <span className="text-[10px] text-white/70">Bonjour, {firstName}</span>
-                <span className="text-xs font-semibold inline-flex items-center gap-0.5">
-                  Compte <ChevronDown className="h-3 w-3" />
-                </span>
-              </div>
-            ) : (
-              <Link
-                to="/auth"
-                className="hidden md:flex flex-col leading-tight px-2 py-1 rounded-sm hover:ring-1 hover:ring-white/40 no-link-color"
+            <div ref={accountMenuRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setAccountMenuOpen((v) => !v)}
+                aria-haspopup="menu"
+                aria-expanded={accountMenuOpen}
+                className="flex flex-col leading-tight px-2 py-1 rounded-sm hover:ring-1 hover:ring-white/40 text-left"
               >
-                <span className="text-[10px] text-white/70">Bonjour</span>
-                <span className="text-xs font-semibold inline-flex items-center gap-0.5">
-                  Identifiez-vous <ChevronDown className="h-3 w-3" />
+                <span className="text-[10px] text-white/70">
+                  {user ? `Bonjour, ${firstName}` : "Bonjour"}
                 </span>
-              </Link>
-            )}
+                <span className="text-xs font-semibold inline-flex items-center gap-0.5 text-white">
+                  {user ? "Compte" : "Identifiez-vous"} <ChevronDown className="h-3 w-3" />
+                </span>
+              </button>
+              {accountMenuOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 top-full z-50 mt-1 min-w-[220px] rounded-sm border border-border bg-card p-1 text-foreground shadow-lg"
+                  onClick={() => setAccountMenuOpen(false)}
+                >
+                  {user ? (
+                    <>
+                      <Link to="/mon-compte" className="flex items-center gap-2 rounded-sm px-3 py-2 text-sm hover:bg-muted no-link-color">
+                        <UserIcon className="h-4 w-4" /> Mon compte
+                      </Link>
+                      <Link to="/mon-compte/commandes" className="flex items-center gap-2 rounded-sm px-3 py-2 text-sm hover:bg-muted no-link-color">
+                        <Package className="h-4 w-4" /> Mes commandes
+                      </Link>
+                      <Link to="/mon-compte/liste-de-souhaits" className="flex items-center gap-2 rounded-sm px-3 py-2 text-sm hover:bg-muted no-link-color">
+                        <Heart className="h-4 w-4" /> Liste de souhaits
+                      </Link>
+                      {isVendor && (
+                        <Link to="/vendeur/tableau-de-bord" className="flex items-center gap-2 rounded-sm px-3 py-2 text-sm hover:bg-muted no-link-color">
+                          <Store className="h-4 w-4" /> Espace vendeur
+                        </Link>
+                      )}
+                      <div className="my-1 h-px bg-border" />
+                      <button
+                        type="button"
+                        onClick={() => void signOut()}
+                        className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-left hover:bg-muted"
+                      >
+                        <LogOut className="h-4 w-4" /> Se déconnecter
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link to="/auth" className="flex items-center gap-2 rounded-sm px-3 py-2 text-sm hover:bg-muted no-link-color">
+                        <LogIn className="h-4 w-4" /> Se connecter
+                      </Link>
+                      <Link to="/auth" search={{ mode: "signup" } as never} className="flex items-center gap-2 rounded-sm px-3 py-2 text-sm hover:bg-muted no-link-color">
+                        <UserPlus className="h-4 w-4" /> Créer un compte
+                      </Link>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
 
-            <Link
-              to="/mon-compte/commandes"
-              className="hidden lg:flex flex-col leading-tight px-2 py-1 rounded-sm hover:ring-1 hover:ring-white/40 no-link-color"
-            >
-              <span className="text-[10px] text-white/70">Retours</span>
-              <span className="text-xs font-semibold inline-flex items-center gap-1">
-                <Package className="h-3.5 w-3.5" /> et commandes
-              </span>
-            </Link>
 
             {isVendor && (
               <Link
