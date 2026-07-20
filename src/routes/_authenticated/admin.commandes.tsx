@@ -246,6 +246,30 @@ function AdminOrdersPage() {
               </div>
             </div>
           )}
+          {selected && (
+            <div className="rounded-sm border border-border bg-muted/30 p-2 flex flex-wrap gap-2">
+              <WhatsAppButton
+                phone={selected.customer_phone}
+                message={waTemplates.orderConfirmation({
+                  customer_name: selected.customer_name,
+                  order_number: selected.order_number,
+                  total: selected.total,
+                  pickup: pickup ?? null,
+                  items: (itemsData ?? []).map((it: any) => ({ name: it.product_name, quantity: it.quantity })),
+                })}
+                label="Confirmation WhatsApp"
+              />
+              <WhatsAppButton
+                phone={selected.customer_phone}
+                message={waTemplates.readyForPickup({
+                  customer_name: selected.customer_name,
+                  order_number: selected.order_number,
+                  pickup: pickup ?? null,
+                })}
+                label="Prévenir : commande prête"
+              />
+            </div>
+          )}
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setSelected(null)}>Annuler</Button>
             {selected?.payment_method === "cash_on_pickup" && selected?.payment_status !== "paid" && (
