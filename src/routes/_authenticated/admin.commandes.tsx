@@ -11,6 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { updateOrderStatus, confirmCashPayment } from "@/lib/orders.functions";
 import { Pagination, usePagination } from "@/components/pagination";
+import { WhatsAppButton } from "@/components/whatsapp-button";
+import { waTemplates } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
 
 
@@ -73,6 +75,19 @@ function AdminOrdersPage() {
         .eq("order_id", selected.id);
       if (error) throw error;
       return data ?? [];
+    },
+  });
+
+  const { data: pickup } = useQuery({
+    queryKey: ["admin-order-pickup", selected?.pickup_point_id],
+    enabled: !!selected?.pickup_point_id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("pickup_points")
+        .select("name, address, city, contact_phone, opening_hours")
+        .eq("id", selected.pickup_point_id)
+        .maybeSingle();
+      return data;
     },
   });
 
@@ -229,6 +244,30 @@ function AdminOrdersPage() {
                 <label className="text-sm font-medium block mb-1">Notes internes</label>
                 <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
               </div>
+            </div>
+          )}
+          {selected && (
+            <div className="rounded-sm border border-border bg-muted/30 p-2 flex flex-wrap gap-2">
+              <WhatsAppButton
+                phone={selected.customer_phone}
+                message={waTemplates.orderConfirmation({
+                  customer_name: selected.customer_name,
+                  order_number: selected.order_number,
+                  total: selected.total,
+                  pickup: pickup ?? null,
+                  items: (itemsData ?? []).map((it: any) => ({ name: it.product_name, quantity: it.quantity })),
+                })}
+                label="Confirmation WhatsApp"
+              />
+              <WhatsAppButton
+                phone={selected.customer_phone}
+                message={waTemplates.readyForPickup({
+                  customer_name: selected.customer_name,
+                  order_number: selected.order_number,
+                  pickup: pickup ?? null,
+                })}
+                label="Prévenir : commande prête"
+              />
             </div>
           )}
           <DialogFooter className="gap-2">

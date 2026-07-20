@@ -11,6 +11,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { WhatsAppButton } from "@/components/whatsapp-button";
+import { waTemplates } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/vendeur/commandes")({
@@ -52,6 +54,7 @@ type Shipment = {
     id: string;
     order_number: string;
     customer_name: string;
+    customer_phone: string | null;
     status: string;
     created_at: string;
     has_physical_items: boolean;
@@ -103,7 +106,7 @@ function VendorOrders() {
         .select(`
           id, shipment_number, status, acceptance_status, acceptance_deadline,
           accepted_at, refused_at, refusal_reason, subtotal, currency, created_at,
-          orders!inner(id, order_number, customer_name, status, created_at, has_physical_items, shipping_address, delivery_mode)
+          orders!inner(id, order_number, customer_name, customer_phone, status, created_at, has_physical_items, shipping_address, delivery_mode)
         `)
         .eq("vendor_id", vendorId!)
         .order("acceptance_deadline", { ascending: true, nullsFirst: false })
@@ -222,6 +225,15 @@ function VendorOrders() {
                     >
                       <X className="mr-1 h-4 w-4" /> Refuser
                     </Button>
+                    <WhatsAppButton
+                      phone={s.order.customer_phone}
+                      message={waTemplates.vendorContact({
+                        customer_name: s.order.customer_name,
+                        order_number: s.order.order_number,
+                        shipment_number: s.shipment_number,
+                      })}
+                      label="Contacter client"
+                    />
                   </div>
                 </div>
               );

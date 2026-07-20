@@ -245,6 +245,12 @@ export const createOrder = createServerFn({ method: "POST" })
       .insert(itemsRows.map((r) => ({ ...r, order_id: order.id })));
     if (iErr) throw new Error(iErr.message);
 
+    // Fire-and-forget: notify the customer for cash-on-pickup orders (no CinetPay flow to trigger later).
+    if (isCash) {
+      const { notifyOrderEvent } = await import("./notifications.server");
+      notifyOrderEvent(order.id, "order_placed_cop").catch((e) => console.error("[notify]", e));
+    }
+
     return { orderId: order.id, orderNumber: order.order_number, total, hasPhysical, isCash };
   });
 
@@ -311,9 +317,9 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
     if (data.notes !== undefined) patch.notes = data.notes;
     const { error } = await supabaseAdmin.from("orders").update(patch).eq("id", data.orderId);
     if (error) throw new Error(error.message);
-    if (data.status === "shipped" || data.status === "delivered") {
+    if (data.status === "shipped" || data.status === "delivered" || data.status === "cancelled") {
       const { notifyOrderEvent } = await import("./notifications.server");
-      await notifyOrderEvent(data.orderId, data.status).catch((e) => console.error("[notify]", e));
+      await notifyOrderEvent(data.orderId, data.status as "shipped" | "delivered" | "cancelled").catch((e) => console.error("[notify]", e));
     }
     return { ok: true };
   });
@@ -333,8 +339,9 @@ export const confirmCashPayment = createServerFn({ method: "POST" })
       _notes: data.notes ?? undefined,
     });
     if (error) throw new Error(error.message);
-    const { notifyOrderEvent } = await import("./notifications.server");
+    const { notifyOrderEvent, notifyVendorsOfNewShipments } = await import("./notifications.server");
     await notifyOrderEvent(data.orderId, "payment_confirmed").catch((e) => console.error("[notify]", e));
+    notifyVendorsOfNewShipments(data.orderId).catch((e) => console.error("[notify:vendors]", e));
     const { redeemOrderCouponIfAny } = await import("./coupons.server");
     await redeemOrderCouponIfAny(data.orderId).catch((e) => console.error("[redeem]", e));
     return res;

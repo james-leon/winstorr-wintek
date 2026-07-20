@@ -9,6 +9,8 @@ import { initiatePayment } from "@/lib/orders.functions";
 import { toast } from "sonner";
 import { SuccessCheckmark } from "@/components/success-checkmark";
 import { TrustStrip } from "@/components/trust-strip";
+import { WhatsAppButton } from "@/components/whatsapp-button";
+import { waTemplates } from "@/lib/whatsapp";
 import { useAuth } from "@/lib/auth-context";
 import { useState } from "react";
 
@@ -34,6 +36,16 @@ function ConfirmationPage() {
     refetchInterval: (q) => {
       const st = q.state.data?.order?.payment_status;
       return st === "pending" ? 3000 : false;
+    },
+  });
+
+  const { data: supportPhone } = useQuery({
+    queryKey: ["whatsapp-support-number"],
+    queryFn: async () => {
+      const { data } = await supabase.from("app_settings").select("value").eq("key", "whatsapp_support_number").maybeSingle();
+      const v = data?.value as { number?: string } | string | null;
+      if (!v) return null;
+      return typeof v === "string" ? v : v.number ?? null;
     },
   });
 
@@ -211,9 +223,16 @@ function ConfirmationPage() {
           </div>
         )}
 
-        <div className="mt-6 flex gap-2">
+        <div className="mt-6 flex flex-wrap gap-2">
           <Button asChild variant="outline"><Link to="/catalogue">Continuer mes achats</Link></Button>
           <Button asChild variant="ghost"><Link to="/mon-compte/commandes">Mes commandes</Link></Button>
+          {supportPhone && (
+            <WhatsAppButton
+              phone={supportPhone}
+              message={waTemplates.customerToSupport({ order_number: order.order_number })}
+              label="Nous contacter sur WhatsApp"
+            />
+          )}
         </div>
       </div>
     </div>

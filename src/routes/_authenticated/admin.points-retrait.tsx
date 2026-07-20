@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,6 +49,26 @@ function PickupPointsAdmin() {
       const { data } = await supabase.from("app_settings").select("value").eq("key", "payment_methods").maybeSingle();
       return (data?.value ?? { cinetpay: false, cash_on_pickup: true }) as { cinetpay: boolean; cash_on_pickup: boolean };
     },
+  });
+
+  const waQ = useQuery({
+    queryKey: ["settings", "whatsapp_support_number"],
+    queryFn: async () => {
+      const { data } = await supabase.from("app_settings").select("value").eq("key", "whatsapp_support_number").maybeSingle();
+      const v = data?.value as { number?: string } | string | null;
+      return typeof v === "string" ? v : v?.number ?? "";
+    },
+  });
+  const [waNumber, setWaNumber] = useState<string>("");
+  useEffect(() => { if (waQ.data) setWaNumber(waQ.data); }, [waQ.data]);
+
+  const saveWa = useMutation({
+    mutationFn: async (num: string) => {
+      const { error } = await supabase.from("app_settings").upsert({ key: "whatsapp_support_number", value: { number: num } });
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success("Numéro WhatsApp support enregistré."); qc.invalidateQueries({ queryKey: ["settings"] }); qc.invalidateQueries({ queryKey: ["whatsapp-support-number"] }); },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const savePM = useMutation({
@@ -125,6 +145,26 @@ function PickupPointsAdmin() {
             </label>
           </div>
         )}
+        <div className="mt-4 pt-4 border-t border-border">
+          <Label htmlFor="wa-support" className="text-sm font-medium">Numéro WhatsApp support (client → Winstorr)</Label>
+          <div className="mt-1 flex gap-2">
+            <Input
+              id="wa-support"
+              placeholder="Ex: 237 6XX XX XX XX"
+              value={waNumber}
+              onChange={(e) => setWaNumber(e.target.value)}
+              className="max-w-xs"
+            />
+            <Button
+              size="sm"
+              onClick={() => saveWa.mutate(waNumber || waQ.data || "")}
+              disabled={saveWa.isPending}
+            >
+              Enregistrer
+            </Button>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">Utilisé par le bouton « Nous contacter sur WhatsApp » sur la page de confirmation de commande.</p>
+        </div>
       </section>
 
       <section>
