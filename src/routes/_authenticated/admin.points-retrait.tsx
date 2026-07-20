@@ -51,6 +51,27 @@ function PickupPointsAdmin() {
     },
   });
 
+  const waQ = useQuery({
+    queryKey: ["settings", "whatsapp_support_number"],
+    queryFn: async () => {
+      const { data } = await supabase.from("app_settings").select("value").eq("key", "whatsapp_support_number").maybeSingle();
+      const v = data?.value as { number?: string } | string | null;
+      return typeof v === "string" ? v : v?.number ?? "";
+    },
+  });
+  const [waNumber, setWaNumber] = useState<string>("");
+  const waLoaded = waQ.data;
+  if (waLoaded !== undefined && waNumber === "" && waLoaded) setTimeout(() => setWaNumber(waLoaded), 0);
+
+  const saveWa = useMutation({
+    mutationFn: async (num: string) => {
+      const { error } = await supabase.from("app_settings").upsert({ key: "whatsapp_support_number", value: { number: num } });
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success("Numéro WhatsApp support enregistré."); qc.invalidateQueries({ queryKey: ["settings"] }); qc.invalidateQueries({ queryKey: ["whatsapp-support-number"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const savePM = useMutation({
     mutationFn: async (next: { cinetpay: boolean; cash_on_pickup: boolean }) => {
       const { error } = await supabase.from("app_settings").upsert({ key: "payment_methods", value: next });

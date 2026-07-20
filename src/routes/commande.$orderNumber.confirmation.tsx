@@ -223,9 +223,16 @@ function ConfirmationPage() {
           </div>
         )}
 
-        <div className="mt-6 flex gap-2">
+        <div className="mt-6 flex flex-wrap gap-2">
           <Button asChild variant="outline"><Link to="/catalogue">Continuer mes achats</Link></Button>
           <Button asChild variant="ghost"><Link to="/mon-compte/commandes">Mes commandes</Link></Button>
+          {supportPhone && (
+            <WhatsAppButton
+              phone={supportPhone}
+              message={waTemplates.customerToSupport({ order_number: order.order_number })}
+              label="Nous contacter sur WhatsApp"
+            />
+          )}
         </div>
       </div>
     </div>
