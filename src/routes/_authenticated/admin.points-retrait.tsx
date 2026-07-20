@@ -146,6 +146,26 @@ function PickupPointsAdmin() {
             </label>
           </div>
         )}
+        <div className="mt-4 pt-4 border-t border-border">
+          <Label htmlFor="wa-support" className="text-sm font-medium">Numéro WhatsApp support (client → Winstorr)</Label>
+          <div className="mt-1 flex gap-2">
+            <Input
+              id="wa-support"
+              placeholder="Ex: 237 6XX XX XX XX"
+              value={waNumber || (waQ.data ?? "")}
+              onChange={(e) => setWaNumber(e.target.value)}
+              className="max-w-xs"
+            />
+            <Button
+              size="sm"
+              onClick={() => saveWa.mutate(waNumber || waQ.data || "")}
+              disabled={saveWa.isPending}
+            >
+              Enregistrer
+            </Button>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">Utilisé par le bouton « Nous contacter sur WhatsApp » sur la page de confirmation de commande.</p>
+        </div>
       </section>
 
       <section>
