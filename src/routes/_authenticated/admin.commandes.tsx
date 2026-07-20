@@ -78,6 +78,19 @@ function AdminOrdersPage() {
     },
   });
 
+  const { data: pickup } = useQuery({
+    queryKey: ["admin-order-pickup", selected?.pickup_point_id],
+    enabled: !!selected?.pickup_point_id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("pickup_points")
+        .select("name, address, city, contact_phone, opening_hours")
+        .eq("id", selected.pickup_point_id)
+        .maybeSingle();
+      return data;
+    },
+  });
+
   const updateFn = useServerFn(updateOrderStatus);
   const [newStatus, setNewStatus] = useState<string>("");
   const [notes, setNotes] = useState("");
