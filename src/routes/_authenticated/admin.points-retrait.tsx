@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -60,8 +60,7 @@ function PickupPointsAdmin() {
     },
   });
   const [waNumber, setWaNumber] = useState<string>("");
-  const waLoaded = waQ.data;
-  if (waLoaded !== undefined && waNumber === "" && waLoaded) setTimeout(() => setWaNumber(waLoaded), 0);
+  useEffect(() => { if (waQ.data) setWaNumber(waQ.data); }, [waQ.data]);
 
   const saveWa = useMutation({
     mutationFn: async (num: string) => {
@@ -152,7 +151,7 @@ function PickupPointsAdmin() {
             <Input
               id="wa-support"
               placeholder="Ex: 237 6XX XX XX XX"
-              value={waNumber || (waQ.data ?? "")}
+              value={waNumber}
               onChange={(e) => setWaNumber(e.target.value)}
               className="max-w-xs"
             />
