@@ -225,6 +225,15 @@ function VendorOrders() {
                     >
                       <X className="mr-1 h-4 w-4" /> Refuser
                     </Button>
+                    <WhatsAppButton
+                      phone={s.order.customer_phone}
+                      message={waTemplates.vendorContact({
+                        customer_name: s.order.customer_name,
+                        order_number: s.order.order_number,
+                        shipment_number: s.shipment_number,
+                      })}
+                      label="Contacter client"
+                    />
                   </div>
                 </div>
               );
