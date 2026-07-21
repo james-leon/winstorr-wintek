@@ -87,7 +87,7 @@ export function SiteHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 text-white" style={{ background: "var(--color-header)" }}>
+      <header className="sticky top-0 z-50 text-white" style={{ background: "var(--color-header)" }}>
         {/* Row 1 — main near-black bar */}
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-3 md:gap-3">
           {/* Mobile: hamburger next to logo */}
