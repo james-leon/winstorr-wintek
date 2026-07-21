@@ -87,7 +87,7 @@ export function SiteHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 text-white" style={{ background: "var(--color-header)" }}>
+      <header className="sticky top-0 z-50 text-white" style={{ background: "var(--color-header)" }}>
         {/* Row 1 — main near-black bar */}
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-3 md:gap-3">
           {/* Mobile: hamburger next to logo */}
@@ -173,7 +173,7 @@ export function SiteHeader() {
               {accountMenuOpen && (
                 <div
                   role="menu"
-                  className="absolute right-0 top-full z-50 mt-1 min-w-[220px] rounded-sm border border-border bg-card p-1 text-foreground shadow-lg"
+                  className="absolute right-0 top-full z-[80] mt-1 min-w-[220px] rounded-sm border border-border bg-card p-1 text-foreground shadow-lg"
                   onClick={() => setAccountMenuOpen(false)}
                 >
                   {user ? (
@@ -321,7 +321,7 @@ export function SiteHeader() {
                 <summary className="cursor-pointer list-none px-3 py-1.5 text-xs text-white/75 hover:text-white hover:bg-white/10 whitespace-nowrap inline-flex items-center gap-1">
                   Plus <ChevronDown className="h-3 w-3" />
                 </summary>
-                <div className="absolute right-0 top-full z-50 mt-0.5 min-w-[200px] rounded-sm border border-border bg-card p-1 shadow-lg">
+                <div className="absolute right-0 top-full z-[80] mt-0.5 min-w-[200px] rounded-sm border border-border bg-card p-1 shadow-lg">
                   {topCategories.slice(3).map((c) => (
                     <Link
                       key={c.id}
