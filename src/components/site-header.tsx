@@ -321,7 +321,7 @@ export function SiteHeader() {
                 <summary className="cursor-pointer list-none px-3 py-1.5 text-xs text-white/75 hover:text-white hover:bg-white/10 whitespace-nowrap inline-flex items-center gap-1">
                   Plus <ChevronDown className="h-3 w-3" />
                 </summary>
-                <div className="absolute right-0 top-full z-50 mt-0.5 min-w-[200px] rounded-sm border border-border bg-card p-1 shadow-lg">
+                <div className="absolute right-0 top-full z-[80] mt-0.5 min-w-[200px] rounded-sm border border-border bg-card p-1 shadow-lg">
                   {topCategories.slice(3).map((c) => (
                     <Link
                       key={c.id}
