@@ -173,7 +173,7 @@ export function SiteHeader() {
               {accountMenuOpen && (
                 <div
                   role="menu"
-                  className="absolute right-0 top-full z-50 mt-1 min-w-[220px] rounded-sm border border-border bg-card p-1 text-foreground shadow-lg"
+                  className="absolute right-0 top-full z-[80] mt-1 min-w-[220px] rounded-sm border border-border bg-card p-1 text-foreground shadow-lg"
                   onClick={() => setAccountMenuOpen(false)}
                 >
                   {user ? (
