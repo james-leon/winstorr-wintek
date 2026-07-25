@@ -177,7 +177,7 @@ function SessionDialog({ row, trainings, onClose, onSaved }: { row: Row | null; 
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="scheduled">Planifiée</SelectItem>
-                  <SelectItem value="ongoing">En cours</SelectItem>
+                  <SelectItem value="full">Complète</SelectItem>
                   <SelectItem value="completed">Terminée</SelectItem>
                   <SelectItem value="cancelled">Annulée</SelectItem>
                 </SelectContent>
