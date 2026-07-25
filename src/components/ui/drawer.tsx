@@ -20,10 +20,11 @@ const DrawerClose = DrawerPrimitive.Close;
 const DrawerOverlay = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Overlay>
->(({ className, ...props }, ref) => (
+>(({ className, style, ...props }, ref) => (
   <DrawerPrimitive.Overlay
     ref={ref}
-    className={cn("fixed inset-0 z-[100] bg-neutral-900/80", className)}
+    className={cn("fixed inset-0 z-[100]", className)}
+    style={{ backgroundColor: "rgba(15, 17, 20, 0.72)", ...style }}
     {...props}
   />
 ));
@@ -32,15 +33,16 @@ DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName;
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+>(({ className, children, style, ...props }, ref) => (
   <DrawerPortal>
     <DrawerOverlay />
     <DrawerPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-[101] mt-24 flex h-auto flex-col rounded-t-[10px] border bg-card text-card-foreground",
+        "fixed inset-x-0 bottom-0 z-[101] mt-24 flex h-auto flex-col rounded-t-[10px] border text-card-foreground isolate",
         className,
       )}
+      style={{ backgroundColor: "var(--card, #ffffff)", ...style }}
       {...props}
     >
       <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
