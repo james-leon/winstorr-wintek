@@ -140,7 +140,7 @@ function SessionDialog({ row, trainings, onClose, onSaved }: { row: Row | null; 
         if (error) throw error;
       } else {
         const { error } = await supabase.from("training_sessions")
-          .update({ ...payload, status: f.status as "scheduled" | "ongoing" | "completed" | "cancelled" })
+          .update({ ...payload, status: f.status as "scheduled" | "full" | "completed" | "cancelled" })
           .eq("id", row!.id);
         if (error) throw error;
       }
