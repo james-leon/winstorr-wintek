@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,12 @@ type Row = {
   capacity: number; seats_taken: number; price_override: number | null; status: string;
   products: { name: string } | null;
 };
+
+function toLocalInput(iso: string) {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 function AdminSessions() {
   const qc = useQueryClient();
@@ -45,7 +51,7 @@ function AdminSessions() {
     },
   });
 
-  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Row | "new" | null>(null);
   const del = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("training_sessions").delete().eq("id", id);
@@ -61,7 +67,7 @@ function AdminSessions() {
     <div>
       <div className="mb-4 flex justify-between">
         <div className="text-sm text-muted-foreground">{rows.length} session(s)</div>
-        <Button onClick={() => setOpen(true)} disabled={trainings.length === 0}><Plus className="mr-1 h-4 w-4" /> Nouvelle session</Button>
+        <Button onClick={() => setEditing("new")} disabled={trainings.length === 0}><Plus className="mr-1 h-4 w-4" /> Nouvelle session</Button>
       </div>
       <div className="overflow-x-auto rounded-lg border border-border">
         <table className="w-full text-sm">
@@ -81,9 +87,14 @@ function AdminSessions() {
                 <td className="p-3">{r.price_override ? formatFcfa(r.price_override) : "—"}</td>
                 <td className="p-3">{r.status}</td>
                 <td className="p-3 text-right">
-                  <Button variant="ghost" size="icon" onClick={() => confirm("Supprimer ?") && del.mutate(r.id)}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                  <div className="flex justify-end gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => setEditing(r)} aria-label="Modifier">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => confirm("Supprimer ?") && del.mutate(r.id)} aria-label="Supprimer">
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -91,33 +102,57 @@ function AdminSessions() {
         </table>
       </div>
       <Pagination page={page} pageCount={pageCount} total={total} rangeStart={rangeStart} rangeEnd={rangeEnd} onPageChange={setPage} label="sessions" />
-      {open && <SessionDialog trainings={trainings} onClose={() => setOpen(false)} onSaved={() => { setOpen(false); qc.invalidateQueries({ queryKey: ["admin-sessions"] }); }} />}
+      {editing && (
+        <SessionDialog
+          row={editing === "new" ? null : editing}
+          trainings={trainings}
+          onClose={() => setEditing(null)}
+          onSaved={() => { setEditing(null); qc.invalidateQueries({ queryKey: ["admin-sessions"] }); }}
+        />
+      )}
     </div>
   );
 }
 
-function SessionDialog({ trainings, onClose, onSaved }: { trainings: { id: string; name: string }[]; onClose: () => void; onSaved: () => void }) {
-  const [f, setF] = useState({ product_id: trainings[0]?.id ?? "", start_date: "", end_date: "", location: "", capacity: "10", price_override: "" });
+function SessionDialog({ row, trainings, onClose, onSaved }: { row: Row | null; trainings: { id: string; name: string }[]; onClose: () => void; onSaved: () => void }) {
+  const isNew = !row;
+  const [f, setF] = useState({
+    product_id: row?.product_id ?? trainings[0]?.id ?? "",
+    start_date: row ? toLocalInput(row.start_date) : "",
+    end_date: row ? toLocalInput(row.end_date) : "",
+    location: row?.location ?? "",
+    capacity: String(row?.capacity ?? 10),
+    price_override: row?.price_override != null ? String(row.price_override) : "",
+    status: row?.status ?? "scheduled",
+  });
   const save = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("training_sessions").insert({
+      const payload = {
         product_id: f.product_id,
         start_date: new Date(f.start_date).toISOString(),
         end_date: new Date(f.end_date).toISOString(),
         location: f.location.trim() || null,
         capacity: Number(f.capacity),
         price_override: f.price_override ? Number(f.price_override) : null,
-      });
-      if (error) throw error;
+      };
+      if (isNew) {
+        const { error } = await supabase.from("training_sessions").insert(payload);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("training_sessions")
+          .update({ ...payload, status: f.status as "scheduled" | "full" | "completed" | "cancelled" })
+          .eq("id", row!.id);
+        if (error) throw error;
+      }
     },
-    onSuccess: () => { toast.success("Session créée"); onSaved(); },
+    onSuccess: () => { toast.success(isNew ? "Session créée" : "Session mise à jour"); onSaved(); },
     onError: (e: Error) => toast.error(e.message),
   });
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent>
-        <DialogHeader><DialogTitle>Nouvelle session</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{isNew ? "Nouvelle session" : "Modifier la session"}</DialogTitle></DialogHeader>
         <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="space-y-3">
           <div>
             <Label>Formation *</Label>
@@ -135,9 +170,23 @@ function SessionDialog({ trainings, onClose, onSaved }: { trainings: { id: strin
             <div><Label>Capacité *</Label><Input required type="number" min="1" value={f.capacity} onChange={(e) => setF({ ...f, capacity: e.target.value })} /></div>
             <div><Label>Prix personnalisé (FCFA)</Label><Input type="number" min="0" value={f.price_override} onChange={(e) => setF({ ...f, price_override: e.target.value })} /></div>
           </div>
+          {!isNew && (
+            <div>
+              <Label>Statut</Label>
+              <Select value={f.status} onValueChange={(v) => setF({ ...f, status: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="scheduled">Planifiée</SelectItem>
+                  <SelectItem value="full">Complète</SelectItem>
+                  <SelectItem value="completed">Terminée</SelectItem>
+                  <SelectItem value="cancelled">Annulée</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>Annuler</Button>
-            <Button type="submit" disabled={save.isPending}>{save.isPending ? "..." : "Créer"}</Button>
+            <Button type="submit" disabled={save.isPending}>{save.isPending ? "..." : (isNew ? "Créer" : "Enregistrer")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
