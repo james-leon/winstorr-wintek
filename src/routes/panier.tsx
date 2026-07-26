@@ -26,34 +26,39 @@ function CartPage() {
   const productIds = items.map((i) => i.productId);
   const variantIds = items.map((i) => i.variantId).filter((v): v is string => !!v);
 
-  const { data: moqMap } = useQuery({
+  const { data: stockMoqMap } = useQuery({
     enabled: productIds.length > 0 || variantIds.length > 0,
-    queryKey: ["cart-moq", productIds.slice().sort().join(","), variantIds.slice().sort().join(",")],
-    queryFn: async (): Promise<Record<string, number>> => {
-      // Keyed by cartItemKey(item) so per-variant MOQ overrides the product default.
-      const m: Record<string, number> = {};
+    queryKey: ["cart-stock-moq", productIds.slice().sort().join(","), variantIds.slice().sort().join(",")],
+    queryFn: async (): Promise<{ moq: Record<string, number>; stock: Record<string, number> }> => {
+      const moq: Record<string, number> = {};
+      const stock: Record<string, number> = {};
       if (productIds.length > 0) {
-        const { data, error } = await supabase.from("products").select("id, min_order_quantity").in("id", productIds);
+        const { data, error } = await supabase.from("products").select("id, min_order_quantity, stock_quantity, type").in("id", productIds);
         if (error) throw error;
         for (const r of data ?? []) {
-          // For non-variant lines, key is `${id}::`; also stored as `${id}::__base` for fallback.
-          m[`${r.id}::__base`] = Math.max(1, (r.min_order_quantity as number | null) ?? 1);
+          moq[`${r.id}::__base`] = Math.max(1, (r.min_order_quantity as number | null) ?? 1);
+          if (r.type === "physical") {
+            stock[`${r.id}::__base`] = Math.max(0, Number(r.stock_quantity ?? 0));
+          }
         }
       }
       if (variantIds.length > 0) {
         const { data, error } = await supabase
           .from("product_variants")
-          .select("id, product_id, min_order_quantity")
+          .select("id, product_id, min_order_quantity, stock_quantity")
           .in("id", variantIds);
         if (error) throw error;
         for (const r of data ?? []) {
           const v = (r as { min_order_quantity: number | null }).min_order_quantity;
-          if (v != null) m[`${r.product_id}::${r.id}`] = Math.max(1, v);
+          if (v != null) moq[`${r.product_id}::${r.id}`] = Math.max(1, v);
+          stock[`${r.product_id}::${r.id}`] = Math.max(0, Number(r.stock_quantity ?? 0));
         }
       }
-      return m;
+      return { moq, stock };
     },
   });
+  const moqMap = stockMoqMap?.moq;
+  const stockMap = stockMoqMap?.stock;
 
   const moqFor = (i: CartItem): number => {
     if (i.variantId) {
@@ -63,11 +68,25 @@ function CartPage() {
     return moqMap?.[`${i.productId}::__base`] ?? 1;
   };
 
+  const stockFor = (i: CartItem): number | null => {
+    if (i.variantId) {
+      const s = stockMap?.[`${i.productId}::${i.variantId}`];
+      return s == null ? null : s;
+    }
+    const s = stockMap?.[`${i.productId}::__base`];
+    return s == null ? null : s;
+  };
+
   const effectiveUnit = (i: CartItem) =>
     resolveUnitPrice(tiersMap?.[tierKey(i.productId, i.variantId)], i.quantity, i.price) ?? i.price;
   const subtotal = items.reduce((n, i) => n + effectiveUnit(i) * i.quantity, 0);
   const discount = coupon ? Math.min(coupon.discountAmount, subtotal) : 0;
   const hasMoqViolation = items.some((i) => i.quantity < moqFor(i));
+  const hasStockViolation = items.some((i) => {
+    const s = stockFor(i);
+    return s != null && i.quantity > s;
+  });
+
 
   const { user } = useAuth();
   const nav = useNavigate();
