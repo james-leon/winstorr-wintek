@@ -464,7 +464,14 @@ function PhysicalActions({
     : { text: "En stock", cls: "text-success" };
   const unit = resolveUnitPrice(tiers, qty, pricePoint);
   const moq = Math.max(1, variant?.min_order_quantity ?? p.min_order_quantity ?? 1);
+  const maxQty = stock > 0 ? stock : moq;
+  const atMax = qty >= maxQty;
   const disabled = stock <= 0 || unit == null || (hasVariants && (!variant || !fullySelected));
+
+  // Clamp qty if it ever exceeds available stock (e.g. variant switch).
+  useEffect(() => {
+    if (stock > 0 && qty > stock) setQty(() => stock);
+  }, [stock, qty, setQty]);
 
   const addToCart = () => {
     if (pricePoint == null) return;
@@ -491,12 +498,16 @@ function PhysicalActions({
         <div className="flex items-center rounded-md border border-input">
           <button type="button" onClick={() => setQty((q) => Math.max(moq, q - 1))} className="px-3 py-2 text-lg" disabled={qty <= moq}>−</button>
           <span className="min-w-8 text-center">{qty}</span>
-          <button type="button" onClick={() => setQty((q) => q + 1)} className="px-3 py-2 text-lg">+</button>
+          <button type="button" onClick={() => setQty((q) => Math.min(maxQty, q + 1))} className="px-3 py-2 text-lg" disabled={atMax || stock <= 0}>+</button>
         </div>
       </div>
       {moq > 1 && (
         <div className="text-xs text-muted-foreground">Quantité minimum : {moq} unités</div>
       )}
+      {stock > 0 && atMax && (
+        <div className="text-xs text-accent">Quantité maximum disponible : {stock}.</div>
+      )}
+
       {hasVariants && !fullySelected && (
         <div className="text-xs text-accent">Sélectionnez une combinaison pour continuer.</div>
       )}
