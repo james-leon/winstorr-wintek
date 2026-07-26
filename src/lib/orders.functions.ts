@@ -32,8 +32,13 @@ const checkoutSchema = z.object({
 });
 
 export const createOrder = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => checkoutSchema.parse(data))
+  .inputValidator((data: unknown) => {
+    const r = checkoutSchema.safeParse(data);
+    if (!r.success) throw new Error("Informations de commande invalides. Vérifiez le panier et vos coordonnées.");
+    return r.data;
+  })
   .handler(async ({ data }) => {
+
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Load canonical product info (never trust client price)
