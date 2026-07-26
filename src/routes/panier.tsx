@@ -185,6 +185,9 @@ function CartPage() {
             const nextTier = sorted.find((t) => t.min_quantity > i.quantity);
             const moq = moqFor(i);
             const belowMoq = i.quantity < moq;
+            const stockLeft = stockFor(i);
+            const atStock = stockLeft != null && i.quantity >= stockLeft;
+            const overStock = stockLeft != null && i.quantity > stockLeft;
             const key = cartItemKey(i);
             const attrs = i.variantAttributes ? Object.entries(i.variantAttributes) : [];
             return (
@@ -223,10 +226,18 @@ function CartPage() {
                       <span>Quantité minimum requise : {moq}. Augmentez la quantité ou retirez l'article.</span>
                     </div>
                   )}
+                  {overStock ? (
+                    <div className="mt-1 flex items-start gap-1.5 rounded-sm bg-destructive/10 px-2 py-1 text-[11px] text-destructive">
+                      <AlertTriangle className="mt-0.5 h-3 w-3 flex-shrink-0" />
+                      <span>Il ne reste que {stockLeft} en stock. Réduisez la quantité.</span>
+                    </div>
+                  ) : atStock && stockLeft != null && stockLeft > 0 ? (
+                    <div className="mt-1 text-[11px] text-accent">Quantité maximum disponible : {stockLeft}.</div>
+                  ) : null}
                   <div className="mt-2 inline-flex items-center gap-1 rounded-sm border border-border">
                     <button className="p-1.5 hover:bg-muted disabled:opacity-40" onClick={() => dec(i)} disabled={i.quantity <= moq} aria-label="Diminuer"><Minus className="h-4 w-4" /></button>
                     <span className="min-w-8 text-center text-sm font-medium">{i.quantity}</span>
-                    <button className="p-1.5 hover:bg-muted" onClick={() => inc(i)} aria-label="Augmenter"><Plus className="h-4 w-4" /></button>
+                    <button className="p-1.5 hover:bg-muted disabled:opacity-40" onClick={() => inc(i)} disabled={atStock} aria-label="Augmenter"><Plus className="h-4 w-4" /></button>
                   </div>
                 </div>
                 <div className="text-right">
@@ -242,6 +253,7 @@ function CartPage() {
             );
           })}
         </div>
+
 
         <aside className="h-fit rounded-sm border border-border bg-card p-4 sticky top-4">
           <h2 className="font-semibold text-foreground mb-3">Récapitulatif</h2>
