@@ -5,8 +5,9 @@ import { z } from "zod";
 const itemSchema = z.object({
   productId: z.string().uuid(),
   variantId: z.string().uuid().nullable().optional(),
-  quantity: z.number().int().min(1).max(50),
+  quantity: z.number().int().min(1).max(100000),
 });
+
 
 const addressSchema = z.object({
   full_name: z.string().min(2).max(120),
@@ -31,8 +32,13 @@ const checkoutSchema = z.object({
 });
 
 export const createOrder = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => checkoutSchema.parse(data))
+  .inputValidator((data: unknown) => {
+    const r = checkoutSchema.safeParse(data);
+    if (!r.success) throw new Error("Informations de commande invalides. Vérifiez le panier et vos coordonnées.");
+    return r.data;
+  })
   .handler(async ({ data }) => {
+
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Load canonical product info (never trust client price)

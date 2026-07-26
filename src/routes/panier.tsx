@@ -26,34 +26,39 @@ function CartPage() {
   const productIds = items.map((i) => i.productId);
   const variantIds = items.map((i) => i.variantId).filter((v): v is string => !!v);
 
-  const { data: moqMap } = useQuery({
+  const { data: stockMoqMap } = useQuery({
     enabled: productIds.length > 0 || variantIds.length > 0,
-    queryKey: ["cart-moq", productIds.slice().sort().join(","), variantIds.slice().sort().join(",")],
-    queryFn: async (): Promise<Record<string, number>> => {
-      // Keyed by cartItemKey(item) so per-variant MOQ overrides the product default.
-      const m: Record<string, number> = {};
+    queryKey: ["cart-stock-moq", productIds.slice().sort().join(","), variantIds.slice().sort().join(",")],
+    queryFn: async (): Promise<{ moq: Record<string, number>; stock: Record<string, number> }> => {
+      const moq: Record<string, number> = {};
+      const stock: Record<string, number> = {};
       if (productIds.length > 0) {
-        const { data, error } = await supabase.from("products").select("id, min_order_quantity").in("id", productIds);
+        const { data, error } = await supabase.from("products").select("id, min_order_quantity, stock_quantity, type").in("id", productIds);
         if (error) throw error;
         for (const r of data ?? []) {
-          // For non-variant lines, key is `${id}::`; also stored as `${id}::__base` for fallback.
-          m[`${r.id}::__base`] = Math.max(1, (r.min_order_quantity as number | null) ?? 1);
+          moq[`${r.id}::__base`] = Math.max(1, (r.min_order_quantity as number | null) ?? 1);
+          if (r.type === "physical") {
+            stock[`${r.id}::__base`] = Math.max(0, Number(r.stock_quantity ?? 0));
+          }
         }
       }
       if (variantIds.length > 0) {
         const { data, error } = await supabase
           .from("product_variants")
-          .select("id, product_id, min_order_quantity")
+          .select("id, product_id, min_order_quantity, stock_quantity")
           .in("id", variantIds);
         if (error) throw error;
         for (const r of data ?? []) {
           const v = (r as { min_order_quantity: number | null }).min_order_quantity;
-          if (v != null) m[`${r.product_id}::${r.id}`] = Math.max(1, v);
+          if (v != null) moq[`${r.product_id}::${r.id}`] = Math.max(1, v);
+          stock[`${r.product_id}::${r.id}`] = Math.max(0, Number(r.stock_quantity ?? 0));
         }
       }
-      return m;
+      return { moq, stock };
     },
   });
+  const moqMap = stockMoqMap?.moq;
+  const stockMap = stockMoqMap?.stock;
 
   const moqFor = (i: CartItem): number => {
     if (i.variantId) {
@@ -63,11 +68,25 @@ function CartPage() {
     return moqMap?.[`${i.productId}::__base`] ?? 1;
   };
 
+  const stockFor = (i: CartItem): number | null => {
+    if (i.variantId) {
+      const s = stockMap?.[`${i.productId}::${i.variantId}`];
+      return s == null ? null : s;
+    }
+    const s = stockMap?.[`${i.productId}::__base`];
+    return s == null ? null : s;
+  };
+
   const effectiveUnit = (i: CartItem) =>
     resolveUnitPrice(tiersMap?.[tierKey(i.productId, i.variantId)], i.quantity, i.price) ?? i.price;
   const subtotal = items.reduce((n, i) => n + effectiveUnit(i) * i.quantity, 0);
   const discount = coupon ? Math.min(coupon.discountAmount, subtotal) : 0;
   const hasMoqViolation = items.some((i) => i.quantity < moqFor(i));
+  const hasStockViolation = items.some((i) => {
+    const s = stockFor(i);
+    return s != null && i.quantity > s;
+  });
+
 
   const { user } = useAuth();
   const nav = useNavigate();
@@ -166,6 +185,9 @@ function CartPage() {
             const nextTier = sorted.find((t) => t.min_quantity > i.quantity);
             const moq = moqFor(i);
             const belowMoq = i.quantity < moq;
+            const stockLeft = stockFor(i);
+            const atStock = stockLeft != null && i.quantity >= stockLeft;
+            const overStock = stockLeft != null && i.quantity > stockLeft;
             const key = cartItemKey(i);
             const attrs = i.variantAttributes ? Object.entries(i.variantAttributes) : [];
             return (
@@ -204,10 +226,18 @@ function CartPage() {
                       <span>Quantité minimum requise : {moq}. Augmentez la quantité ou retirez l'article.</span>
                     </div>
                   )}
+                  {overStock ? (
+                    <div className="mt-1 flex items-start gap-1.5 rounded-sm bg-destructive/10 px-2 py-1 text-[11px] text-destructive">
+                      <AlertTriangle className="mt-0.5 h-3 w-3 flex-shrink-0" />
+                      <span>Il ne reste que {stockLeft} en stock. Réduisez la quantité.</span>
+                    </div>
+                  ) : atStock && stockLeft != null && stockLeft > 0 ? (
+                    <div className="mt-1 text-[11px] text-accent">Quantité maximum disponible : {stockLeft}.</div>
+                  ) : null}
                   <div className="mt-2 inline-flex items-center gap-1 rounded-sm border border-border">
                     <button className="p-1.5 hover:bg-muted disabled:opacity-40" onClick={() => dec(i)} disabled={i.quantity <= moq} aria-label="Diminuer"><Minus className="h-4 w-4" /></button>
                     <span className="min-w-8 text-center text-sm font-medium">{i.quantity}</span>
-                    <button className="p-1.5 hover:bg-muted" onClick={() => inc(i)} aria-label="Augmenter"><Plus className="h-4 w-4" /></button>
+                    <button className="p-1.5 hover:bg-muted disabled:opacity-40" onClick={() => inc(i)} disabled={atStock} aria-label="Augmenter"><Plus className="h-4 w-4" /></button>
                   </div>
                 </div>
                 <div className="text-right">
@@ -223,6 +253,7 @@ function CartPage() {
             );
           })}
         </div>
+
 
         <aside className="h-fit rounded-sm border border-border bg-card p-4 sticky top-4">
           <h2 className="font-semibold text-foreground mb-3">Récapitulatif</h2>
@@ -287,7 +318,7 @@ function CartPage() {
             <span className="font-semibold">Total estimé</span>
             <span className="text-lg font-bold text-accent">{formatFcfa(total)}</span>
           </div>
-          <Button className="mt-4 w-full bg-accent hover:bg-accent/90 text-accent-foreground" onClick={() => nav({ to: "/commande" })} disabled={hasMoqViolation}>
+          <Button className="mt-4 w-full bg-accent hover:bg-accent/90 text-accent-foreground" onClick={() => nav({ to: "/commande" })} disabled={hasMoqViolation || hasStockViolation}>
             Passer commande
           </Button>
           {hasMoqViolation && (
@@ -295,6 +326,12 @@ function CartPage() {
               Ajustez les quantités minimums avant de continuer.
             </p>
           )}
+          {hasStockViolation && (
+            <p className="mt-2 text-center text-xs text-destructive">
+              Une quantité dépasse le stock disponible. Réduisez avant de continuer.
+            </p>
+          )}
+
           <Link to="/catalogue" className="mt-3 block text-center text-sm text-secondary hover:underline">
             Continuer mes achats
           </Link>
