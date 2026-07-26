@@ -5,8 +5,9 @@ import { z } from "zod";
 const itemSchema = z.object({
   productId: z.string().uuid(),
   variantId: z.string().uuid().nullable().optional(),
-  quantity: z.number().int().min(1).max(50),
+  quantity: z.number().int().min(1).max(100000),
 });
+
 
 const addressSchema = z.object({
   full_name: z.string().min(2).max(120),
