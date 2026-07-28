@@ -20,6 +20,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProduitsSlugRouteImport } from './routes/produits.$slug'
+import { Route as LegalSlugRouteImport } from './routes/legal.$slug'
 import { Route as InfosSlugRouteImport } from './routes/infos.$slug'
 import { Route as ConnexionMotDePasseRouteImport } from './routes/connexion_.mot-de-passe'
 import { Route as BoutiquesVendorSlugRouteImport } from './routes/boutiques_.$vendorSlug'
@@ -114,6 +115,11 @@ const IndexRoute = IndexRouteImport.update({
 const ProduitsSlugRoute = ProduitsSlugRouteImport.update({
   id: '/produits/$slug',
   path: '/produits/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalSlugRoute = LegalSlugRouteImport.update({
+  id: '/legal/$slug',
+  path: '/legal/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InfosSlugRoute = InfosSlugRouteImport.update({
@@ -370,6 +376,7 @@ export interface FileRoutesByFullPath {
   '/boutiques/$vendorSlug': typeof BoutiquesVendorSlugRoute
   '/connexion/mot-de-passe': typeof ConnexionMotDePasseRoute
   '/infos/$slug': typeof InfosSlugRoute
+  '/legal/$slug': typeof LegalSlugRoute
   '/produits/$slug': typeof ProduitsSlugRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/annonces-vendeurs': typeof AuthenticatedAdminAnnoncesVendeursRoute
@@ -421,6 +428,7 @@ export interface FileRoutesByTo {
   '/boutiques/$vendorSlug': typeof BoutiquesVendorSlugRoute
   '/connexion/mot-de-passe': typeof ConnexionMotDePasseRoute
   '/infos/$slug': typeof InfosSlugRoute
+  '/legal/$slug': typeof LegalSlugRoute
   '/produits/$slug': typeof ProduitsSlugRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/annonces-vendeurs': typeof AuthenticatedAdminAnnoncesVendeursRoute
@@ -476,6 +484,7 @@ export interface FileRoutesById {
   '/boutiques_/$vendorSlug': typeof BoutiquesVendorSlugRoute
   '/connexion_/mot-de-passe': typeof ConnexionMotDePasseRoute
   '/infos/$slug': typeof InfosSlugRoute
+  '/legal/$slug': typeof LegalSlugRoute
   '/produits/$slug': typeof ProduitsSlugRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/admin/annonces-vendeurs': typeof AuthenticatedAdminAnnoncesVendeursRoute
@@ -531,6 +540,7 @@ export interface FileRouteTypes {
     | '/boutiques/$vendorSlug'
     | '/connexion/mot-de-passe'
     | '/infos/$slug'
+    | '/legal/$slug'
     | '/produits/$slug'
     | '/admin/analytics'
     | '/admin/annonces-vendeurs'
@@ -582,6 +592,7 @@ export interface FileRouteTypes {
     | '/boutiques/$vendorSlug'
     | '/connexion/mot-de-passe'
     | '/infos/$slug'
+    | '/legal/$slug'
     | '/produits/$slug'
     | '/admin/analytics'
     | '/admin/annonces-vendeurs'
@@ -636,6 +647,7 @@ export interface FileRouteTypes {
     | '/boutiques_/$vendorSlug'
     | '/connexion_/mot-de-passe'
     | '/infos/$slug'
+    | '/legal/$slug'
     | '/produits/$slug'
     | '/_authenticated/admin/analytics'
     | '/_authenticated/admin/annonces-vendeurs'
@@ -688,6 +700,7 @@ export interface RootRouteChildren {
   BoutiquesVendorSlugRoute: typeof BoutiquesVendorSlugRoute
   ConnexionMotDePasseRoute: typeof ConnexionMotDePasseRoute
   InfosSlugRoute: typeof InfosSlugRoute
+  LegalSlugRoute: typeof LegalSlugRoute
   ProduitsSlugRoute: typeof ProduitsSlugRoute
   ApiPublicCinetpayWebhookRoute: typeof ApiPublicCinetpayWebhookRoute
   VendeurInvitationTokenRoute: typeof VendeurInvitationTokenRoute
@@ -770,6 +783,13 @@ declare module '@tanstack/react-router' {
       path: '/produits/$slug'
       fullPath: '/produits/$slug'
       preLoaderRoute: typeof ProduitsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/$slug': {
+      id: '/legal/$slug'
+      path: '/legal/$slug'
+      fullPath: '/legal/$slug'
+      preLoaderRoute: typeof LegalSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/infos/$slug': {
@@ -1215,6 +1235,7 @@ const rootRouteChildren: RootRouteChildren = {
   BoutiquesVendorSlugRoute: BoutiquesVendorSlugRoute,
   ConnexionMotDePasseRoute: ConnexionMotDePasseRoute,
   InfosSlugRoute: InfosSlugRoute,
+  LegalSlugRoute: LegalSlugRoute,
   ProduitsSlugRoute: ProduitsSlugRoute,
   ApiPublicCinetpayWebhookRoute: ApiPublicCinetpayWebhookRoute,
   VendeurInvitationTokenRoute: VendeurInvitationTokenRoute,
