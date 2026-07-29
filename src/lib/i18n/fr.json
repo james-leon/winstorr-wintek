@@ -83,9 +83,27 @@
   },
   "drawer": {
     "title": "Menu",
-    "browse": "Parcourir",
+    "mainMenu": "Menu principal",
+    "closeMenu": "Fermer le menu",
+    "close": "Fermer",
+    "back": "Retour",
+    "trends": "Tendances",
+    "bestSellers": "Meilleures ventes",
+    "newArrivals": "Dernières nouveautés",
+    "verifiedQuality": "Qualité vérifiée",
     "categories": "Catégories",
     "account": "Compte",
-    "help": "Aide"
+    "helloSignIn": "Bonjour, Identifiez-vous",
+    "myAccount": "Mon compte",
+    "myOrders": "Mes commandes",
+    "myWishlist": "Ma liste de souhaits",
+    "ourStores": "Nos boutiques",
+    "vendorSpace": "Espace vendeur",
+    "becomeVendor": "Devenir vendeur",
+    "admin": "Admin",
+    "signOut": "Se déconnecter",
+    "signInUp": "Se connecter / S'inscrire",
+    "seeAll": "Voir tout — {{name}}",
+    "language": "Langue"
   }
 }

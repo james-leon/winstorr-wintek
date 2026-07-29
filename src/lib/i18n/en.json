@@ -83,9 +83,27 @@
   },
   "drawer": {
     "title": "Menu",
-    "browse": "Browse",
+    "mainMenu": "Main menu",
+    "closeMenu": "Close menu",
+    "close": "Close",
+    "back": "Back",
+    "trends": "Trending",
+    "bestSellers": "Best sellers",
+    "newArrivals": "New arrivals",
+    "verifiedQuality": "Verified quality",
     "categories": "Categories",
     "account": "Account",
-    "help": "Help"
+    "helloSignIn": "Hello, sign in",
+    "myAccount": "My account",
+    "myOrders": "My orders",
+    "myWishlist": "My wishlist",
+    "ourStores": "Our stores",
+    "vendorSpace": "Vendor space",
+    "becomeVendor": "Become a vendor",
+    "admin": "Admin",
+    "signOut": "Sign out",
+    "signInUp": "Sign in / Sign up",
+    "seeAll": "See all — {{name}}",
+    "language": "Language"
   }
 }
