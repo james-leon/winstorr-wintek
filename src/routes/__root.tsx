@@ -143,16 +143,18 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <CartProvider>
-          <div className="flex min-h-screen flex-col">
-            <SiteHeader />
-            <main className="flex-1">
-              <Outlet />
-            </main>
-            <SiteFooter />
-          </div>
-          <Toaster richColors position="top-right" />
-        </CartProvider>
+        <LanguageProvider>
+          <CartProvider>
+            <div className="flex min-h-screen flex-col">
+              <SiteHeader />
+              <main className="flex-1">
+                <Outlet />
+              </main>
+              <SiteFooter />
+            </div>
+            <Toaster richColors position="top-right" />
+          </CartProvider>
+        </LanguageProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
