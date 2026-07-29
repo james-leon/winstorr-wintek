@@ -9,26 +9,24 @@ import { useMyVendors } from "@/lib/vendor";
 import { cn } from "@/lib/utils";
 import type { ProductType } from "@/lib/format";
 import { NavigationDrawer } from "@/components/navigation-drawer";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { useTranslation } from "react-i18next";
 import icon from "@/assets/winstorr-icon.png.asset.json";
 
 type CatSel = "all" | ProductType;
 
-const CAT_OPTIONS: { value: CatSel; label: string }[] = [
-  { value: "all", label: "Toutes catégories" },
-  { value: "physical", label: "Produits physiques" },
-  { value: "digital", label: "Numérique" },
-  { value: "service", label: "Services" },
-  { value: "training", label: "Formations" },
+const CAT_OPTIONS: { value: CatSel; labelKey: string }[] = [
+  { value: "all", labelKey: "header.allCategories" },
+  { value: "physical", labelKey: "productTypes.physical" },
+  { value: "digital", labelKey: "productTypes.digital" },
+  { value: "service", labelKey: "productTypes.service" },
+  { value: "training", labelKey: "productTypes.training" },
 ];
 
-const TYPE_LINKS: { type: ProductType; label: string }[] = [
-  { type: "physical", label: "Produits physiques" },
-  { type: "digital", label: "Numérique" },
-  { type: "service", label: "Services" },
-  { type: "training", label: "Formations" },
-];
+const TYPE_LINKS: ProductType[] = ["physical", "digital", "service", "training"];
 
 export function SiteHeader() {
+  const { t } = useTranslation();
   const { count } = useCart();
   const { user, isStaff, signOut } = useAuth();
   const { data: myVendors } = useMyVendors();
@@ -94,12 +92,12 @@ export function SiteHeader() {
           <button
             className="md:hidden grid h-10 w-10 place-items-center rounded-sm hover:bg-white/10"
             onClick={() => setDrawerOpen(true)}
-            aria-label="Ouvrir le menu"
+            aria-label={t("header.menuOpen")}
           >
             <Menu className="h-6 w-6" />
           </button>
 
-          <Link to="/" className="flex items-center gap-2 shrink-0 no-link-color" aria-label="Winstorr — Accueil">
+          <Link to="/" className="flex items-center gap-2 shrink-0 no-link-color" aria-label={t("header.home")}>
             <img src={icon.url} alt="" className="h-8 md:h-10 w-auto" />
             <span className="hidden sm:flex flex-col leading-none">
               <span className="font-display text-xl md:text-2xl tracking-wide text-white">Winstorr</span>
@@ -114,8 +112,8 @@ export function SiteHeader() {
           >
             <MapPin className="h-5 w-5 shrink-0" />
             <span className="flex flex-col">
-              <span className="text-[10px] text-white/60">Votre adresse de livraison</span>
-              <span className="text-xs font-semibold text-white">Cameroun</span>
+              <span className="text-[10px] text-white/60">{t("header.deliveryLabel")}</span>
+              <span className="text-xs font-semibold text-white">{t("header.deliveryValue")}</span>
             </span>
           </Link>
 
@@ -128,11 +126,11 @@ export function SiteHeader() {
               <select
                 value={cat}
                 onChange={(e) => setCat(e.target.value as CatSel)}
-                aria-label="Catégorie de recherche"
+                aria-label={t("header.searchCategoryLabel")}
                 className="h-11 appearance-none bg-transparent pl-3 pr-7 text-xs font-medium text-foreground/80 focus:outline-none cursor-pointer"
               >
                 {CAT_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
+                  <option key={o.value} value={o.value}>{t(o.labelKey)}</option>
                 ))}
               </select>
               <ChevronDown className="pointer-events-none absolute right-1.5 h-3.5 w-3.5 text-muted-foreground" />
@@ -140,12 +138,12 @@ export function SiteHeader() {
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Rechercher sur Winstorr"
+              placeholder={t("header.searchPlaceholder")}
               className="flex-1 h-11 px-3 text-sm bg-background focus:outline-none"
             />
             <button
               type="submit"
-              aria-label="Rechercher"
+              aria-label={t("common.search")}
               className="grid place-items-center h-11 w-14 text-white hover:brightness-110 transition"
               style={{ background: "var(--gradient-winstorr)" }}
             >
@@ -155,6 +153,7 @@ export function SiteHeader() {
 
           {/* Right cluster */}
           <div className="ml-auto flex items-center gap-1 md:gap-2">
+            <LanguageSwitcher className="hidden sm:inline-flex" />
             <div ref={accountMenuRef} className="relative">
               <button
                 type="button"
@@ -164,10 +163,10 @@ export function SiteHeader() {
                 className="flex flex-col leading-tight px-2 py-1 rounded-sm hover:ring-1 hover:ring-white/40 text-left"
               >
                 <span className="text-[10px] text-white/70">
-                  {user ? `Bonjour, ${firstName}` : "Bonjour"}
+                  {user ? t("header.helloName", { name: firstName }) : t("header.hello")}
                 </span>
                 <span className="text-xs font-semibold inline-flex items-center gap-0.5 text-white">
-                  {user ? "Compte" : "Identifiez-vous"} <ChevronDown className="h-3 w-3" />
+                  {user ? t("header.account") : t("header.identify")} <ChevronDown className="h-3 w-3" />
                 </span>
               </button>
               {accountMenuOpen && (
@@ -179,17 +178,17 @@ export function SiteHeader() {
                   {user ? (
                     <>
                       <Link to="/mon-compte" className="flex items-center gap-2 rounded-sm px-3 py-2 text-sm hover:bg-muted no-link-color">
-                        <UserIcon className="h-4 w-4" /> Mon compte
+                        <UserIcon className="h-4 w-4" /> {t("header.myAccount")}
                       </Link>
                       <Link to="/mon-compte/commandes" className="flex items-center gap-2 rounded-sm px-3 py-2 text-sm hover:bg-muted no-link-color">
-                        <Package className="h-4 w-4" /> Mes commandes
+                        <Package className="h-4 w-4" /> {t("header.myOrders")}
                       </Link>
                       <Link to="/mon-compte/liste-de-souhaits" className="flex items-center gap-2 rounded-sm px-3 py-2 text-sm hover:bg-muted no-link-color">
-                        <Heart className="h-4 w-4" /> Liste de souhaits
+                        <Heart className="h-4 w-4" /> {t("header.wishlist")}
                       </Link>
                       {isVendor && (
                         <Link to="/vendeur/tableau-de-bord" className="flex items-center gap-2 rounded-sm px-3 py-2 text-sm hover:bg-muted no-link-color">
-                          <Store className="h-4 w-4" /> Espace vendeur
+                          <Store className="h-4 w-4" /> {t("header.vendorSpace")}
                         </Link>
                       )}
                       <div className="my-1 h-px bg-border" />
@@ -198,16 +197,16 @@ export function SiteHeader() {
                         onClick={() => void signOut()}
                         className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-left hover:bg-muted"
                       >
-                        <LogOut className="h-4 w-4" /> Se déconnecter
+                        <LogOut className="h-4 w-4" /> {t("header.signOut")}
                       </button>
                     </>
                   ) : (
                     <>
                       <Link to="/auth" className="flex items-center gap-2 rounded-sm px-3 py-2 text-sm hover:bg-muted no-link-color">
-                        <LogIn className="h-4 w-4" /> Se connecter
+                        <LogIn className="h-4 w-4" /> {t("header.signIn")}
                       </Link>
                       <Link to="/auth" search={{ mode: "signup" } as never} className="flex items-center gap-2 rounded-sm px-3 py-2 text-sm hover:bg-muted no-link-color">
-                        <UserPlus className="h-4 w-4" /> Créer un compte
+                        <UserPlus className="h-4 w-4" /> {t("header.signUp")}
                       </Link>
                     </>
                   )}
@@ -221,7 +220,7 @@ export function SiteHeader() {
                 to="/vendeur/tableau-de-bord"
                 className="hidden md:inline-flex items-center gap-1 rounded-sm px-2 py-1.5 text-xs font-semibold hover:ring-1 hover:ring-white/40 no-link-color"
               >
-                <Store className="h-4 w-4" /> Espace vendeur
+                <Store className="h-4 w-4" /> {t("header.vendorSpace")}
               </Link>
             )}
 
@@ -230,14 +229,14 @@ export function SiteHeader() {
                 to="/admin/produits"
                 className="hidden md:inline-flex items-center gap-1 rounded-sm px-2 py-1.5 text-xs font-semibold hover:ring-1 hover:ring-white/40 no-link-color"
               >
-                <LayoutDashboard className="h-4 w-4" /> Admin
+                <LayoutDashboard className="h-4 w-4" /> {t("header.admin")}
               </Link>
             )}
 
             <Link
               to="/panier"
               className="flex items-end gap-1 rounded-sm px-2 py-1 hover:ring-1 hover:ring-white/40 no-link-color relative"
-              aria-label="Panier"
+              aria-label={t("header.cart")}
             >
               <div className="relative">
                 <ShoppingCart className="h-7 w-7" strokeWidth={2} />
@@ -248,7 +247,7 @@ export function SiteHeader() {
                   {count}
                 </span>
               </div>
-              <span className="hidden md:inline text-xs font-semibold pb-0.5">Panier</span>
+              <span className="hidden md:inline text-xs font-semibold pb-0.5">{t("header.cart")}</span>
             </Link>
           </div>
         </div>
@@ -262,12 +261,12 @@ export function SiteHeader() {
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Rechercher sur Winstorr"
+              placeholder={t("header.searchPlaceholder")}
               className="flex-1 h-10 px-3 text-sm focus:outline-none"
             />
             <button
               type="submit"
-              aria-label="Rechercher"
+              aria-label={t("common.search")}
               className="grid place-items-center h-10 w-12 text-white"
               style={{ background: "var(--gradient-winstorr)" }}
             >
@@ -283,26 +282,26 @@ export function SiteHeader() {
               onClick={() => setDrawerOpen(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/10 whitespace-nowrap"
             >
-              <Menu className="h-4 w-4" /> Toutes
+              <Menu className="h-4 w-4" /> {t("header.all")}
             </button>
             <span className="mx-1 h-4 w-px bg-white/20" />
             {TYPE_LINKS.map((n) => (
               <Link
-                key={n.type}
+                key={n}
                 to="/catalogue"
-                search={{ type: n.type } as never}
+                search={{ type: n } as never}
                 className={cn(
                   "px-3 py-1.5 text-xs font-medium text-white/85 hover:text-white hover:bg-white/10 no-link-color whitespace-nowrap",
                 )}
               >
-                {n.label}
+                {t(`productTypes.${n}`)}
               </Link>
             ))}
             <Link
               to="/boutiques"
               className="px-3 py-1.5 text-xs font-medium text-white/85 hover:text-white hover:bg-white/10 no-link-color whitespace-nowrap"
             >
-              Nos boutiques
+              {t("header.stores")}
             </Link>
             <span className="mx-1 h-4 w-px bg-white/20" />
 

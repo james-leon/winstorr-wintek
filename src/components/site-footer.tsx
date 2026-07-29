@@ -1,4 +1,6 @@
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { ShieldCheck, Lock, Wrench, MapPin, ChevronUp, Phone, Mail, MessageCircle } from "lucide-react";
 import logo from "@/assets/winstorr-logo.png.asset.json";
 import {
@@ -9,89 +11,94 @@ import {
   SUPPORT_CITY,
 } from "@/lib/site-contact";
 
-type Item = { label: string; to?: string; href?: string };
+type Item = { key: string; to?: string; href?: string };
 
-const COLS: { title: string; items: Item[] }[] = [
+const COLS: { titleKey: string; items: Item[] }[] = [
   {
-    title: "À propos de Winstorr",
+    titleKey: "footer.colAbout",
     items: [
-      { label: "À propos de Wintek", to: "/a-propos" },
-      { label: "Notre engagement qualité", to: "/engagement-qualite" },
-      { label: "Comment ça marche", to: "/comment-ca-marche" },
-      { label: "Wintek Academy", to: "/wintek-academy" },
-      { label: "Nous contacter", to: "/contact" },
+      { key: "footer.aboutWintek", to: "/a-propos" },
+      { key: "footer.qualityCommitment", to: "/engagement-qualite" },
+      { key: "footer.howItWorks", to: "/comment-ca-marche" },
+      { key: "footer.academy", to: "/wintek-academy" },
+      { key: "footer.contactUs", to: "/contact" },
     ],
   },
   {
-    title: "Vendre sur Winstorr",
+    titleKey: "footer.colSell",
     items: [
-      { label: "Devenir vendeur", to: "/devenir-vendeur" },
-      { label: "Nos boutiques", to: "/boutiques" },
-      { label: "Espace vendeur", to: "/vendeur/tableau-de-bord" },
+      { key: "footer.becomeVendor", to: "/devenir-vendeur" },
+      { key: "footer.ourStores", to: "/boutiques" },
+      { key: "footer.vendorSpace", to: "/vendeur/tableau-de-bord" },
     ],
   },
   {
-    title: "Paiement & Livraison",
+    titleKey: "footer.colPayment",
     items: [
-      { label: "Moyens de paiement", to: "/moyens-de-paiement" },
-      { label: "Points de retrait", to: "/points-retrait" },
-      { label: "Zones de livraison", to: "/zones-livraison" },
-      { label: "Suivre ma commande", to: "/mon-compte/commandes" },
-      { label: "Paiement à la réception", to: "/paiement-a-la-reception" },
+      { key: "footer.paymentMethods", to: "/moyens-de-paiement" },
+      { key: "footer.pickupPoints", to: "/points-retrait" },
+      { key: "footer.deliveryZones", to: "/zones-livraison" },
+      { key: "footer.trackOrder", to: "/mon-compte/commandes" },
+      { key: "footer.cashOnDelivery", to: "/paiement-a-la-reception" },
     ],
   },
   {
-    title: "Aide & Confiance",
+    titleKey: "footer.colHelp",
     items: [
-      { label: "Retours & remboursements", to: "/retours-remboursements" },
-      { label: "Garantie qualité", to: "/garantie" },
-      { label: "FAQ", to: "/faq" },
-      {
-        label: "Nous contacter sur WhatsApp",
-        href: `https://wa.me/${SUPPORT_WHATSAPP_RAW}?text=${encodeURIComponent("Bonjour Winstorr, j'ai besoin d'aide.")}`,
-      },
-      { label: "Signaler un problème", to: "/signaler-un-probleme" },
+      { key: "footer.returns", to: "/retours-remboursements" },
+      { key: "footer.warranty", to: "/garantie" },
+      { key: "footer.faq", to: "/faq" },
+      { key: "footer.whatsapp", href: "whatsapp" },
+      { key: "footer.reportProblem", to: "/signaler-un-probleme" },
     ],
   },
 ];
 
 const TRUST = [
-  { icon: ShieldCheck, title: "Qualité vérifiée", sub: "Chaque produit contrôlé" },
-  { icon: Lock, title: "Paiement sécurisé", sub: "MoMo, Orange Money, carte" },
-  { icon: Wrench, title: "SAV assuré par Wintek", sub: "Réparation & garantie" },
-  { icon: MapPin, title: "Retrait & livraison", sub: "Douala et environs" },
+  { icon: ShieldCheck, titleKey: "footer.trustQualityTitle", subKey: "footer.trustQualitySub" },
+  { icon: Lock, titleKey: "footer.trustPaymentTitle", subKey: "footer.trustPaymentSub" },
+  { icon: Wrench, titleKey: "footer.trustServiceTitle", subKey: "footer.trustServiceSub" },
+  { icon: MapPin, titleKey: "footer.trustDeliveryTitle", subKey: "footer.trustDeliverySub" },
 ];
 
 const LEGAL: Item[] = [
-  { label: "Conditions Générales de Vente", to: "/cgv" },
-  { label: "Politique de confidentialité", to: "/confidentialite" },
-  { label: "Politique de retour", to: "/politique-de-retour" },
-  { label: "Mentions légales", to: "/mentions-legales" },
-  { label: "Cookies", to: "/cookies" },
+  { key: "footer.cgv", to: "/cgv" },
+  { key: "footer.privacy", to: "/confidentialite" },
+  { key: "footer.returnPolicy", to: "/politique-de-retour" },
+  { key: "footer.legal", to: "/mentions-legales" },
+  { key: "footer.cookies", to: "/cookies" },
 ];
 
 const linkClass =
   "no-link-color text-primary-foreground/75 hover:text-primary-foreground hover:underline";
 
 function FooterLink({ item }: { item: Item }) {
-  if (item.href) {
+  const { t } = useTranslation();
+  const label = t(item.key);
+  if (item.href === "whatsapp") {
     return (
-      <a href={item.href} target="_blank" rel="noopener noreferrer" className={linkClass}>
-        {item.label}
+      <a
+        href={`https://wa.me/${SUPPORT_WHATSAPP_RAW}?text=${encodeURIComponent(t("footer.whatsappMessage"))}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={linkClass}
+      >
+        {label}
       </a>
     );
   }
   if (item.to) {
     return (
       <Link to={item.to} className={linkClass}>
-        {item.label}
+        {label}
       </Link>
     );
   }
-  return <span className="text-primary-foreground/75">{item.label}</span>;
+  return <span className="text-primary-foreground/75">{label}</span>;
 }
 
 export function SiteFooter() {
+  const { t } = useTranslation();
   const scrollTop = () => {
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -105,17 +112,17 @@ export function SiteFooter() {
         className="flex w-full items-center justify-center gap-1.5 bg-header-alt py-3 text-xs font-medium text-primary-foreground/90 transition-colors hover:bg-header-alt/80"
       >
         <ChevronUp className="h-4 w-4" />
-        Retour en haut
+        {t("footer.backToTop")}
       </button>
 
       {/* 2. Link columns */}
       <div className="mx-auto grid max-w-7xl grid-cols-2 gap-8 px-4 py-10 text-sm md:grid-cols-4">
         {COLS.map((col) => (
-          <div key={col.title} className="min-w-0">
-            <div className="text-[13px] font-bold text-primary-foreground">{col.title}</div>
+          <div key={col.titleKey} className="min-w-0">
+            <div className="text-[13px] font-bold text-primary-foreground">{t(col.titleKey)}</div>
             <ul className="mt-3 space-y-2 text-xs">
               {col.items.map((it) => (
-                <li key={it.label}>
+                <li key={it.key}>
                   <FooterLink item={it} />
                 </li>
               ))}
@@ -127,14 +134,14 @@ export function SiteFooter() {
       {/* 3. Trust strip */}
       <div className="border-t border-primary-foreground/10">
         <ul className="mx-auto grid max-w-7xl gap-4 px-4 py-6 sm:grid-cols-2 md:grid-cols-4">
-          {TRUST.map((t) => {
-            const Icon = t.icon;
+          {TRUST.map((item) => {
+            const Icon = item.icon;
             return (
-              <li key={t.title} className="flex items-start gap-2.5">
+              <li key={item.titleKey} className="flex items-start gap-2.5">
                 <Icon className="mt-0.5 h-5 w-5 shrink-0 text-success" strokeWidth={2.25} />
                 <div className="min-w-0">
-                  <div className="text-xs font-semibold text-primary-foreground">{t.title}</div>
-                  <div className="text-[11px] text-primary-foreground/65">{t.sub}</div>
+                  <div className="text-xs font-semibold text-primary-foreground">{t(item.titleKey)}</div>
+                  <div className="text-[11px] text-primary-foreground/65">{t(item.subKey)}</div>
                 </div>
               </li>
             );
@@ -148,7 +155,8 @@ export function SiteFooter() {
           <Link to="/" className="no-link-color">
             <img src={logo.url} alt="Winstorr" className="h-7 w-auto" loading="lazy" />
           </Link>
-          <span className="text-[11px] text-primary-foreground/60">🇨🇲 Cameroun — {SUPPORT_CITY}</span>
+          <span className="text-[11px] text-primary-foreground/60">{t("footer.region", { city: SUPPORT_CITY })}</span>
+          <LanguageSwitcher />
         </div>
       </div>
 
@@ -157,7 +165,7 @@ export function SiteFooter() {
         <div className="mx-auto max-w-7xl px-4 py-5 text-center">
           <ul className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-[11px]">
             {LEGAL.map((l) => (
-              <li key={l.label}>
+              <li key={l.key}>
                 <FooterLink item={l} />
               </li>
             ))}
@@ -179,7 +187,7 @@ export function SiteFooter() {
             </a>
           </div>
           <div className="mt-3 text-[11px] text-primary-foreground/55">
-            © {new Date().getFullYear()} Wintek — Winstorr. Tous droits réservés.
+            {t("footer.rights", { year: new Date().getFullYear() })}
           </div>
         </div>
       </div>
