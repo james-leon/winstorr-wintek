@@ -9,14 +9,32 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ZonesLivraisonRouteImport } from './routes/zones-livraison'
+import { Route as WintekAcademyRouteImport } from './routes/wintek-academy'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SignalerUnProblemeRouteImport } from './routes/signaler-un-probleme'
+import { Route as RetoursRemboursementsRouteImport } from './routes/retours-remboursements'
+import { Route as PolitiqueDeRetourRouteImport } from './routes/politique-de-retour'
+import { Route as PointsRetraitRouteImport } from './routes/points-retrait'
 import { Route as PanierRouteImport } from './routes/panier'
+import { Route as PaiementALaReceptionRouteImport } from './routes/paiement-a-la-reception'
+import { Route as MoyensDePaiementRouteImport } from './routes/moyens-de-paiement'
+import { Route as MentionsLegalesRouteImport } from './routes/mentions-legales'
+import { Route as GarantieRouteImport } from './routes/garantie'
+import { Route as FaqRouteImport } from './routes/faq'
+import { Route as EngagementQualiteRouteImport } from './routes/engagement-qualite'
 import { Route as DevenirVendeurRouteImport } from './routes/devenir-vendeur'
+import { Route as CookiesRouteImport } from './routes/cookies'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ConnexionRouteImport } from './routes/connexion'
+import { Route as ConfidentialiteRouteImport } from './routes/confidentialite'
+import { Route as CommentCaMarcheRouteImport } from './routes/comment-ca-marche'
 import { Route as CommandeRouteImport } from './routes/commande'
+import { Route as CgvRouteImport } from './routes/cgv'
 import { Route as CatalogueRouteImport } from './routes/catalogue'
 import { Route as BoutiquesRouteImport } from './routes/boutiques'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AProposRouteImport } from './routes/a-propos'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProduitsSlugRouteImport } from './routes/produits.$slug'
@@ -61,9 +79,39 @@ import { Route as AuthenticatedAdminAnnoncesVendeursRouteImport } from './routes
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin.analytics'
 import { Route as AuthenticatedMonCompteCommandesOrderNumberRouteImport } from './routes/_authenticated/mon-compte.commandes.$orderNumber'
 
+const ZonesLivraisonRoute = ZonesLivraisonRouteImport.update({
+  id: '/zones-livraison',
+  path: '/zones-livraison',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WintekAcademyRoute = WintekAcademyRouteImport.update({
+  id: '/wintek-academy',
+  path: '/wintek-academy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignalerUnProblemeRoute = SignalerUnProblemeRouteImport.update({
+  id: '/signaler-un-probleme',
+  path: '/signaler-un-probleme',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RetoursRemboursementsRoute = RetoursRemboursementsRouteImport.update({
+  id: '/retours-remboursements',
+  path: '/retours-remboursements',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PolitiqueDeRetourRoute = PolitiqueDeRetourRouteImport.update({
+  id: '/politique-de-retour',
+  path: '/politique-de-retour',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PointsRetraitRoute = PointsRetraitRouteImport.update({
+  id: '/points-retrait',
+  path: '/points-retrait',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PanierRoute = PanierRouteImport.update({
@@ -71,9 +119,49 @@ const PanierRoute = PanierRouteImport.update({
   path: '/panier',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PaiementALaReceptionRoute = PaiementALaReceptionRouteImport.update({
+  id: '/paiement-a-la-reception',
+  path: '/paiement-a-la-reception',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MoyensDePaiementRoute = MoyensDePaiementRouteImport.update({
+  id: '/moyens-de-paiement',
+  path: '/moyens-de-paiement',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MentionsLegalesRoute = MentionsLegalesRouteImport.update({
+  id: '/mentions-legales',
+  path: '/mentions-legales',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GarantieRoute = GarantieRouteImport.update({
+  id: '/garantie',
+  path: '/garantie',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EngagementQualiteRoute = EngagementQualiteRouteImport.update({
+  id: '/engagement-qualite',
+  path: '/engagement-qualite',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DevenirVendeurRoute = DevenirVendeurRouteImport.update({
   id: '/devenir-vendeur',
   path: '/devenir-vendeur',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CookiesRoute = CookiesRouteImport.update({
+  id: '/cookies',
+  path: '/cookies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConnexionRoute = ConnexionRouteImport.update({
@@ -81,9 +169,24 @@ const ConnexionRoute = ConnexionRouteImport.update({
   path: '/connexion',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConfidentialiteRoute = ConfidentialiteRouteImport.update({
+  id: '/confidentialite',
+  path: '/confidentialite',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommentCaMarcheRoute = CommentCaMarcheRouteImport.update({
+  id: '/comment-ca-marche',
+  path: '/comment-ca-marche',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CommandeRoute = CommandeRouteImport.update({
   id: '/commande',
   path: '/commande',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CgvRoute = CgvRouteImport.update({
+  id: '/cgv',
+  path: '/cgv',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CatalogueRoute = CatalogueRouteImport.update({
@@ -99,6 +202,11 @@ const BoutiquesRoute = BoutiquesRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AProposRoute = AProposRouteImport.update({
+  id: '/a-propos',
+  path: '/a-propos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -350,14 +458,32 @@ const AuthenticatedMonCompteCommandesOrderNumberRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/a-propos': typeof AProposRoute
   '/auth': typeof AuthRoute
   '/boutiques': typeof BoutiquesRoute
   '/catalogue': typeof CatalogueRoute
+  '/cgv': typeof CgvRoute
   '/commande': typeof CommandeRouteWithChildren
+  '/comment-ca-marche': typeof CommentCaMarcheRoute
+  '/confidentialite': typeof ConfidentialiteRoute
   '/connexion': typeof ConnexionRoute
+  '/contact': typeof ContactRoute
+  '/cookies': typeof CookiesRoute
   '/devenir-vendeur': typeof DevenirVendeurRoute
+  '/engagement-qualite': typeof EngagementQualiteRoute
+  '/faq': typeof FaqRoute
+  '/garantie': typeof GarantieRoute
+  '/mentions-legales': typeof MentionsLegalesRoute
+  '/moyens-de-paiement': typeof MoyensDePaiementRoute
+  '/paiement-a-la-reception': typeof PaiementALaReceptionRoute
   '/panier': typeof PanierRoute
+  '/points-retrait': typeof PointsRetraitRoute
+  '/politique-de-retour': typeof PolitiqueDeRetourRoute
+  '/retours-remboursements': typeof RetoursRemboursementsRoute
+  '/signaler-un-probleme': typeof SignalerUnProblemeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/wintek-academy': typeof WintekAcademyRoute
+  '/zones-livraison': typeof ZonesLivraisonRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/mon-compte': typeof AuthenticatedMonCompteRouteWithChildren
   '/vendeur': typeof AuthenticatedVendeurRouteWithChildren
@@ -402,14 +528,32 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/a-propos': typeof AProposRoute
   '/auth': typeof AuthRoute
   '/boutiques': typeof BoutiquesRoute
   '/catalogue': typeof CatalogueRoute
+  '/cgv': typeof CgvRoute
   '/commande': typeof CommandeRouteWithChildren
+  '/comment-ca-marche': typeof CommentCaMarcheRoute
+  '/confidentialite': typeof ConfidentialiteRoute
   '/connexion': typeof ConnexionRoute
+  '/contact': typeof ContactRoute
+  '/cookies': typeof CookiesRoute
   '/devenir-vendeur': typeof DevenirVendeurRoute
+  '/engagement-qualite': typeof EngagementQualiteRoute
+  '/faq': typeof FaqRoute
+  '/garantie': typeof GarantieRoute
+  '/mentions-legales': typeof MentionsLegalesRoute
+  '/moyens-de-paiement': typeof MoyensDePaiementRoute
+  '/paiement-a-la-reception': typeof PaiementALaReceptionRoute
   '/panier': typeof PanierRoute
+  '/points-retrait': typeof PointsRetraitRoute
+  '/politique-de-retour': typeof PolitiqueDeRetourRoute
+  '/retours-remboursements': typeof RetoursRemboursementsRoute
+  '/signaler-un-probleme': typeof SignalerUnProblemeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/wintek-academy': typeof WintekAcademyRoute
+  '/zones-livraison': typeof ZonesLivraisonRoute
   '/vendeur': typeof AuthenticatedVendeurRouteWithChildren
   '/boutiques/$vendorSlug': typeof BoutiquesVendorSlugRoute
   '/connexion/mot-de-passe': typeof ConnexionMotDePasseRoute
@@ -454,14 +598,32 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/a-propos': typeof AProposRoute
   '/auth': typeof AuthRoute
   '/boutiques': typeof BoutiquesRoute
   '/catalogue': typeof CatalogueRoute
+  '/cgv': typeof CgvRoute
   '/commande': typeof CommandeRouteWithChildren
+  '/comment-ca-marche': typeof CommentCaMarcheRoute
+  '/confidentialite': typeof ConfidentialiteRoute
   '/connexion': typeof ConnexionRoute
+  '/contact': typeof ContactRoute
+  '/cookies': typeof CookiesRoute
   '/devenir-vendeur': typeof DevenirVendeurRoute
+  '/engagement-qualite': typeof EngagementQualiteRoute
+  '/faq': typeof FaqRoute
+  '/garantie': typeof GarantieRoute
+  '/mentions-legales': typeof MentionsLegalesRoute
+  '/moyens-de-paiement': typeof MoyensDePaiementRoute
+  '/paiement-a-la-reception': typeof PaiementALaReceptionRoute
   '/panier': typeof PanierRoute
+  '/points-retrait': typeof PointsRetraitRoute
+  '/politique-de-retour': typeof PolitiqueDeRetourRoute
+  '/retours-remboursements': typeof RetoursRemboursementsRoute
+  '/signaler-un-probleme': typeof SignalerUnProblemeRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/wintek-academy': typeof WintekAcademyRoute
+  '/zones-livraison': typeof ZonesLivraisonRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/mon-compte': typeof AuthenticatedMonCompteRouteWithChildren
   '/_authenticated/vendeur': typeof AuthenticatedVendeurRouteWithChildren
@@ -508,14 +670,32 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/a-propos'
     | '/auth'
     | '/boutiques'
     | '/catalogue'
+    | '/cgv'
     | '/commande'
+    | '/comment-ca-marche'
+    | '/confidentialite'
     | '/connexion'
+    | '/contact'
+    | '/cookies'
     | '/devenir-vendeur'
+    | '/engagement-qualite'
+    | '/faq'
+    | '/garantie'
+    | '/mentions-legales'
+    | '/moyens-de-paiement'
+    | '/paiement-a-la-reception'
     | '/panier'
+    | '/points-retrait'
+    | '/politique-de-retour'
+    | '/retours-remboursements'
+    | '/signaler-un-probleme'
     | '/sitemap.xml'
+    | '/wintek-academy'
+    | '/zones-livraison'
     | '/admin'
     | '/mon-compte'
     | '/vendeur'
@@ -560,14 +740,32 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/a-propos'
     | '/auth'
     | '/boutiques'
     | '/catalogue'
+    | '/cgv'
     | '/commande'
+    | '/comment-ca-marche'
+    | '/confidentialite'
     | '/connexion'
+    | '/contact'
+    | '/cookies'
     | '/devenir-vendeur'
+    | '/engagement-qualite'
+    | '/faq'
+    | '/garantie'
+    | '/mentions-legales'
+    | '/moyens-de-paiement'
+    | '/paiement-a-la-reception'
     | '/panier'
+    | '/points-retrait'
+    | '/politique-de-retour'
+    | '/retours-remboursements'
+    | '/signaler-un-probleme'
     | '/sitemap.xml'
+    | '/wintek-academy'
+    | '/zones-livraison'
     | '/vendeur'
     | '/boutiques/$vendorSlug'
     | '/connexion/mot-de-passe'
@@ -611,14 +809,32 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/a-propos'
     | '/auth'
     | '/boutiques'
     | '/catalogue'
+    | '/cgv'
     | '/commande'
+    | '/comment-ca-marche'
+    | '/confidentialite'
     | '/connexion'
+    | '/contact'
+    | '/cookies'
     | '/devenir-vendeur'
+    | '/engagement-qualite'
+    | '/faq'
+    | '/garantie'
+    | '/mentions-legales'
+    | '/moyens-de-paiement'
+    | '/paiement-a-la-reception'
     | '/panier'
+    | '/points-retrait'
+    | '/politique-de-retour'
+    | '/retours-remboursements'
+    | '/signaler-un-probleme'
     | '/sitemap.xml'
+    | '/wintek-academy'
+    | '/zones-livraison'
     | '/_authenticated/admin'
     | '/_authenticated/mon-compte'
     | '/_authenticated/vendeur'
@@ -665,14 +881,32 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AProposRoute: typeof AProposRoute
   AuthRoute: typeof AuthRoute
   BoutiquesRoute: typeof BoutiquesRoute
   CatalogueRoute: typeof CatalogueRoute
+  CgvRoute: typeof CgvRoute
   CommandeRoute: typeof CommandeRouteWithChildren
+  CommentCaMarcheRoute: typeof CommentCaMarcheRoute
+  ConfidentialiteRoute: typeof ConfidentialiteRoute
   ConnexionRoute: typeof ConnexionRoute
+  ContactRoute: typeof ContactRoute
+  CookiesRoute: typeof CookiesRoute
   DevenirVendeurRoute: typeof DevenirVendeurRoute
+  EngagementQualiteRoute: typeof EngagementQualiteRoute
+  FaqRoute: typeof FaqRoute
+  GarantieRoute: typeof GarantieRoute
+  MentionsLegalesRoute: typeof MentionsLegalesRoute
+  MoyensDePaiementRoute: typeof MoyensDePaiementRoute
+  PaiementALaReceptionRoute: typeof PaiementALaReceptionRoute
   PanierRoute: typeof PanierRoute
+  PointsRetraitRoute: typeof PointsRetraitRoute
+  PolitiqueDeRetourRoute: typeof PolitiqueDeRetourRoute
+  RetoursRemboursementsRoute: typeof RetoursRemboursementsRoute
+  SignalerUnProblemeRoute: typeof SignalerUnProblemeRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  WintekAcademyRoute: typeof WintekAcademyRoute
+  ZonesLivraisonRoute: typeof ZonesLivraisonRoute
   BoutiquesVendorSlugRoute: typeof BoutiquesVendorSlugRoute
   ConnexionMotDePasseRoute: typeof ConnexionMotDePasseRoute
   ProduitsSlugRoute: typeof ProduitsSlugRoute
@@ -682,11 +916,53 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/zones-livraison': {
+      id: '/zones-livraison'
+      path: '/zones-livraison'
+      fullPath: '/zones-livraison'
+      preLoaderRoute: typeof ZonesLivraisonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wintek-academy': {
+      id: '/wintek-academy'
+      path: '/wintek-academy'
+      fullPath: '/wintek-academy'
+      preLoaderRoute: typeof WintekAcademyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signaler-un-probleme': {
+      id: '/signaler-un-probleme'
+      path: '/signaler-un-probleme'
+      fullPath: '/signaler-un-probleme'
+      preLoaderRoute: typeof SignalerUnProblemeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/retours-remboursements': {
+      id: '/retours-remboursements'
+      path: '/retours-remboursements'
+      fullPath: '/retours-remboursements'
+      preLoaderRoute: typeof RetoursRemboursementsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/politique-de-retour': {
+      id: '/politique-de-retour'
+      path: '/politique-de-retour'
+      fullPath: '/politique-de-retour'
+      preLoaderRoute: typeof PolitiqueDeRetourRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/points-retrait': {
+      id: '/points-retrait'
+      path: '/points-retrait'
+      fullPath: '/points-retrait'
+      preLoaderRoute: typeof PointsRetraitRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/panier': {
@@ -696,11 +972,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PanierRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/paiement-a-la-reception': {
+      id: '/paiement-a-la-reception'
+      path: '/paiement-a-la-reception'
+      fullPath: '/paiement-a-la-reception'
+      preLoaderRoute: typeof PaiementALaReceptionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/moyens-de-paiement': {
+      id: '/moyens-de-paiement'
+      path: '/moyens-de-paiement'
+      fullPath: '/moyens-de-paiement'
+      preLoaderRoute: typeof MoyensDePaiementRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mentions-legales': {
+      id: '/mentions-legales'
+      path: '/mentions-legales'
+      fullPath: '/mentions-legales'
+      preLoaderRoute: typeof MentionsLegalesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/garantie': {
+      id: '/garantie'
+      path: '/garantie'
+      fullPath: '/garantie'
+      preLoaderRoute: typeof GarantieRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/engagement-qualite': {
+      id: '/engagement-qualite'
+      path: '/engagement-qualite'
+      fullPath: '/engagement-qualite'
+      preLoaderRoute: typeof EngagementQualiteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/devenir-vendeur': {
       id: '/devenir-vendeur'
       path: '/devenir-vendeur'
       fullPath: '/devenir-vendeur'
       preLoaderRoute: typeof DevenirVendeurRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cookies': {
+      id: '/cookies'
+      path: '/cookies'
+      fullPath: '/cookies'
+      preLoaderRoute: typeof CookiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/connexion': {
@@ -710,11 +1042,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConnexionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/confidentialite': {
+      id: '/confidentialite'
+      path: '/confidentialite'
+      fullPath: '/confidentialite'
+      preLoaderRoute: typeof ConfidentialiteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/comment-ca-marche': {
+      id: '/comment-ca-marche'
+      path: '/comment-ca-marche'
+      fullPath: '/comment-ca-marche'
+      preLoaderRoute: typeof CommentCaMarcheRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/commande': {
       id: '/commande'
       path: '/commande'
       fullPath: '/commande'
       preLoaderRoute: typeof CommandeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cgv': {
+      id: '/cgv'
+      path: '/cgv'
+      fullPath: '/cgv'
+      preLoaderRoute: typeof CgvRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/catalogue': {
@@ -736,6 +1089,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/a-propos': {
+      id: '/a-propos'
+      path: '/a-propos'
+      fullPath: '/a-propos'
+      preLoaderRoute: typeof AProposRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -1184,14 +1544,32 @@ const CommandeRouteWithChildren = CommandeRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AProposRoute: AProposRoute,
   AuthRoute: AuthRoute,
   BoutiquesRoute: BoutiquesRoute,
   CatalogueRoute: CatalogueRoute,
+  CgvRoute: CgvRoute,
   CommandeRoute: CommandeRouteWithChildren,
+  CommentCaMarcheRoute: CommentCaMarcheRoute,
+  ConfidentialiteRoute: ConfidentialiteRoute,
   ConnexionRoute: ConnexionRoute,
+  ContactRoute: ContactRoute,
+  CookiesRoute: CookiesRoute,
   DevenirVendeurRoute: DevenirVendeurRoute,
+  EngagementQualiteRoute: EngagementQualiteRoute,
+  FaqRoute: FaqRoute,
+  GarantieRoute: GarantieRoute,
+  MentionsLegalesRoute: MentionsLegalesRoute,
+  MoyensDePaiementRoute: MoyensDePaiementRoute,
+  PaiementALaReceptionRoute: PaiementALaReceptionRoute,
   PanierRoute: PanierRoute,
+  PointsRetraitRoute: PointsRetraitRoute,
+  PolitiqueDeRetourRoute: PolitiqueDeRetourRoute,
+  RetoursRemboursementsRoute: RetoursRemboursementsRoute,
+  SignalerUnProblemeRoute: SignalerUnProblemeRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  WintekAcademyRoute: WintekAcademyRoute,
+  ZonesLivraisonRoute: ZonesLivraisonRoute,
   BoutiquesVendorSlugRoute: BoutiquesVendorSlugRoute,
   ConnexionMotDePasseRoute: ConnexionMotDePasseRoute,
   ProduitsSlugRoute: ProduitsSlugRoute,
@@ -1201,13 +1579,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
