@@ -1031,6 +1031,7 @@ export type Database = {
           delivery_mode: Database["public"]["Enums"]["training_mode"] | null
           delivery_type: Database["public"]["Enums"]["delivery_type"] | null
           description: string | null
+          description_en: string | null
           estimated_duration: string | null
           featured: boolean
           has_variants: boolean
@@ -1038,6 +1039,7 @@ export type Database = {
           images: Json
           min_order_quantity: number
           name: string
+          name_en: string | null
           price: number | null
           price_type: Database["public"]["Enums"]["price_type"]
           quality_verified: boolean
@@ -1050,6 +1052,7 @@ export type Database = {
           reviewed_by: string | null
           service_area: Database["public"]["Enums"]["service_area"] | null
           short_description: string | null
+          short_description_en: string | null
           sku: string | null
           slug: string
           source_type: Database["public"]["Enums"]["source_type"] | null
@@ -1069,6 +1072,7 @@ export type Database = {
           delivery_mode?: Database["public"]["Enums"]["training_mode"] | null
           delivery_type?: Database["public"]["Enums"]["delivery_type"] | null
           description?: string | null
+          description_en?: string | null
           estimated_duration?: string | null
           featured?: boolean
           has_variants?: boolean
@@ -1076,6 +1080,7 @@ export type Database = {
           images?: Json
           min_order_quantity?: number
           name: string
+          name_en?: string | null
           price?: number | null
           price_type?: Database["public"]["Enums"]["price_type"]
           quality_verified?: boolean
@@ -1088,6 +1093,7 @@ export type Database = {
           reviewed_by?: string | null
           service_area?: Database["public"]["Enums"]["service_area"] | null
           short_description?: string | null
+          short_description_en?: string | null
           sku?: string | null
           slug: string
           source_type?: Database["public"]["Enums"]["source_type"] | null
@@ -1107,6 +1113,7 @@ export type Database = {
           delivery_mode?: Database["public"]["Enums"]["training_mode"] | null
           delivery_type?: Database["public"]["Enums"]["delivery_type"] | null
           description?: string | null
+          description_en?: string | null
           estimated_duration?: string | null
           featured?: boolean
           has_variants?: boolean
@@ -1114,6 +1121,7 @@ export type Database = {
           images?: Json
           min_order_quantity?: number
           name?: string
+          name_en?: string | null
           price?: number | null
           price_type?: Database["public"]["Enums"]["price_type"]
           quality_verified?: boolean
@@ -1126,6 +1134,7 @@ export type Database = {
           reviewed_by?: string | null
           service_area?: Database["public"]["Enums"]["service_area"] | null
           short_description?: string | null
+          short_description_en?: string | null
           sku?: string | null
           slug?: string
           source_type?: Database["public"]["Enums"]["source_type"] | null
@@ -1167,6 +1176,7 @@ export type Database = {
           full_name: string | null
           id: string
           phone: string | null
+          preferred_language: string
           updated_at: string
         }
         Insert: {
@@ -1174,6 +1184,7 @@ export type Database = {
           full_name?: string | null
           id: string
           phone?: string | null
+          preferred_language?: string
           updated_at?: string
         }
         Update: {
@@ -1181,6 +1192,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           phone?: string | null
+          preferred_language?: string
           updated_at?: string
         }
         Relationships: []
