@@ -57,6 +57,7 @@ import { Route as AuthenticatedVendeurCommandesRouteImport } from './routes/_aut
 import { Route as AuthenticatedVendeurCodesPromoRouteImport } from './routes/_authenticated/vendeur.codes-promo'
 import { Route as AuthenticatedVendeurBoutiqueRouteImport } from './routes/_authenticated/vendeur.boutique'
 import { Route as AuthenticatedVendeurAnnoncesRouteImport } from './routes/_authenticated/vendeur.annonces'
+import { Route as AuthenticatedPartenaireTableauDeBordRouteImport } from './routes/_authenticated/partenaire.tableau-de-bord'
 import { Route as AuthenticatedMonCompteProfilRouteImport } from './routes/_authenticated/mon-compte.profil'
 import { Route as AuthenticatedMonCompteListeDeSouhaitsRouteImport } from './routes/_authenticated/mon-compte.liste-de-souhaits'
 import { Route as AuthenticatedMonCompteCommandesRouteImport } from './routes/_authenticated/mon-compte.commandes'
@@ -331,6 +332,12 @@ const AuthenticatedVendeurAnnoncesRoute =
     path: '/annonces',
     getParentRoute: () => AuthenticatedVendeurRoute,
   } as any)
+const AuthenticatedPartenaireTableauDeBordRoute =
+  AuthenticatedPartenaireTableauDeBordRouteImport.update({
+    id: '/tableau-de-bord',
+    path: '/tableau-de-bord',
+    getParentRoute: () => AuthenticatedPartenaireRoute,
+  } as any)
 const AuthenticatedMonCompteProfilRoute =
   AuthenticatedMonCompteProfilRouteImport.update({
     id: '/profil',
@@ -499,7 +506,7 @@ export interface FileRoutesByFullPath {
   '/zones-livraison': typeof ZonesLivraisonRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/mon-compte': typeof AuthenticatedMonCompteRouteWithChildren
-  '/partenaire': typeof AuthenticatedPartenaireRoute
+  '/partenaire': typeof AuthenticatedPartenaireRouteWithChildren
   '/vendeur': typeof AuthenticatedVendeurRouteWithChildren
   '/boutiques/$vendorSlug': typeof BoutiquesVendorSlugRoute
   '/connexion/mot-de-passe': typeof ConnexionMotDePasseRoute
@@ -526,6 +533,7 @@ export interface FileRoutesByFullPath {
   '/mon-compte/commandes': typeof AuthenticatedMonCompteCommandesRouteWithChildren
   '/mon-compte/liste-de-souhaits': typeof AuthenticatedMonCompteListeDeSouhaitsRoute
   '/mon-compte/profil': typeof AuthenticatedMonCompteProfilRoute
+  '/partenaire/tableau-de-bord': typeof AuthenticatedPartenaireTableauDeBordRoute
   '/vendeur/annonces': typeof AuthenticatedVendeurAnnoncesRoute
   '/vendeur/boutique': typeof AuthenticatedVendeurBoutiqueRoute
   '/vendeur/codes-promo': typeof AuthenticatedVendeurCodesPromoRoute
@@ -569,7 +577,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/wintek-academy': typeof WintekAcademyRoute
   '/zones-livraison': typeof ZonesLivraisonRoute
-  '/partenaire': typeof AuthenticatedPartenaireRoute
+  '/partenaire': typeof AuthenticatedPartenaireRouteWithChildren
   '/vendeur': typeof AuthenticatedVendeurRouteWithChildren
   '/boutiques/$vendorSlug': typeof BoutiquesVendorSlugRoute
   '/connexion/mot-de-passe': typeof ConnexionMotDePasseRoute
@@ -596,6 +604,7 @@ export interface FileRoutesByTo {
   '/mon-compte/commandes': typeof AuthenticatedMonCompteCommandesRouteWithChildren
   '/mon-compte/liste-de-souhaits': typeof AuthenticatedMonCompteListeDeSouhaitsRoute
   '/mon-compte/profil': typeof AuthenticatedMonCompteProfilRoute
+  '/partenaire/tableau-de-bord': typeof AuthenticatedPartenaireTableauDeBordRoute
   '/vendeur/annonces': typeof AuthenticatedVendeurAnnoncesRoute
   '/vendeur/boutique': typeof AuthenticatedVendeurBoutiqueRoute
   '/vendeur/codes-promo': typeof AuthenticatedVendeurCodesPromoRoute
@@ -643,7 +652,7 @@ export interface FileRoutesById {
   '/zones-livraison': typeof ZonesLivraisonRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/mon-compte': typeof AuthenticatedMonCompteRouteWithChildren
-  '/_authenticated/partenaire': typeof AuthenticatedPartenaireRoute
+  '/_authenticated/partenaire': typeof AuthenticatedPartenaireRouteWithChildren
   '/_authenticated/vendeur': typeof AuthenticatedVendeurRouteWithChildren
   '/boutiques_/$vendorSlug': typeof BoutiquesVendorSlugRoute
   '/connexion_/mot-de-passe': typeof ConnexionMotDePasseRoute
@@ -670,6 +679,7 @@ export interface FileRoutesById {
   '/_authenticated/mon-compte/commandes': typeof AuthenticatedMonCompteCommandesRouteWithChildren
   '/_authenticated/mon-compte/liste-de-souhaits': typeof AuthenticatedMonCompteListeDeSouhaitsRoute
   '/_authenticated/mon-compte/profil': typeof AuthenticatedMonCompteProfilRoute
+  '/_authenticated/partenaire/tableau-de-bord': typeof AuthenticatedPartenaireTableauDeBordRoute
   '/_authenticated/vendeur/annonces': typeof AuthenticatedVendeurAnnoncesRoute
   '/_authenticated/vendeur/boutique': typeof AuthenticatedVendeurBoutiqueRoute
   '/_authenticated/vendeur/codes-promo': typeof AuthenticatedVendeurCodesPromoRoute
@@ -744,6 +754,7 @@ export interface FileRouteTypes {
     | '/mon-compte/commandes'
     | '/mon-compte/liste-de-souhaits'
     | '/mon-compte/profil'
+    | '/partenaire/tableau-de-bord'
     | '/vendeur/annonces'
     | '/vendeur/boutique'
     | '/vendeur/codes-promo'
@@ -814,6 +825,7 @@ export interface FileRouteTypes {
     | '/mon-compte/commandes'
     | '/mon-compte/liste-de-souhaits'
     | '/mon-compte/profil'
+    | '/partenaire/tableau-de-bord'
     | '/vendeur/annonces'
     | '/vendeur/boutique'
     | '/vendeur/codes-promo'
@@ -887,6 +899,7 @@ export interface FileRouteTypes {
     | '/_authenticated/mon-compte/commandes'
     | '/_authenticated/mon-compte/liste-de-souhaits'
     | '/_authenticated/mon-compte/profil'
+    | '/_authenticated/partenaire/tableau-de-bord'
     | '/_authenticated/vendeur/annonces'
     | '/_authenticated/vendeur/boutique'
     | '/_authenticated/vendeur/codes-promo'
@@ -1277,6 +1290,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedVendeurAnnoncesRouteImport
       parentRoute: typeof AuthenticatedVendeurRoute
     }
+    '/_authenticated/partenaire/tableau-de-bord': {
+      id: '/_authenticated/partenaire/tableau-de-bord'
+      path: '/tableau-de-bord'
+      fullPath: '/partenaire/tableau-de-bord'
+      preLoaderRoute: typeof AuthenticatedPartenaireTableauDeBordRouteImport
+      parentRoute: typeof AuthenticatedPartenaireRoute
+    }
     '/_authenticated/mon-compte/profil': {
       id: '/_authenticated/mon-compte/profil'
       path: '/profil'
@@ -1529,6 +1549,21 @@ const AuthenticatedMonCompteRouteWithChildren =
     AuthenticatedMonCompteRouteChildren,
   )
 
+interface AuthenticatedPartenaireRouteChildren {
+  AuthenticatedPartenaireTableauDeBordRoute: typeof AuthenticatedPartenaireTableauDeBordRoute
+}
+
+const AuthenticatedPartenaireRouteChildren: AuthenticatedPartenaireRouteChildren =
+  {
+    AuthenticatedPartenaireTableauDeBordRoute:
+      AuthenticatedPartenaireTableauDeBordRoute,
+  }
+
+const AuthenticatedPartenaireRouteWithChildren =
+  AuthenticatedPartenaireRoute._addFileChildren(
+    AuthenticatedPartenaireRouteChildren,
+  )
+
 interface AuthenticatedVendeurRouteChildren {
   AuthenticatedVendeurAnnoncesRoute: typeof AuthenticatedVendeurAnnoncesRoute
   AuthenticatedVendeurBoutiqueRoute: typeof AuthenticatedVendeurBoutiqueRoute
@@ -1558,14 +1593,14 @@ const AuthenticatedVendeurRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedMonCompteRoute: typeof AuthenticatedMonCompteRouteWithChildren
-  AuthenticatedPartenaireRoute: typeof AuthenticatedPartenaireRoute
+  AuthenticatedPartenaireRoute: typeof AuthenticatedPartenaireRouteWithChildren
   AuthenticatedVendeurRoute: typeof AuthenticatedVendeurRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedMonCompteRoute: AuthenticatedMonCompteRouteWithChildren,
-  AuthenticatedPartenaireRoute: AuthenticatedPartenaireRoute,
+  AuthenticatedPartenaireRoute: AuthenticatedPartenaireRouteWithChildren,
   AuthenticatedVendeurRoute: AuthenticatedVendeurRouteWithChildren,
 }
 
