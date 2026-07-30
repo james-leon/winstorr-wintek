@@ -2280,6 +2280,10 @@ export type Database = {
         Returns: Json
       }
       send_delivery_reminders: { Args: never; Returns: number }
+      set_vendor_allow_financing: {
+        Args: { _allow: boolean; _vendor_id: string }
+        Returns: Json
+      }
       snapshot_order_commissions: {
         Args: { _order_id: string }
         Returns: undefined
