@@ -4,6 +4,8 @@ import { ShieldCheck, Store as StoreIcon, Star, Users, Package, Heart, ExternalL
 import { supabase } from "@/integrations/supabase/client";
 import { ProductCard, type ProductCardData } from "@/components/product-card";
 import { EmptyState } from "@/components/empty-state";
+import { PublicRouteError } from "@/components/public-route-error";
+
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
 import { useIsFollowing, useFollowerCount, useToggleFollow } from "@/lib/vendor-follow";
@@ -141,15 +143,9 @@ export const Route = createFileRoute("/boutiques_/$vendorSlug")({
   },
   component: Storefront,
   errorComponent: ({ error }) => (
-    <div className="mx-auto max-w-3xl p-8">
-      <EmptyState
-        title="Impossible de charger la boutique"
-        description={error.message}
-        icon={StoreIcon}
-
-      />
-    </div>
+    <PublicRouteError error={error} title="Impossible de charger la boutique" icon={StoreIcon} />
   ),
+
   notFoundComponent: () => (
     <div className="mx-auto max-w-3xl p-8">
       <EmptyState

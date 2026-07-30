@@ -3,6 +3,8 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { Search, Store as StoreIcon, ShieldCheck, Sparkles, Star, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { EmptyState } from "@/components/empty-state";
+import { PublicRouteError } from "@/components/public-route-error";
+
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
@@ -143,15 +145,9 @@ export const Route = createFileRoute("/boutiques")({
   },
   component: BoutiquesDirectory,
   errorComponent: ({ error }) => (
-    <div className="mx-auto max-w-3xl p-8">
-      <EmptyState
-        title="Impossible de charger les boutiques"
-        description={error.message}
-        icon={StoreIcon}
-
-      />
-    </div>
+    <PublicRouteError error={error} title="Impossible de charger les boutiques" icon={StoreIcon} />
   ),
+
   notFoundComponent: () => (
     <div className="mx-auto max-w-3xl p-8">
       <EmptyState title="Aucune boutique" icon={StoreIcon} />

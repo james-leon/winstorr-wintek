@@ -17,6 +17,8 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { ensureFreshSessionOnBoot, friendlyErrorMessage, isSessionExpiredError, recoverSession } from "@/lib/session-recovery";
+
 
 function NotFoundComponent() {
   return (
@@ -35,14 +37,28 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+  const expired = isSessionExpiredError(error);
   useEffect(() => {
+    if (expired) {
+      // Renew the token (or fall back to visitor mode), then reload the route.
+      void recoverSession().then(() => {
+        router.invalidate();
+        reset();
+      });
+      return;
+    }
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
+  }, [error, expired, router, reset]);
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-4">
       <div className="max-w-md text-center">
-        <h1 className="font-display text-2xl text-foreground">Une erreur est survenue</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Réessayez ou revenez à l'accueil.</p>
+        <h1 className="font-display text-2xl text-foreground">
+          {expired ? "Session expirée" : "Une erreur est survenue"}
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {expired ? "Reconnexion en cours…" : friendlyErrorMessage(error)}
+        </p>
+
         <div className="mt-6 flex justify-center gap-2">
           <button
             onClick={() => { router.invalidate(); reset(); }}
@@ -131,6 +147,7 @@ function RootComponent() {
   const router = useRouter();
 
   useEffect(() => {
+    void ensureFreshSessionOnBoot();
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
         router.invalidate();
@@ -139,6 +156,7 @@ function RootComponent() {
     });
     return () => sub.subscription.unsubscribe();
   }, [router, queryClient]);
+
 
   return (
     <QueryClientProvider client={queryClient}>
