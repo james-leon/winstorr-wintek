@@ -58,6 +58,7 @@ import { Route as AuthenticatedVendeurCodesPromoRouteImport } from './routes/_au
 import { Route as AuthenticatedVendeurBoutiqueRouteImport } from './routes/_authenticated/vendeur.boutique'
 import { Route as AuthenticatedVendeurAnnoncesRouteImport } from './routes/_authenticated/vendeur.annonces'
 import { Route as AuthenticatedPartenaireTableauDeBordRouteImport } from './routes/_authenticated/partenaire.tableau-de-bord'
+import { Route as AuthenticatedPartenaireProfilRouteImport } from './routes/_authenticated/partenaire.profil'
 import { Route as AuthenticatedMonCompteProfilRouteImport } from './routes/_authenticated/mon-compte.profil'
 import { Route as AuthenticatedMonCompteListeDeSouhaitsRouteImport } from './routes/_authenticated/mon-compte.liste-de-souhaits'
 import { Route as AuthenticatedMonCompteCommandesRouteImport } from './routes/_authenticated/mon-compte.commandes'
@@ -338,6 +339,12 @@ const AuthenticatedPartenaireTableauDeBordRoute =
     path: '/tableau-de-bord',
     getParentRoute: () => AuthenticatedPartenaireRoute,
   } as any)
+const AuthenticatedPartenaireProfilRoute =
+  AuthenticatedPartenaireProfilRouteImport.update({
+    id: '/profil',
+    path: '/profil',
+    getParentRoute: () => AuthenticatedPartenaireRoute,
+  } as any)
 const AuthenticatedMonCompteProfilRoute =
   AuthenticatedMonCompteProfilRouteImport.update({
     id: '/profil',
@@ -533,6 +540,7 @@ export interface FileRoutesByFullPath {
   '/mon-compte/commandes': typeof AuthenticatedMonCompteCommandesRouteWithChildren
   '/mon-compte/liste-de-souhaits': typeof AuthenticatedMonCompteListeDeSouhaitsRoute
   '/mon-compte/profil': typeof AuthenticatedMonCompteProfilRoute
+  '/partenaire/profil': typeof AuthenticatedPartenaireProfilRoute
   '/partenaire/tableau-de-bord': typeof AuthenticatedPartenaireTableauDeBordRoute
   '/vendeur/annonces': typeof AuthenticatedVendeurAnnoncesRoute
   '/vendeur/boutique': typeof AuthenticatedVendeurBoutiqueRoute
@@ -604,6 +612,7 @@ export interface FileRoutesByTo {
   '/mon-compte/commandes': typeof AuthenticatedMonCompteCommandesRouteWithChildren
   '/mon-compte/liste-de-souhaits': typeof AuthenticatedMonCompteListeDeSouhaitsRoute
   '/mon-compte/profil': typeof AuthenticatedMonCompteProfilRoute
+  '/partenaire/profil': typeof AuthenticatedPartenaireProfilRoute
   '/partenaire/tableau-de-bord': typeof AuthenticatedPartenaireTableauDeBordRoute
   '/vendeur/annonces': typeof AuthenticatedVendeurAnnoncesRoute
   '/vendeur/boutique': typeof AuthenticatedVendeurBoutiqueRoute
@@ -679,6 +688,7 @@ export interface FileRoutesById {
   '/_authenticated/mon-compte/commandes': typeof AuthenticatedMonCompteCommandesRouteWithChildren
   '/_authenticated/mon-compte/liste-de-souhaits': typeof AuthenticatedMonCompteListeDeSouhaitsRoute
   '/_authenticated/mon-compte/profil': typeof AuthenticatedMonCompteProfilRoute
+  '/_authenticated/partenaire/profil': typeof AuthenticatedPartenaireProfilRoute
   '/_authenticated/partenaire/tableau-de-bord': typeof AuthenticatedPartenaireTableauDeBordRoute
   '/_authenticated/vendeur/annonces': typeof AuthenticatedVendeurAnnoncesRoute
   '/_authenticated/vendeur/boutique': typeof AuthenticatedVendeurBoutiqueRoute
@@ -754,6 +764,7 @@ export interface FileRouteTypes {
     | '/mon-compte/commandes'
     | '/mon-compte/liste-de-souhaits'
     | '/mon-compte/profil'
+    | '/partenaire/profil'
     | '/partenaire/tableau-de-bord'
     | '/vendeur/annonces'
     | '/vendeur/boutique'
@@ -825,6 +836,7 @@ export interface FileRouteTypes {
     | '/mon-compte/commandes'
     | '/mon-compte/liste-de-souhaits'
     | '/mon-compte/profil'
+    | '/partenaire/profil'
     | '/partenaire/tableau-de-bord'
     | '/vendeur/annonces'
     | '/vendeur/boutique'
@@ -899,6 +911,7 @@ export interface FileRouteTypes {
     | '/_authenticated/mon-compte/commandes'
     | '/_authenticated/mon-compte/liste-de-souhaits'
     | '/_authenticated/mon-compte/profil'
+    | '/_authenticated/partenaire/profil'
     | '/_authenticated/partenaire/tableau-de-bord'
     | '/_authenticated/vendeur/annonces'
     | '/_authenticated/vendeur/boutique'
@@ -1297,6 +1310,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPartenaireTableauDeBordRouteImport
       parentRoute: typeof AuthenticatedPartenaireRoute
     }
+    '/_authenticated/partenaire/profil': {
+      id: '/_authenticated/partenaire/profil'
+      path: '/profil'
+      fullPath: '/partenaire/profil'
+      preLoaderRoute: typeof AuthenticatedPartenaireProfilRouteImport
+      parentRoute: typeof AuthenticatedPartenaireRoute
+    }
     '/_authenticated/mon-compte/profil': {
       id: '/_authenticated/mon-compte/profil'
       path: '/profil'
@@ -1550,11 +1570,13 @@ const AuthenticatedMonCompteRouteWithChildren =
   )
 
 interface AuthenticatedPartenaireRouteChildren {
+  AuthenticatedPartenaireProfilRoute: typeof AuthenticatedPartenaireProfilRoute
   AuthenticatedPartenaireTableauDeBordRoute: typeof AuthenticatedPartenaireTableauDeBordRoute
 }
 
 const AuthenticatedPartenaireRouteChildren: AuthenticatedPartenaireRouteChildren =
   {
+    AuthenticatedPartenaireProfilRoute: AuthenticatedPartenaireProfilRoute,
     AuthenticatedPartenaireTableauDeBordRoute:
       AuthenticatedPartenaireTableauDeBordRoute,
   }
