@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import {
   LayoutDashboard, ShoppingCart, Undo2, Wrench, GraduationCap,
   Package, FolderTree, Star, Tag, Store, BarChart3, MapPin, Image, UserPlus,
-  Menu, ChevronDown,
+  Menu, ChevronDown, CreditCard,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useNavigate } from "@tanstack/react-router";
@@ -42,6 +42,9 @@ const NAV_GROUPS: NavGroup[] = [
     { to: "/admin/retraits", label: "Retraits", icon: BarChart3 },
     { to: "/admin/annonces-vendeurs", label: "Annonces", icon: Star },
     { to: "/admin/questions", label: "Questions produits", icon: FolderTree },
+  ]},
+  { label: "Financement", items: [
+    { to: "/admin/financement", label: "Paiement échelonné", icon: CreditCard },
   ]},
   { label: "Analytique", items: [
     { to: "/admin/analytics", label: "Rapports", icon: BarChart3 },

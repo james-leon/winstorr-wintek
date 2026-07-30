@@ -369,6 +369,216 @@ export type Database = {
           },
         ]
       }
+      financing_partner_invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          financing_partner_id: string | null
+          id: string
+          invited_by: string | null
+          proposed_partner_name: string | null
+          revoked_at: string | null
+          status: Database["public"]["Enums"]["financing_invitation_status"]
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          financing_partner_id?: string | null
+          id?: string
+          invited_by?: string | null
+          proposed_partner_name?: string | null
+          revoked_at?: string | null
+          status?: Database["public"]["Enums"]["financing_invitation_status"]
+          token: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          financing_partner_id?: string | null
+          id?: string
+          invited_by?: string | null
+          proposed_partner_name?: string | null
+          revoked_at?: string | null
+          status?: Database["public"]["Enums"]["financing_invitation_status"]
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financing_partner_invitations_financing_partner_id_fkey"
+            columns: ["financing_partner_id"]
+            isOneToOne: false
+            referencedRelation: "financing_partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financing_partner_members: {
+        Row: {
+          created_at: string
+          financing_partner_id: string
+          id: string
+          role: Database["public"]["Enums"]["financing_partner_member_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          financing_partner_id: string
+          id?: string
+          role?: Database["public"]["Enums"]["financing_partner_member_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          financing_partner_id?: string
+          id?: string
+          role?: Database["public"]["Enums"]["financing_partner_member_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financing_partner_members_financing_partner_id_fkey"
+            columns: ["financing_partner_id"]
+            isOneToOne: false
+            referencedRelation: "financing_partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financing_partners: {
+        Row: {
+          contact_email: string | null
+          contact_phone: string
+          created_at: string
+          default_terms_description: string | null
+          description: string
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          min_product_price: number
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          contact_email?: string | null
+          contact_phone?: string
+          created_at?: string
+          default_terms_description?: string | null
+          description?: string
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          min_product_price?: number
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          contact_email?: string | null
+          contact_phone?: string
+          created_at?: string
+          default_terms_description?: string | null
+          description?: string
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          min_product_price?: number
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      financing_requests: {
+        Row: {
+          created_at: string
+          customer_email: string | null
+          customer_message: string | null
+          customer_name: string
+          customer_phone: string
+          financing_partner_id: string
+          id: string
+          partner_notes: string | null
+          product_id: string | null
+          product_name: string
+          product_price: number
+          status: Database["public"]["Enums"]["financing_request_status"]
+          updated_at: string
+          variant_id: string | null
+          vendor_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_email?: string | null
+          customer_message?: string | null
+          customer_name: string
+          customer_phone: string
+          financing_partner_id: string
+          id?: string
+          partner_notes?: string | null
+          product_id?: string | null
+          product_name?: string
+          product_price?: number
+          status?: Database["public"]["Enums"]["financing_request_status"]
+          updated_at?: string
+          variant_id?: string | null
+          vendor_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_email?: string | null
+          customer_message?: string | null
+          customer_name?: string
+          customer_phone?: string
+          financing_partner_id?: string
+          id?: string
+          partner_notes?: string | null
+          product_id?: string | null
+          product_name?: string
+          product_price?: number
+          status?: Database["public"]["Enums"]["financing_request_status"]
+          updated_at?: string
+          variant_id?: string | null
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financing_requests_financing_partner_id_fkey"
+            columns: ["financing_partner_id"]
+            isOneToOne: false
+            referencedRelation: "financing_partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financing_requests_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financing_requests_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financing_requests_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       homepage_banners: {
         Row: {
           background_color: string | null
@@ -1777,6 +1987,7 @@ export type Database = {
       }
       vendors: {
         Row: {
+          allow_financing: boolean
           boost_score: number
           commission_rate: number | null
           contact_email: string | null
@@ -1793,6 +2004,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          allow_financing?: boolean
           boost_score?: number
           commission_rate?: number | null
           contact_email?: string | null
@@ -1809,6 +2021,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          allow_financing?: boolean
           boost_score?: number
           commission_rate?: number | null
           contact_email?: string | null
@@ -1867,6 +2080,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_financing_partner_invitation: {
+        Args: { _token: string }
+        Returns: Json
+      }
       accept_vendor_invitation: { Args: { _token: string }; Returns: Json }
       admin_analytics: {
         Args: {
@@ -1901,6 +2118,16 @@ export type Database = {
       generate_shipments_for_order: {
         Args: { _order_id: string }
         Returns: undefined
+      }
+      get_financing_partner_invitation: {
+        Args: { _token: string }
+        Returns: {
+          email: string
+          expires_at: string
+          partner_name: string
+          proposed_partner_name: string
+          status: Database["public"]["Enums"]["financing_invitation_status"]
+        }[]
       }
       get_follower_count: { Args: { _vendor_id: string }; Returns: number }
       get_follower_counts: {
@@ -2010,6 +2237,10 @@ export type Database = {
         Args: { _order_id: string; _user_id: string }
         Returns: boolean
       }
+      is_partner_member: {
+        Args: { _partner_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       is_vendor_member: {
         Args: { _user_id: string; _vendor_id: string }
@@ -2049,6 +2280,10 @@ export type Database = {
         Returns: Json
       }
       send_delivery_reminders: { Args: never; Returns: number }
+      set_vendor_allow_financing: {
+        Args: { _allow: boolean; _vendor_id: string }
+        Returns: Json
+      }
       snapshot_order_commissions: {
         Args: { _order_id: string }
         Returns: undefined
@@ -2099,6 +2334,18 @@ export type Database = {
       coupon_discount_type: "percentage" | "fixed_amount"
       coupon_status: "active" | "paused" | "expired"
       delivery_type: "file_download" | "license_key" | "access_link"
+      financing_invitation_status:
+        | "pending"
+        | "accepted"
+        | "expired"
+        | "revoked"
+      financing_partner_member_role: "owner" | "staff"
+      financing_request_status:
+        | "new"
+        | "contacted"
+        | "approved"
+        | "rejected"
+        | "completed"
       homepage_banner_type: "hero_slide" | "promo_tile" | "category_tile"
       order_status:
         | "pending_payment"
@@ -2316,6 +2563,20 @@ export const Constants = {
       coupon_discount_type: ["percentage", "fixed_amount"],
       coupon_status: ["active", "paused", "expired"],
       delivery_type: ["file_download", "license_key", "access_link"],
+      financing_invitation_status: [
+        "pending",
+        "accepted",
+        "expired",
+        "revoked",
+      ],
+      financing_partner_member_role: ["owner", "staff"],
+      financing_request_status: [
+        "new",
+        "contacted",
+        "approved",
+        "rejected",
+        "completed",
+      ],
       homepage_banner_type: ["hero_slide", "promo_tile", "category_tile"],
       order_status: [
         "pending_payment",

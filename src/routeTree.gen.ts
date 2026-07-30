@@ -41,11 +41,13 @@ import { Route as ProduitsSlugRouteImport } from './routes/produits.$slug'
 import { Route as ConnexionMotDePasseRouteImport } from './routes/connexion_.mot-de-passe'
 import { Route as BoutiquesVendorSlugRouteImport } from './routes/boutiques_.$vendorSlug'
 import { Route as AuthenticatedVendeurRouteImport } from './routes/_authenticated/vendeur'
+import { Route as AuthenticatedPartenaireRouteImport } from './routes/_authenticated/partenaire'
 import { Route as AuthenticatedMonCompteRouteImport } from './routes/_authenticated/mon-compte'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedMonCompteIndexRouteImport } from './routes/_authenticated/mon-compte.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as VendeurInvitationTokenRouteImport } from './routes/vendeur.invitation.$token'
+import { Route as PartenaireInvitationTokenRouteImport } from './routes/partenaire.invitation.$token'
 import { Route as CommandeOrderNumberConfirmationRouteImport } from './routes/commande.$orderNumber.confirmation'
 import { Route as ApiPublicCinetpayWebhookRouteImport } from './routes/api/public/cinetpay-webhook'
 import { Route as AuthenticatedVendeurTableauDeBordRouteImport } from './routes/_authenticated/vendeur.tableau-de-bord'
@@ -56,6 +58,8 @@ import { Route as AuthenticatedVendeurCommandesRouteImport } from './routes/_aut
 import { Route as AuthenticatedVendeurCodesPromoRouteImport } from './routes/_authenticated/vendeur.codes-promo'
 import { Route as AuthenticatedVendeurBoutiqueRouteImport } from './routes/_authenticated/vendeur.boutique'
 import { Route as AuthenticatedVendeurAnnoncesRouteImport } from './routes/_authenticated/vendeur.annonces'
+import { Route as AuthenticatedPartenaireTableauDeBordRouteImport } from './routes/_authenticated/partenaire.tableau-de-bord'
+import { Route as AuthenticatedPartenaireProfilRouteImport } from './routes/_authenticated/partenaire.profil'
 import { Route as AuthenticatedMonCompteProfilRouteImport } from './routes/_authenticated/mon-compte.profil'
 import { Route as AuthenticatedMonCompteListeDeSouhaitsRouteImport } from './routes/_authenticated/mon-compte.liste-de-souhaits'
 import { Route as AuthenticatedMonCompteCommandesRouteImport } from './routes/_authenticated/mon-compte.commandes'
@@ -67,6 +71,7 @@ import { Route as AuthenticatedAdminRetoursRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminQuestionsRouteImport } from './routes/_authenticated/admin.questions'
 import { Route as AuthenticatedAdminProduitsRouteImport } from './routes/_authenticated/admin.produits'
 import { Route as AuthenticatedAdminPointsRetraitRouteImport } from './routes/_authenticated/admin.points-retrait'
+import { Route as AuthenticatedAdminFinancementRouteImport } from './routes/_authenticated/admin.financement'
 import { Route as AuthenticatedAdminDemandesRouteImport } from './routes/_authenticated/admin.demandes'
 import { Route as AuthenticatedAdminCommissionsRouteImport } from './routes/_authenticated/admin.commissions'
 import { Route as AuthenticatedAdminCommandesRouteImport } from './routes/_authenticated/admin.commandes'
@@ -238,6 +243,11 @@ const AuthenticatedVendeurRoute = AuthenticatedVendeurRouteImport.update({
   path: '/vendeur',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPartenaireRoute = AuthenticatedPartenaireRouteImport.update({
+  id: '/partenaire',
+  path: '/partenaire',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMonCompteRoute = AuthenticatedMonCompteRouteImport.update({
   id: '/mon-compte',
   path: '/mon-compte',
@@ -264,6 +274,12 @@ const VendeurInvitationTokenRoute = VendeurInvitationTokenRouteImport.update({
   path: '/vendeur/invitation/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PartenaireInvitationTokenRoute =
+  PartenaireInvitationTokenRouteImport.update({
+    id: '/partenaire/invitation/$token',
+    path: '/partenaire/invitation/$token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const CommandeOrderNumberConfirmationRoute =
   CommandeOrderNumberConfirmationRouteImport.update({
     id: '/$orderNumber/confirmation',
@@ -323,6 +339,18 @@ const AuthenticatedVendeurAnnoncesRoute =
     id: '/annonces',
     path: '/annonces',
     getParentRoute: () => AuthenticatedVendeurRoute,
+  } as any)
+const AuthenticatedPartenaireTableauDeBordRoute =
+  AuthenticatedPartenaireTableauDeBordRouteImport.update({
+    id: '/tableau-de-bord',
+    path: '/tableau-de-bord',
+    getParentRoute: () => AuthenticatedPartenaireRoute,
+  } as any)
+const AuthenticatedPartenaireProfilRoute =
+  AuthenticatedPartenaireProfilRouteImport.update({
+    id: '/profil',
+    path: '/profil',
+    getParentRoute: () => AuthenticatedPartenaireRoute,
   } as any)
 const AuthenticatedMonCompteProfilRoute =
   AuthenticatedMonCompteProfilRouteImport.update({
@@ -388,6 +416,12 @@ const AuthenticatedAdminPointsRetraitRoute =
   AuthenticatedAdminPointsRetraitRouteImport.update({
     id: '/points-retrait',
     path: '/points-retrait',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminFinancementRoute =
+  AuthenticatedAdminFinancementRouteImport.update({
+    id: '/financement',
+    path: '/financement',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminDemandesRoute =
@@ -486,6 +520,7 @@ export interface FileRoutesByFullPath {
   '/zones-livraison': typeof ZonesLivraisonRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/mon-compte': typeof AuthenticatedMonCompteRouteWithChildren
+  '/partenaire': typeof AuthenticatedPartenaireRouteWithChildren
   '/vendeur': typeof AuthenticatedVendeurRouteWithChildren
   '/boutiques/$vendorSlug': typeof BoutiquesVendorSlugRoute
   '/connexion/mot-de-passe': typeof ConnexionMotDePasseRoute
@@ -500,6 +535,7 @@ export interface FileRoutesByFullPath {
   '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
   '/admin/commissions': typeof AuthenticatedAdminCommissionsRoute
   '/admin/demandes': typeof AuthenticatedAdminDemandesRoute
+  '/admin/financement': typeof AuthenticatedAdminFinancementRoute
   '/admin/points-retrait': typeof AuthenticatedAdminPointsRetraitRoute
   '/admin/produits': typeof AuthenticatedAdminProduitsRoute
   '/admin/questions': typeof AuthenticatedAdminQuestionsRoute
@@ -511,6 +547,8 @@ export interface FileRoutesByFullPath {
   '/mon-compte/commandes': typeof AuthenticatedMonCompteCommandesRouteWithChildren
   '/mon-compte/liste-de-souhaits': typeof AuthenticatedMonCompteListeDeSouhaitsRoute
   '/mon-compte/profil': typeof AuthenticatedMonCompteProfilRoute
+  '/partenaire/profil': typeof AuthenticatedPartenaireProfilRoute
+  '/partenaire/tableau-de-bord': typeof AuthenticatedPartenaireTableauDeBordRoute
   '/vendeur/annonces': typeof AuthenticatedVendeurAnnoncesRoute
   '/vendeur/boutique': typeof AuthenticatedVendeurBoutiqueRoute
   '/vendeur/codes-promo': typeof AuthenticatedVendeurCodesPromoRoute
@@ -521,6 +559,7 @@ export interface FileRoutesByFullPath {
   '/vendeur/tableau-de-bord': typeof AuthenticatedVendeurTableauDeBordRoute
   '/api/public/cinetpay-webhook': typeof ApiPublicCinetpayWebhookRoute
   '/commande/$orderNumber/confirmation': typeof CommandeOrderNumberConfirmationRoute
+  '/partenaire/invitation/$token': typeof PartenaireInvitationTokenRoute
   '/vendeur/invitation/$token': typeof VendeurInvitationTokenRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/mon-compte/': typeof AuthenticatedMonCompteIndexRoute
@@ -554,6 +593,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/wintek-academy': typeof WintekAcademyRoute
   '/zones-livraison': typeof ZonesLivraisonRoute
+  '/partenaire': typeof AuthenticatedPartenaireRouteWithChildren
   '/vendeur': typeof AuthenticatedVendeurRouteWithChildren
   '/boutiques/$vendorSlug': typeof BoutiquesVendorSlugRoute
   '/connexion/mot-de-passe': typeof ConnexionMotDePasseRoute
@@ -568,6 +608,7 @@ export interface FileRoutesByTo {
   '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
   '/admin/commissions': typeof AuthenticatedAdminCommissionsRoute
   '/admin/demandes': typeof AuthenticatedAdminDemandesRoute
+  '/admin/financement': typeof AuthenticatedAdminFinancementRoute
   '/admin/points-retrait': typeof AuthenticatedAdminPointsRetraitRoute
   '/admin/produits': typeof AuthenticatedAdminProduitsRoute
   '/admin/questions': typeof AuthenticatedAdminQuestionsRoute
@@ -579,6 +620,8 @@ export interface FileRoutesByTo {
   '/mon-compte/commandes': typeof AuthenticatedMonCompteCommandesRouteWithChildren
   '/mon-compte/liste-de-souhaits': typeof AuthenticatedMonCompteListeDeSouhaitsRoute
   '/mon-compte/profil': typeof AuthenticatedMonCompteProfilRoute
+  '/partenaire/profil': typeof AuthenticatedPartenaireProfilRoute
+  '/partenaire/tableau-de-bord': typeof AuthenticatedPartenaireTableauDeBordRoute
   '/vendeur/annonces': typeof AuthenticatedVendeurAnnoncesRoute
   '/vendeur/boutique': typeof AuthenticatedVendeurBoutiqueRoute
   '/vendeur/codes-promo': typeof AuthenticatedVendeurCodesPromoRoute
@@ -589,6 +632,7 @@ export interface FileRoutesByTo {
   '/vendeur/tableau-de-bord': typeof AuthenticatedVendeurTableauDeBordRoute
   '/api/public/cinetpay-webhook': typeof ApiPublicCinetpayWebhookRoute
   '/commande/$orderNumber/confirmation': typeof CommandeOrderNumberConfirmationRoute
+  '/partenaire/invitation/$token': typeof PartenaireInvitationTokenRoute
   '/vendeur/invitation/$token': typeof VendeurInvitationTokenRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/mon-compte': typeof AuthenticatedMonCompteIndexRoute
@@ -626,6 +670,7 @@ export interface FileRoutesById {
   '/zones-livraison': typeof ZonesLivraisonRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/mon-compte': typeof AuthenticatedMonCompteRouteWithChildren
+  '/_authenticated/partenaire': typeof AuthenticatedPartenaireRouteWithChildren
   '/_authenticated/vendeur': typeof AuthenticatedVendeurRouteWithChildren
   '/boutiques_/$vendorSlug': typeof BoutiquesVendorSlugRoute
   '/connexion_/mot-de-passe': typeof ConnexionMotDePasseRoute
@@ -640,6 +685,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/commandes': typeof AuthenticatedAdminCommandesRoute
   '/_authenticated/admin/commissions': typeof AuthenticatedAdminCommissionsRoute
   '/_authenticated/admin/demandes': typeof AuthenticatedAdminDemandesRoute
+  '/_authenticated/admin/financement': typeof AuthenticatedAdminFinancementRoute
   '/_authenticated/admin/points-retrait': typeof AuthenticatedAdminPointsRetraitRoute
   '/_authenticated/admin/produits': typeof AuthenticatedAdminProduitsRoute
   '/_authenticated/admin/questions': typeof AuthenticatedAdminQuestionsRoute
@@ -651,6 +697,8 @@ export interface FileRoutesById {
   '/_authenticated/mon-compte/commandes': typeof AuthenticatedMonCompteCommandesRouteWithChildren
   '/_authenticated/mon-compte/liste-de-souhaits': typeof AuthenticatedMonCompteListeDeSouhaitsRoute
   '/_authenticated/mon-compte/profil': typeof AuthenticatedMonCompteProfilRoute
+  '/_authenticated/partenaire/profil': typeof AuthenticatedPartenaireProfilRoute
+  '/_authenticated/partenaire/tableau-de-bord': typeof AuthenticatedPartenaireTableauDeBordRoute
   '/_authenticated/vendeur/annonces': typeof AuthenticatedVendeurAnnoncesRoute
   '/_authenticated/vendeur/boutique': typeof AuthenticatedVendeurBoutiqueRoute
   '/_authenticated/vendeur/codes-promo': typeof AuthenticatedVendeurCodesPromoRoute
@@ -661,6 +709,7 @@ export interface FileRoutesById {
   '/_authenticated/vendeur/tableau-de-bord': typeof AuthenticatedVendeurTableauDeBordRoute
   '/api/public/cinetpay-webhook': typeof ApiPublicCinetpayWebhookRoute
   '/commande/$orderNumber/confirmation': typeof CommandeOrderNumberConfirmationRoute
+  '/partenaire/invitation/$token': typeof PartenaireInvitationTokenRoute
   '/vendeur/invitation/$token': typeof VendeurInvitationTokenRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/mon-compte/': typeof AuthenticatedMonCompteIndexRoute
@@ -698,6 +747,7 @@ export interface FileRouteTypes {
     | '/zones-livraison'
     | '/admin'
     | '/mon-compte'
+    | '/partenaire'
     | '/vendeur'
     | '/boutiques/$vendorSlug'
     | '/connexion/mot-de-passe'
@@ -712,6 +762,7 @@ export interface FileRouteTypes {
     | '/admin/commandes'
     | '/admin/commissions'
     | '/admin/demandes'
+    | '/admin/financement'
     | '/admin/points-retrait'
     | '/admin/produits'
     | '/admin/questions'
@@ -723,6 +774,8 @@ export interface FileRouteTypes {
     | '/mon-compte/commandes'
     | '/mon-compte/liste-de-souhaits'
     | '/mon-compte/profil'
+    | '/partenaire/profil'
+    | '/partenaire/tableau-de-bord'
     | '/vendeur/annonces'
     | '/vendeur/boutique'
     | '/vendeur/codes-promo'
@@ -733,6 +786,7 @@ export interface FileRouteTypes {
     | '/vendeur/tableau-de-bord'
     | '/api/public/cinetpay-webhook'
     | '/commande/$orderNumber/confirmation'
+    | '/partenaire/invitation/$token'
     | '/vendeur/invitation/$token'
     | '/admin/'
     | '/mon-compte/'
@@ -766,6 +820,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/wintek-academy'
     | '/zones-livraison'
+    | '/partenaire'
     | '/vendeur'
     | '/boutiques/$vendorSlug'
     | '/connexion/mot-de-passe'
@@ -780,6 +835,7 @@ export interface FileRouteTypes {
     | '/admin/commandes'
     | '/admin/commissions'
     | '/admin/demandes'
+    | '/admin/financement'
     | '/admin/points-retrait'
     | '/admin/produits'
     | '/admin/questions'
@@ -791,6 +847,8 @@ export interface FileRouteTypes {
     | '/mon-compte/commandes'
     | '/mon-compte/liste-de-souhaits'
     | '/mon-compte/profil'
+    | '/partenaire/profil'
+    | '/partenaire/tableau-de-bord'
     | '/vendeur/annonces'
     | '/vendeur/boutique'
     | '/vendeur/codes-promo'
@@ -801,6 +859,7 @@ export interface FileRouteTypes {
     | '/vendeur/tableau-de-bord'
     | '/api/public/cinetpay-webhook'
     | '/commande/$orderNumber/confirmation'
+    | '/partenaire/invitation/$token'
     | '/vendeur/invitation/$token'
     | '/admin'
     | '/mon-compte'
@@ -837,6 +896,7 @@ export interface FileRouteTypes {
     | '/zones-livraison'
     | '/_authenticated/admin'
     | '/_authenticated/mon-compte'
+    | '/_authenticated/partenaire'
     | '/_authenticated/vendeur'
     | '/boutiques_/$vendorSlug'
     | '/connexion_/mot-de-passe'
@@ -851,6 +911,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/commandes'
     | '/_authenticated/admin/commissions'
     | '/_authenticated/admin/demandes'
+    | '/_authenticated/admin/financement'
     | '/_authenticated/admin/points-retrait'
     | '/_authenticated/admin/produits'
     | '/_authenticated/admin/questions'
@@ -862,6 +923,8 @@ export interface FileRouteTypes {
     | '/_authenticated/mon-compte/commandes'
     | '/_authenticated/mon-compte/liste-de-souhaits'
     | '/_authenticated/mon-compte/profil'
+    | '/_authenticated/partenaire/profil'
+    | '/_authenticated/partenaire/tableau-de-bord'
     | '/_authenticated/vendeur/annonces'
     | '/_authenticated/vendeur/boutique'
     | '/_authenticated/vendeur/codes-promo'
@@ -872,6 +935,7 @@ export interface FileRouteTypes {
     | '/_authenticated/vendeur/tableau-de-bord'
     | '/api/public/cinetpay-webhook'
     | '/commande/$orderNumber/confirmation'
+    | '/partenaire/invitation/$token'
     | '/vendeur/invitation/$token'
     | '/_authenticated/admin/'
     | '/_authenticated/mon-compte/'
@@ -911,6 +975,7 @@ export interface RootRouteChildren {
   ConnexionMotDePasseRoute: typeof ConnexionMotDePasseRoute
   ProduitsSlugRoute: typeof ProduitsSlugRoute
   ApiPublicCinetpayWebhookRoute: typeof ApiPublicCinetpayWebhookRoute
+  PartenaireInvitationTokenRoute: typeof PartenaireInvitationTokenRoute
   VendeurInvitationTokenRoute: typeof VendeurInvitationTokenRoute
 }
 
@@ -1140,6 +1205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedVendeurRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/partenaire': {
+      id: '/_authenticated/partenaire'
+      path: '/partenaire'
+      fullPath: '/partenaire'
+      preLoaderRoute: typeof AuthenticatedPartenaireRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/mon-compte': {
       id: '/_authenticated/mon-compte'
       path: '/mon-compte'
@@ -1173,6 +1245,13 @@ declare module '@tanstack/react-router' {
       path: '/vendeur/invitation/$token'
       fullPath: '/vendeur/invitation/$token'
       preLoaderRoute: typeof VendeurInvitationTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partenaire/invitation/$token': {
+      id: '/partenaire/invitation/$token'
+      path: '/partenaire/invitation/$token'
+      fullPath: '/partenaire/invitation/$token'
+      preLoaderRoute: typeof PartenaireInvitationTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/commande/$orderNumber/confirmation': {
@@ -1244,6 +1323,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/vendeur/annonces'
       preLoaderRoute: typeof AuthenticatedVendeurAnnoncesRouteImport
       parentRoute: typeof AuthenticatedVendeurRoute
+    }
+    '/_authenticated/partenaire/tableau-de-bord': {
+      id: '/_authenticated/partenaire/tableau-de-bord'
+      path: '/tableau-de-bord'
+      fullPath: '/partenaire/tableau-de-bord'
+      preLoaderRoute: typeof AuthenticatedPartenaireTableauDeBordRouteImport
+      parentRoute: typeof AuthenticatedPartenaireRoute
+    }
+    '/_authenticated/partenaire/profil': {
+      id: '/_authenticated/partenaire/profil'
+      path: '/profil'
+      fullPath: '/partenaire/profil'
+      preLoaderRoute: typeof AuthenticatedPartenaireProfilRouteImport
+      parentRoute: typeof AuthenticatedPartenaireRoute
     }
     '/_authenticated/mon-compte/profil': {
       id: '/_authenticated/mon-compte/profil'
@@ -1320,6 +1413,13 @@ declare module '@tanstack/react-router' {
       path: '/points-retrait'
       fullPath: '/admin/points-retrait'
       preLoaderRoute: typeof AuthenticatedAdminPointsRetraitRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/financement': {
+      id: '/_authenticated/admin/financement'
+      path: '/financement'
+      fullPath: '/admin/financement'
+      preLoaderRoute: typeof AuthenticatedAdminFinancementRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/demandes': {
@@ -1413,6 +1513,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminCommandesRoute: typeof AuthenticatedAdminCommandesRoute
   AuthenticatedAdminCommissionsRoute: typeof AuthenticatedAdminCommissionsRoute
   AuthenticatedAdminDemandesRoute: typeof AuthenticatedAdminDemandesRoute
+  AuthenticatedAdminFinancementRoute: typeof AuthenticatedAdminFinancementRoute
   AuthenticatedAdminPointsRetraitRoute: typeof AuthenticatedAdminPointsRetraitRoute
   AuthenticatedAdminProduitsRoute: typeof AuthenticatedAdminProduitsRoute
   AuthenticatedAdminQuestionsRoute: typeof AuthenticatedAdminQuestionsRoute
@@ -1436,6 +1537,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminCommandesRoute: AuthenticatedAdminCommandesRoute,
   AuthenticatedAdminCommissionsRoute: AuthenticatedAdminCommissionsRoute,
   AuthenticatedAdminDemandesRoute: AuthenticatedAdminDemandesRoute,
+  AuthenticatedAdminFinancementRoute: AuthenticatedAdminFinancementRoute,
   AuthenticatedAdminPointsRetraitRoute: AuthenticatedAdminPointsRetraitRoute,
   AuthenticatedAdminProduitsRoute: AuthenticatedAdminProduitsRoute,
   AuthenticatedAdminQuestionsRoute: AuthenticatedAdminQuestionsRoute,
@@ -1488,6 +1590,23 @@ const AuthenticatedMonCompteRouteWithChildren =
     AuthenticatedMonCompteRouteChildren,
   )
 
+interface AuthenticatedPartenaireRouteChildren {
+  AuthenticatedPartenaireProfilRoute: typeof AuthenticatedPartenaireProfilRoute
+  AuthenticatedPartenaireTableauDeBordRoute: typeof AuthenticatedPartenaireTableauDeBordRoute
+}
+
+const AuthenticatedPartenaireRouteChildren: AuthenticatedPartenaireRouteChildren =
+  {
+    AuthenticatedPartenaireProfilRoute: AuthenticatedPartenaireProfilRoute,
+    AuthenticatedPartenaireTableauDeBordRoute:
+      AuthenticatedPartenaireTableauDeBordRoute,
+  }
+
+const AuthenticatedPartenaireRouteWithChildren =
+  AuthenticatedPartenaireRoute._addFileChildren(
+    AuthenticatedPartenaireRouteChildren,
+  )
+
 interface AuthenticatedVendeurRouteChildren {
   AuthenticatedVendeurAnnoncesRoute: typeof AuthenticatedVendeurAnnoncesRoute
   AuthenticatedVendeurBoutiqueRoute: typeof AuthenticatedVendeurBoutiqueRoute
@@ -1517,12 +1636,14 @@ const AuthenticatedVendeurRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedMonCompteRoute: typeof AuthenticatedMonCompteRouteWithChildren
+  AuthenticatedPartenaireRoute: typeof AuthenticatedPartenaireRouteWithChildren
   AuthenticatedVendeurRoute: typeof AuthenticatedVendeurRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedMonCompteRoute: AuthenticatedMonCompteRouteWithChildren,
+  AuthenticatedPartenaireRoute: AuthenticatedPartenaireRouteWithChildren,
   AuthenticatedVendeurRoute: AuthenticatedVendeurRouteWithChildren,
 }
 
@@ -1574,6 +1695,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConnexionMotDePasseRoute: ConnexionMotDePasseRoute,
   ProduitsSlugRoute: ProduitsSlugRoute,
   ApiPublicCinetpayWebhookRoute: ApiPublicCinetpayWebhookRoute,
+  PartenaireInvitationTokenRoute: PartenaireInvitationTokenRoute,
   VendeurInvitationTokenRoute: VendeurInvitationTokenRoute,
 }
 export const routeTree = rootRouteImport
