@@ -141,7 +141,10 @@ export const Route = createFileRoute("/produits/$slug")({
     };
   },
   component: ProductDetail,
-  errorComponent: ({ error }) => <div className="p-8 text-center text-destructive">{error.message}</div>,
+  errorComponent: ({ error }) => (
+    <PublicRouteError error={error} title="Impossible de charger ce produit" />
+  ),
+
   notFoundComponent: () => (
     <div className="p-16 text-center">
       <h1 className="font-display text-3xl">Produit introuvable</h1>
