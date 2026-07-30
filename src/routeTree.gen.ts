@@ -41,6 +41,7 @@ import { Route as ProduitsSlugRouteImport } from './routes/produits.$slug'
 import { Route as ConnexionMotDePasseRouteImport } from './routes/connexion_.mot-de-passe'
 import { Route as BoutiquesVendorSlugRouteImport } from './routes/boutiques_.$vendorSlug'
 import { Route as AuthenticatedVendeurRouteImport } from './routes/_authenticated/vendeur'
+import { Route as AuthenticatedPartenaireRouteImport } from './routes/_authenticated/partenaire'
 import { Route as AuthenticatedMonCompteRouteImport } from './routes/_authenticated/mon-compte'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedMonCompteIndexRouteImport } from './routes/_authenticated/mon-compte.index'
@@ -237,6 +238,11 @@ const BoutiquesVendorSlugRoute = BoutiquesVendorSlugRouteImport.update({
 const AuthenticatedVendeurRoute = AuthenticatedVendeurRouteImport.update({
   id: '/vendeur',
   path: '/vendeur',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPartenaireRoute = AuthenticatedPartenaireRouteImport.update({
+  id: '/partenaire',
+  path: '/partenaire',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMonCompteRoute = AuthenticatedMonCompteRouteImport.update({
@@ -493,6 +499,7 @@ export interface FileRoutesByFullPath {
   '/zones-livraison': typeof ZonesLivraisonRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/mon-compte': typeof AuthenticatedMonCompteRouteWithChildren
+  '/partenaire': typeof AuthenticatedPartenaireRoute
   '/vendeur': typeof AuthenticatedVendeurRouteWithChildren
   '/boutiques/$vendorSlug': typeof BoutiquesVendorSlugRoute
   '/connexion/mot-de-passe': typeof ConnexionMotDePasseRoute
@@ -562,6 +569,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/wintek-academy': typeof WintekAcademyRoute
   '/zones-livraison': typeof ZonesLivraisonRoute
+  '/partenaire': typeof AuthenticatedPartenaireRoute
   '/vendeur': typeof AuthenticatedVendeurRouteWithChildren
   '/boutiques/$vendorSlug': typeof BoutiquesVendorSlugRoute
   '/connexion/mot-de-passe': typeof ConnexionMotDePasseRoute
@@ -635,6 +643,7 @@ export interface FileRoutesById {
   '/zones-livraison': typeof ZonesLivraisonRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/mon-compte': typeof AuthenticatedMonCompteRouteWithChildren
+  '/_authenticated/partenaire': typeof AuthenticatedPartenaireRoute
   '/_authenticated/vendeur': typeof AuthenticatedVendeurRouteWithChildren
   '/boutiques_/$vendorSlug': typeof BoutiquesVendorSlugRoute
   '/connexion_/mot-de-passe': typeof ConnexionMotDePasseRoute
@@ -708,6 +717,7 @@ export interface FileRouteTypes {
     | '/zones-livraison'
     | '/admin'
     | '/mon-compte'
+    | '/partenaire'
     | '/vendeur'
     | '/boutiques/$vendorSlug'
     | '/connexion/mot-de-passe'
@@ -777,6 +787,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/wintek-academy'
     | '/zones-livraison'
+    | '/partenaire'
     | '/vendeur'
     | '/boutiques/$vendorSlug'
     | '/connexion/mot-de-passe'
@@ -849,6 +860,7 @@ export interface FileRouteTypes {
     | '/zones-livraison'
     | '/_authenticated/admin'
     | '/_authenticated/mon-compte'
+    | '/_authenticated/partenaire'
     | '/_authenticated/vendeur'
     | '/boutiques_/$vendorSlug'
     | '/connexion_/mot-de-passe'
@@ -1151,6 +1163,13 @@ declare module '@tanstack/react-router' {
       path: '/vendeur'
       fullPath: '/vendeur'
       preLoaderRoute: typeof AuthenticatedVendeurRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/partenaire': {
+      id: '/_authenticated/partenaire'
+      path: '/partenaire'
+      fullPath: '/partenaire'
+      preLoaderRoute: typeof AuthenticatedPartenaireRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/mon-compte': {
@@ -1539,12 +1558,14 @@ const AuthenticatedVendeurRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedMonCompteRoute: typeof AuthenticatedMonCompteRouteWithChildren
+  AuthenticatedPartenaireRoute: typeof AuthenticatedPartenaireRoute
   AuthenticatedVendeurRoute: typeof AuthenticatedVendeurRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedMonCompteRoute: AuthenticatedMonCompteRouteWithChildren,
+  AuthenticatedPartenaireRoute: AuthenticatedPartenaireRoute,
   AuthenticatedVendeurRoute: AuthenticatedVendeurRouteWithChildren,
 }
 
