@@ -3,6 +3,8 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { Search, Store as StoreIcon, ShieldCheck, Sparkles, Star, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { EmptyState } from "@/components/empty-state";
+import { PublicRouteError } from "@/components/public-route-error";
+
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
