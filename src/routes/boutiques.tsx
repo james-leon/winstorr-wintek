@@ -143,15 +143,9 @@ export const Route = createFileRoute("/boutiques")({
   },
   component: BoutiquesDirectory,
   errorComponent: ({ error }) => (
-    <div className="mx-auto max-w-3xl p-8">
-      <EmptyState
-        title="Impossible de charger les boutiques"
-        description={error.message}
-        icon={StoreIcon}
-
-      />
-    </div>
+    <PublicRouteError error={error} title="Impossible de charger les boutiques" icon={StoreIcon} />
   ),
+
   notFoundComponent: () => (
     <div className="mx-auto max-w-3xl p-8">
       <EmptyState title="Aucune boutique" icon={StoreIcon} />
