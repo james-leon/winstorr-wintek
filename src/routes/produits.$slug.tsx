@@ -23,6 +23,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useProductTiers, resolveUnitPrice, type PriceTier } from "@/lib/tiers";
 import { useProductVariants, extractAttributeOptions, findVariantByAttrs, isValueAvailable, type Variant } from "@/lib/variants";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { FinancingOffer } from "@/components/financing-offer";
 
 
 type Product = {
@@ -49,7 +50,7 @@ type Product = {
   quality_verified: boolean;
   warranty_duration: string | null;
   source_type: "direct_import" | "authorized_wholesaler" | "other" | null;
-  vendor: { id: string; name: string; slug: string; type: "internal" | "external" } | null;
+  vendor: { id: string; name: string; slug: string; type: "internal" | "external"; allow_financing: boolean } | null;
 };
 
 const productQuery = (slug: string) =>
@@ -58,7 +59,7 @@ const productQuery = (slug: string) =>
     queryFn: async (): Promise<Product> => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, slug, name, short_description, description, images, type, price, price_type, compare_at_price, stock_quantity, min_order_quantity, has_variants, delivery_type, delivery_instructions, service_area, estimated_duration, delivery_mode, rating_average, rating_count, quality_verified, warranty_duration, source_type, vendor:vendors(id, name, slug, type)")
+        .select("id, slug, name, short_description, description, images, type, price, price_type, compare_at_price, stock_quantity, min_order_quantity, has_variants, delivery_type, delivery_instructions, service_area, estimated_duration, delivery_mode, rating_average, rating_count, quality_verified, warranty_duration, source_type, vendor:vendors(id, name, slug, type, allow_financing)")
         .eq("slug", slug)
         .eq("status", "active")
         .maybeSingle();
@@ -318,6 +319,15 @@ function BuyBox({ p }: { p: Product }) {
         </div>
       )}
       {hasTiers && <TierTable tiers={tiers!} basePrice={displayPricePoint} qty={qty} />}
+
+      <FinancingOffer
+        productId={p.id}
+        productName={p.name}
+        variantId={currentVariant?.id ?? null}
+        vendorId={p.vendor?.id ?? null}
+        vendorAllowsFinancing={!!p.vendor?.allow_financing}
+        price={displayPricePoint != null ? Number(displayPricePoint) : null}
+      />
 
       {variants.length > 0 && (
         <div className="mt-4 space-y-3 border-t border-border pt-3">
