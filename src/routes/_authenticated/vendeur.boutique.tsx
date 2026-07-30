@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { BannerImageUploader } from "@/components/banner-image-uploader";
+import { Switch } from "@/components/ui/switch";
 
 export const Route = createFileRoute("/_authenticated/vendeur/boutique")({
   component: VendorStorefrontEditor,
@@ -70,6 +71,31 @@ function VendorStorefrontEditor() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const { data: vendorRow } = useQuery({
+    queryKey: ["vendor-allow-financing", vendorId],
+    enabled: !!vendorId,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("vendors").select("allow_financing").eq("id", vendorId!).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const toggleFinancing = useMutation({
+    mutationFn: async (allow: boolean) => {
+      if (!vendorId) throw new Error("Aucun vendeur");
+      const { data, error } = await supabase.rpc("set_vendor_allow_financing", { _vendor_id: vendorId, _allow: allow });
+      if (error) throw error;
+      const r = data as { ok: boolean; reason?: string };
+      if (!r.ok) throw new Error(r.reason ?? "Erreur");
+    },
+    onSuccess: () => {
+      toast.success("Préférence enregistrée");
+      qc.invalidateQueries({ queryKey: ["vendor-allow-financing", vendorId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <div className="max-w-2xl space-y-6">
       <h2 className="font-display text-2xl text-foreground">Ma boutique</h2>
@@ -117,6 +143,28 @@ function VendorStorefrontEditor() {
           <Button disabled={save.isPending} onClick={() => save.mutate()}>
             {save.isPending ? "Enregistrement…" : "Enregistrer"}
           </Button>
+        </div>
+      </div>
+
+      <div className="space-y-3 rounded-sm border border-border bg-card p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="font-display text-lg text-foreground">Autoriser le paiement échelonné</div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              En activant cette option, vous autorisez nos partenaires financiers (comme MC Leasing) à proposer le
+              paiement en plusieurs fois à vos clients sur vos produits éligibles.
+            </p>
+          </div>
+          <Switch
+            checked={!!vendorRow?.allow_financing}
+            disabled={toggleFinancing.isPending || !vendorId}
+            onCheckedChange={(v) => toggleFinancing.mutate(v)}
+          />
+        </div>
+        <div className="rounded-sm border border-accent/30 bg-accent/5 p-3 text-sm text-foreground">
+          <strong>Vous ne prêtez pas d'argent vous-même.</strong> Vous êtes payé normalement pour votre vente — c'est le
+          partenaire financier qui gère le financement, le contrat et en assume le risque. Winstorr transmet simplement
+          la demande du client au partenaire.
         </div>
       </div>
     </div>

@@ -47,6 +47,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedMonCompteIndexRouteImport } from './routes/_authenticated/mon-compte.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as VendeurInvitationTokenRouteImport } from './routes/vendeur.invitation.$token'
+import { Route as PartenaireInvitationTokenRouteImport } from './routes/partenaire.invitation.$token'
 import { Route as CommandeOrderNumberConfirmationRouteImport } from './routes/commande.$orderNumber.confirmation'
 import { Route as ApiPublicCinetpayWebhookRouteImport } from './routes/api/public/cinetpay-webhook'
 import { Route as AuthenticatedVendeurTableauDeBordRouteImport } from './routes/_authenticated/vendeur.tableau-de-bord'
@@ -273,6 +274,12 @@ const VendeurInvitationTokenRoute = VendeurInvitationTokenRouteImport.update({
   path: '/vendeur/invitation/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PartenaireInvitationTokenRoute =
+  PartenaireInvitationTokenRouteImport.update({
+    id: '/partenaire/invitation/$token',
+    path: '/partenaire/invitation/$token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const CommandeOrderNumberConfirmationRoute =
   CommandeOrderNumberConfirmationRouteImport.update({
     id: '/$orderNumber/confirmation',
@@ -552,6 +559,7 @@ export interface FileRoutesByFullPath {
   '/vendeur/tableau-de-bord': typeof AuthenticatedVendeurTableauDeBordRoute
   '/api/public/cinetpay-webhook': typeof ApiPublicCinetpayWebhookRoute
   '/commande/$orderNumber/confirmation': typeof CommandeOrderNumberConfirmationRoute
+  '/partenaire/invitation/$token': typeof PartenaireInvitationTokenRoute
   '/vendeur/invitation/$token': typeof VendeurInvitationTokenRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/mon-compte/': typeof AuthenticatedMonCompteIndexRoute
@@ -624,6 +632,7 @@ export interface FileRoutesByTo {
   '/vendeur/tableau-de-bord': typeof AuthenticatedVendeurTableauDeBordRoute
   '/api/public/cinetpay-webhook': typeof ApiPublicCinetpayWebhookRoute
   '/commande/$orderNumber/confirmation': typeof CommandeOrderNumberConfirmationRoute
+  '/partenaire/invitation/$token': typeof PartenaireInvitationTokenRoute
   '/vendeur/invitation/$token': typeof VendeurInvitationTokenRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/mon-compte': typeof AuthenticatedMonCompteIndexRoute
@@ -700,6 +709,7 @@ export interface FileRoutesById {
   '/_authenticated/vendeur/tableau-de-bord': typeof AuthenticatedVendeurTableauDeBordRoute
   '/api/public/cinetpay-webhook': typeof ApiPublicCinetpayWebhookRoute
   '/commande/$orderNumber/confirmation': typeof CommandeOrderNumberConfirmationRoute
+  '/partenaire/invitation/$token': typeof PartenaireInvitationTokenRoute
   '/vendeur/invitation/$token': typeof VendeurInvitationTokenRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/mon-compte/': typeof AuthenticatedMonCompteIndexRoute
@@ -776,6 +786,7 @@ export interface FileRouteTypes {
     | '/vendeur/tableau-de-bord'
     | '/api/public/cinetpay-webhook'
     | '/commande/$orderNumber/confirmation'
+    | '/partenaire/invitation/$token'
     | '/vendeur/invitation/$token'
     | '/admin/'
     | '/mon-compte/'
@@ -848,6 +859,7 @@ export interface FileRouteTypes {
     | '/vendeur/tableau-de-bord'
     | '/api/public/cinetpay-webhook'
     | '/commande/$orderNumber/confirmation'
+    | '/partenaire/invitation/$token'
     | '/vendeur/invitation/$token'
     | '/admin'
     | '/mon-compte'
@@ -923,6 +935,7 @@ export interface FileRouteTypes {
     | '/_authenticated/vendeur/tableau-de-bord'
     | '/api/public/cinetpay-webhook'
     | '/commande/$orderNumber/confirmation'
+    | '/partenaire/invitation/$token'
     | '/vendeur/invitation/$token'
     | '/_authenticated/admin/'
     | '/_authenticated/mon-compte/'
@@ -962,6 +975,7 @@ export interface RootRouteChildren {
   ConnexionMotDePasseRoute: typeof ConnexionMotDePasseRoute
   ProduitsSlugRoute: typeof ProduitsSlugRoute
   ApiPublicCinetpayWebhookRoute: typeof ApiPublicCinetpayWebhookRoute
+  PartenaireInvitationTokenRoute: typeof PartenaireInvitationTokenRoute
   VendeurInvitationTokenRoute: typeof VendeurInvitationTokenRoute
 }
 
@@ -1231,6 +1245,13 @@ declare module '@tanstack/react-router' {
       path: '/vendeur/invitation/$token'
       fullPath: '/vendeur/invitation/$token'
       preLoaderRoute: typeof VendeurInvitationTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partenaire/invitation/$token': {
+      id: '/partenaire/invitation/$token'
+      path: '/partenaire/invitation/$token'
+      fullPath: '/partenaire/invitation/$token'
+      preLoaderRoute: typeof PartenaireInvitationTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/commande/$orderNumber/confirmation': {
@@ -1674,6 +1695,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConnexionMotDePasseRoute: ConnexionMotDePasseRoute,
   ProduitsSlugRoute: ProduitsSlugRoute,
   ApiPublicCinetpayWebhookRoute: ApiPublicCinetpayWebhookRoute,
+  PartenaireInvitationTokenRoute: PartenaireInvitationTokenRoute,
   VendeurInvitationTokenRoute: VendeurInvitationTokenRoute,
 }
 export const routeTree = rootRouteImport
