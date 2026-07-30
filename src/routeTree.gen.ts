@@ -67,6 +67,7 @@ import { Route as AuthenticatedAdminRetoursRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminQuestionsRouteImport } from './routes/_authenticated/admin.questions'
 import { Route as AuthenticatedAdminProduitsRouteImport } from './routes/_authenticated/admin.produits'
 import { Route as AuthenticatedAdminPointsRetraitRouteImport } from './routes/_authenticated/admin.points-retrait'
+import { Route as AuthenticatedAdminFinancementRouteImport } from './routes/_authenticated/admin.financement'
 import { Route as AuthenticatedAdminDemandesRouteImport } from './routes/_authenticated/admin.demandes'
 import { Route as AuthenticatedAdminCommissionsRouteImport } from './routes/_authenticated/admin.commissions'
 import { Route as AuthenticatedAdminCommandesRouteImport } from './routes/_authenticated/admin.commandes'
@@ -390,6 +391,12 @@ const AuthenticatedAdminPointsRetraitRoute =
     path: '/points-retrait',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminFinancementRoute =
+  AuthenticatedAdminFinancementRouteImport.update({
+    id: '/financement',
+    path: '/financement',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminDemandesRoute =
   AuthenticatedAdminDemandesRouteImport.update({
     id: '/demandes',
@@ -500,6 +507,7 @@ export interface FileRoutesByFullPath {
   '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
   '/admin/commissions': typeof AuthenticatedAdminCommissionsRoute
   '/admin/demandes': typeof AuthenticatedAdminDemandesRoute
+  '/admin/financement': typeof AuthenticatedAdminFinancementRoute
   '/admin/points-retrait': typeof AuthenticatedAdminPointsRetraitRoute
   '/admin/produits': typeof AuthenticatedAdminProduitsRoute
   '/admin/questions': typeof AuthenticatedAdminQuestionsRoute
@@ -568,6 +576,7 @@ export interface FileRoutesByTo {
   '/admin/commandes': typeof AuthenticatedAdminCommandesRoute
   '/admin/commissions': typeof AuthenticatedAdminCommissionsRoute
   '/admin/demandes': typeof AuthenticatedAdminDemandesRoute
+  '/admin/financement': typeof AuthenticatedAdminFinancementRoute
   '/admin/points-retrait': typeof AuthenticatedAdminPointsRetraitRoute
   '/admin/produits': typeof AuthenticatedAdminProduitsRoute
   '/admin/questions': typeof AuthenticatedAdminQuestionsRoute
@@ -640,6 +649,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/commandes': typeof AuthenticatedAdminCommandesRoute
   '/_authenticated/admin/commissions': typeof AuthenticatedAdminCommissionsRoute
   '/_authenticated/admin/demandes': typeof AuthenticatedAdminDemandesRoute
+  '/_authenticated/admin/financement': typeof AuthenticatedAdminFinancementRoute
   '/_authenticated/admin/points-retrait': typeof AuthenticatedAdminPointsRetraitRoute
   '/_authenticated/admin/produits': typeof AuthenticatedAdminProduitsRoute
   '/_authenticated/admin/questions': typeof AuthenticatedAdminQuestionsRoute
@@ -712,6 +722,7 @@ export interface FileRouteTypes {
     | '/admin/commandes'
     | '/admin/commissions'
     | '/admin/demandes'
+    | '/admin/financement'
     | '/admin/points-retrait'
     | '/admin/produits'
     | '/admin/questions'
@@ -780,6 +791,7 @@ export interface FileRouteTypes {
     | '/admin/commandes'
     | '/admin/commissions'
     | '/admin/demandes'
+    | '/admin/financement'
     | '/admin/points-retrait'
     | '/admin/produits'
     | '/admin/questions'
@@ -851,6 +863,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/commandes'
     | '/_authenticated/admin/commissions'
     | '/_authenticated/admin/demandes'
+    | '/_authenticated/admin/financement'
     | '/_authenticated/admin/points-retrait'
     | '/_authenticated/admin/produits'
     | '/_authenticated/admin/questions'
@@ -1322,6 +1335,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminPointsRetraitRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/financement': {
+      id: '/_authenticated/admin/financement'
+      path: '/financement'
+      fullPath: '/admin/financement'
+      preLoaderRoute: typeof AuthenticatedAdminFinancementRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/demandes': {
       id: '/_authenticated/admin/demandes'
       path: '/demandes'
@@ -1413,6 +1433,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminCommandesRoute: typeof AuthenticatedAdminCommandesRoute
   AuthenticatedAdminCommissionsRoute: typeof AuthenticatedAdminCommissionsRoute
   AuthenticatedAdminDemandesRoute: typeof AuthenticatedAdminDemandesRoute
+  AuthenticatedAdminFinancementRoute: typeof AuthenticatedAdminFinancementRoute
   AuthenticatedAdminPointsRetraitRoute: typeof AuthenticatedAdminPointsRetraitRoute
   AuthenticatedAdminProduitsRoute: typeof AuthenticatedAdminProduitsRoute
   AuthenticatedAdminQuestionsRoute: typeof AuthenticatedAdminQuestionsRoute
@@ -1436,6 +1457,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminCommandesRoute: AuthenticatedAdminCommandesRoute,
   AuthenticatedAdminCommissionsRoute: AuthenticatedAdminCommissionsRoute,
   AuthenticatedAdminDemandesRoute: AuthenticatedAdminDemandesRoute,
+  AuthenticatedAdminFinancementRoute: AuthenticatedAdminFinancementRoute,
   AuthenticatedAdminPointsRetraitRoute: AuthenticatedAdminPointsRetraitRoute,
   AuthenticatedAdminProduitsRoute: AuthenticatedAdminProduitsRoute,
   AuthenticatedAdminQuestionsRoute: AuthenticatedAdminQuestionsRoute,
