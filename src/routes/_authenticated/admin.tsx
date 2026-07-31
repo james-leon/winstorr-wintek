@@ -142,14 +142,19 @@ function AdminLayout() {
                   <Menu className="h-5 w-5" />
                 </button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-64 bg-[#14161A] p-0 text-white">
-                <div className="border-b border-white/10 px-4 py-3">
+              <SheetContent
+                side="left"
+                className="flex h-full w-[88vw] max-w-[320px] flex-col gap-0 border-r border-white/10 p-0 text-white sm:max-w-[320px] [&>button]:text-white [&>button]:opacity-90"
+                style={{ backgroundColor: "#14161A" }}
+              >
+                <div className="shrink-0 border-b border-white/10 px-4 py-3">
                   <div className="font-display text-sm">Winstorr Admin</div>
                 </div>
-                <div className="overflow-y-auto">
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
                   <SidebarNav path={path} onNavigate={() => setMobileOpen(false)} />
                 </div>
               </SheetContent>
+
             </Sheet>
             <nav className="flex items-center gap-1.5 text-sm min-w-0" aria-label="Fil d'ariane">
               <Link to="/admin" className="text-muted-foreground no-link-color hover:text-foreground">Admin</Link>
