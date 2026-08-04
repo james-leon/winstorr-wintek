@@ -105,8 +105,9 @@ function VendorApplicationsPage() {
       if (error) throw error;
       return res;
     },
-    onSuccess: (res) => {
-      toast.success(res.email_status === "sent" ? "Invitation envoyée par email." : "Invitation créée (email non envoyé).");
+    onSuccess: () => {
+      toast.success("Invitation créée — copiez le lien depuis la page Vendeurs pour le partager.");
+
       qc.invalidateQueries({ queryKey: ["admin-vendor-applications"] });
       qc.invalidateQueries({ queryKey: ["admin-dashboard-stats"] });
       setSelected(null);
