@@ -14,34 +14,9 @@ function randomToken() {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-type EmailSendResult = { status: "sent" | "mocked" | "failed"; error?: string };
+// Invitations are shared manually by the admin (copy link / WhatsApp).
+// No automatic email is sent — see admin.vendeurs.tsx.
 
-async function sendInvitationEmail(email: string, token: string, expiresAt: string): Promise<EmailSendResult> {
-  const key = process.env.RESEND_API_KEY;
-  const appUrl = process.env.APP_PUBLIC_URL || "";
-  const link = `${appUrl}/vendeur/invitation/${token}`;
-  const subject = "Invitation à rejoindre Winstorr en tant que vendeur";
-  const text = `Bonjour,\n\nVous êtes invité·e à rejoindre la marketplace Winstorr.\nAcceptez votre invitation ici : ${link}\n\nCe lien expire le ${new Date(expiresAt).toLocaleDateString("fr-FR")}.\n\n— L'équipe Winstorr`;
-  if (!key) {
-    console.log(`[vendor-invitation:mock] to=${email} link=${link}`);
-    return { status: "mocked" };
-  }
-  try {
-    const from = process.env.RESEND_FROM || "Winstorr <onboarding@resend.dev>";
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to: email, subject, text }),
-    });
-    if (!res.ok) {
-      const body = await res.text();
-      return { status: "failed", error: `HTTP ${res.status}: ${body.slice(0, 300)}` };
-    }
-    return { status: "sent" };
-  } catch (e) {
-    return { status: "failed", error: e instanceof Error ? e.message : String(e) };
-  }
-}
 
 async function requireAdmin(context: { supabase: import("@supabase/supabase-js").SupabaseClient; userId: string }) {
   const { data: isAdmin, error } = await context.supabase
