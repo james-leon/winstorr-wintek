@@ -66,18 +66,10 @@ export const createVendorInvitation = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
 
-    const send = await sendInvitationEmail(inv.email, inv.token, inv.expires_at);
-    await admin.from("vendor_invitations").update({
-      last_email_status: send.status,
-      last_email_sent_at: new Date().toISOString(),
-      last_email_error: send.error ?? null,
-    }).eq("id", inv.id);
+    await logAudit(admin, "vendor_invitation.created", inv.id, context.userId, { email: inv.email });
 
-    await logAudit(admin, "vendor_invitation.created", inv.id, context.userId, {
-      email: inv.email, email_status: send.status,
-    });
+    return { id: inv.id, token: inv.token, email: inv.email, expires_at: inv.expires_at };
 
-    return { id: inv.id, token: inv.token, email_status: send.status, email_error: send.error };
   });
 
 export const revokeVendorInvitation = createServerFn({ method: "POST" })
