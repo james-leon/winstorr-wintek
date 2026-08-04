@@ -84,6 +84,12 @@ export const waTemplates = {
     return `Bonjour ${first}, je vous contacte au sujet de votre commande Winstorr ${o.order_number}${o.shipment_number ? ` (expédition ${o.shipment_number})` : ""}. Je suis le vendeur en charge de votre article — pouvez-vous confirmer un créneau pour la préparation ?`;
   },
 
+  vendorInvitation(o: { link: string; expiresAt: string; vendorName?: string | null }): string {
+    const date = new Date(o.expiresAt).toLocaleDateString("fr-FR");
+    const shop = o.vendorName ? ` « ${o.vendorName} »` : "";
+    return `Bonjour, votre boutique${shop} sur Winstorr a été validée ! Cliquez sur ce lien pour l'activer : ${o.link}\nCe lien expire le ${date}.\n— Équipe Winstorr`;
+  },
+
   customerToSupport(o: {
     order_number: string;
   }): string {
