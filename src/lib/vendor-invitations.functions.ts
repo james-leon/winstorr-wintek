@@ -137,18 +137,15 @@ export const deleteVendorInvitation = createServerFn({ method: "POST" })
     if (readErr) throw new Error(readErr.message);
     if (!existing) throw new Error("Invitation introuvable");
 
-    if (existing.status !== "revoked" && existing.status !== "expired") {
+    const expiredByDate = new Date(existing.expires_at).getTime() < Date.now();
+    const deletable =
+      existing.status === "revoked" ||
+      existing.status === "expired" ||
+      (existing.status === "pending" && expiredByDate);
+    if (!deletable) {
       throw new Error("Seules les invitations révoquées ou expirées peuvent être supprimées.");
     }
 
-    // Safety window: 7 days past revocation/expiry
-    const reference = existing.status === "revoked"
-      ? existing.revoked_at ?? existing.created_at
-      : existing.expires_at;
-    const ageMs = Date.now() - new Date(reference).getTime();
-    if (ageMs < 7 * 24 * 60 * 60 * 1000) {
-      throw new Error("La suppression est disponible 7 jours après la révocation ou l'expiration.");
-    }
 
     const { error } = await admin.from("vendor_invitations").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
