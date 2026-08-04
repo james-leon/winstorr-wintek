@@ -2,8 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Copy, Plus, RotateCw, Trash2, XCircle, CheckCircle2, AlertCircle, Mail } from "lucide-react";
+import { Copy, Plus, RotateCw, Trash2, XCircle, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,20 +13,48 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Pagination, usePagination } from "@/components/pagination";
+import { waTemplates } from "@/lib/whatsapp";
 import {
   createVendorInvitation,
   revokeVendorInvitation,
   resendVendorInvitation,
   deleteVendorInvitation,
 } from "@/lib/vendor-invitations.functions";
+import { getVendorDeletionImpact, deleteVendor } from "@/lib/vendor-admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/vendeurs")({
   component: AdminVendors,
 });
 
+function invitationUrl(token: string) {
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://winstorr.com";
+  return `${origin}/vendeur/invitation/${token}`;
+}
+
+function ShareRow({ token, expiresAt, vendorName }: { token: string; expiresAt: string; vendorName?: string | null }) {
+  const { t } = useTranslation();
+  const link = invitationUrl(token);
+  const wa = `https://wa.me/?text=${encodeURIComponent(waTemplates.vendorInvitation({ link, expiresAt, vendorName }))}`;
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      <Button size="sm" variant="outline"
+        onClick={() => { void navigator.clipboard.writeText(link); toast.success(t("adminVendors.linkCopied")); }}>
+        <Copy className="mr-1 h-3.5 w-3.5" /> {t("adminVendors.copyLink")}
+      </Button>
+      <Button size="sm" variant="outline"
+        className="border-[#25D366]/40 text-[#128C7E] hover:bg-[#25D366]/10 hover:text-[#128C7E]"
+        onClick={() => window.open(wa, "_blank", "noopener,noreferrer")}>
+        <MessageCircle className="mr-1 h-3.5 w-3.5" /> {t("adminVendors.shareWhatsApp")}
+      </Button>
+    </div>
+  );
+}
+
 function AdminVendors() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const { data: vendors = [] } = useQuery({
     queryKey: ["admin-vendors-full"],
@@ -47,7 +76,7 @@ function AdminVendors() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("vendor_invitations")
-        .select("id, email, proposed_vendor_name, vendor_id, token, status, expires_at, created_at, revoked_at, last_email_status, last_email_sent_at, last_email_error")
+        .select("id, email, proposed_vendor_name, vendor_id, token, status, expires_at, created_at, revoked_at")
         .order("created_at", { ascending: false })
         .limit(200);
       if (error) throw error;
@@ -75,7 +104,7 @@ function AdminVendors() {
       const { error } = await supabase.from("vendors").update({ status }).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => { toast.success("Vendeur mis à jour"); qc.invalidateQueries({ queryKey: ["admin-vendors-full"] }); },
+    onSuccess: () => { toast.success(t("adminVendors.vendorUpdated")); qc.invalidateQueries({ queryKey: ["admin-vendors-full"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -84,26 +113,21 @@ function AdminVendors() {
   const revokeFn = useServerFn(revokeVendorInvitation);
   const revoke = useMutation({
     mutationFn: (id: string) => revokeFn({ data: { id } }),
-    onSuccess: () => { toast.success("Invitation révoquée"); invalidateInv(); },
+    onSuccess: () => { toast.success(t("adminVendors.invitationRevoked")); invalidateInv(); },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const resendFn = useServerFn(resendVendorInvitation);
   const resend = useMutation({
     mutationFn: (id: string) => resendFn({ data: { id } }),
-    onSuccess: (res: { email_status?: string; email_error?: string }) => {
-      if (res.email_status === "sent") toast.success("Invitation renvoyée — email livré au fournisseur");
-      else if (res.email_status === "mocked") toast.success("Invitation régénérée — email non configuré, utilisez « Copier le lien »");
-      else toast.error(`Échec de l'envoi de l'email : ${res.email_error ?? "erreur inconnue"}. Le lien est régénéré, utilisez « Copier le lien ».`);
-      invalidateInv();
-    },
+    onSuccess: () => { toast.success(t("adminVendors.linkRegenerated")); invalidateInv(); },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const deleteFn = useServerFn(deleteVendorInvitation);
   const del = useMutation({
     mutationFn: (id: string) => deleteFn({ data: { id } }),
-    onSuccess: () => { toast.success("Invitation supprimée"); invalidateInv(); },
+    onSuccess: () => { toast.success(t("adminVendors.invitationDeleted")); invalidateInv(); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -111,58 +135,68 @@ function AdminVendors() {
     <div className="space-y-8">
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Vendeurs</h2>
-          <Button onClick={() => setInviteOpen(true)}><Plus className="mr-1 h-4 w-4" /> Inviter un vendeur</Button>
+          <h2 className="text-lg font-semibold">{t("adminVendors.vendors")}</h2>
+          <Button onClick={() => setInviteOpen(true)}><Plus className="mr-1 h-4 w-4" /> {t("adminVendors.inviteVendor")}</Button>
         </div>
         <div className="rounded-sm border border-border bg-card overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-muted text-left">
               <tr>
-                <th className="p-3">Nom</th><th className="p-3">Type</th>
-                <th className="p-3">Membres</th><th className="p-3">Statut</th><th className="p-3"></th>
+                <th className="p-3">{t("adminVendors.name")}</th><th className="p-3">{t("adminVendors.type")}</th>
+                <th className="p-3">{t("adminVendors.members")}</th><th className="p-3">{t("adminVendors.status")}</th><th className="p-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {vendorsPg.paged.map((v) => (
                 <tr key={v.id}>
                   <td className="p-3 font-medium">{v.name}<div className="text-xs text-muted-foreground">{v.slug}{v.contact_email && ` · ${v.contact_email}`}</div></td>
-                  <td className="p-3 text-xs">{v.type === "internal" ? "Officiel" : "Externe"}</td>
+                  <td className="p-3 text-xs">{v.type === "internal" ? t("adminVendors.official") : t("adminVendors.external")}</td>
                   <td className="p-3 text-xs">{v.members}</td>
                   <td className="p-3">
                     <span className={`inline-block rounded-full px-2 py-0.5 text-xs ${v.status === "active" ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"}`}>
                       {v.status}
                     </span>
                   </td>
-                  <td className="p-3 text-right">
+                  <td className="p-3">
                     {v.type !== "internal" && (
-                      <Button size="sm" variant="outline"
-                        onClick={() => suspend.mutate({ id: v.id, status: v.status === "active" ? "suspended" : "active" })}>
-                        {v.status === "active" ? "Suspendre" : "Réactiver"}
-                      </Button>
+                      <div className="flex flex-wrap justify-end gap-1.5">
+                        <Button size="sm" variant="outline"
+                          onClick={() => suspend.mutate({ id: v.id, status: v.status === "active" ? "suspended" : "active" })}>
+                          {v.status === "active" ? t("adminVendors.suspend") : t("adminVendors.reactivate")}
+                        </Button>
+                        <Button size="sm" variant="outline"
+                          className="border-destructive/40 text-destructive hover:bg-destructive/10"
+                          onClick={() => setDeleteTarget({ id: v.id, name: v.name })}>
+                          <Trash2 className="mr-1 h-3.5 w-3.5" /> {t("adminVendors.delete")}
+                        </Button>
+                      </div>
                     )}
                   </td>
                 </tr>
               ))}
-              {vendors.length === 0 && <tr><td colSpan={5} className="p-6 text-center text-muted-foreground">Aucun vendeur.</td></tr>}
+              {vendors.length === 0 && <tr><td colSpan={5} className="p-6 text-center text-muted-foreground">{t("adminVendors.noVendors")}</td></tr>}
             </tbody>
           </table>
         </div>
-        <Pagination page={vendorsPg.page} pageCount={vendorsPg.pageCount} total={vendorsPg.total} rangeStart={vendorsPg.rangeStart} rangeEnd={vendorsPg.rangeEnd} onPageChange={vendorsPg.setPage} label="vendeurs" />
+        <Pagination page={vendorsPg.page} pageCount={vendorsPg.pageCount} total={vendorsPg.total} rangeStart={vendorsPg.rangeStart} rangeEnd={vendorsPg.rangeEnd} onPageChange={vendorsPg.setPage} label={t("adminVendors.vendorsLabel")} />
       </section>
 
       <section>
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold">Invitations</h2>
+          <div>
+            <h2 className="text-lg font-semibold">{t("adminVendors.invitations")}</h2>
+            <p className="text-xs text-muted-foreground">{t("adminVendors.manualHint")}</p>
+          </div>
           <div className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground">Filtrer :</span>
+            <span className="text-muted-foreground">{t("adminVendors.filter")}</span>
             <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
               <SelectTrigger className="h-8 w-40"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Toutes</SelectItem>
-                <SelectItem value="pending">En attente</SelectItem>
-                <SelectItem value="accepted">Acceptées</SelectItem>
-                <SelectItem value="revoked">Révoquées</SelectItem>
-                <SelectItem value="expired">Expirées</SelectItem>
+                <SelectItem value="all">{t("adminVendors.filterAll")}</SelectItem>
+                <SelectItem value="pending">{t("adminVendors.filterPending")}</SelectItem>
+                <SelectItem value="accepted">{t("adminVendors.filterAccepted")}</SelectItem>
+                <SelectItem value="revoked">{t("adminVendors.filterRevoked")}</SelectItem>
+                <SelectItem value="expired">{t("adminVendors.filterExpired")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -171,29 +205,23 @@ function AdminVendors() {
           <table className="w-full text-sm">
             <thead className="bg-muted text-left">
               <tr>
-                <th className="p-3">Email</th>
-                <th className="p-3">Vendeur</th>
-                <th className="p-3">Statut</th>
-                <th className="p-3">Email</th>
-                <th className="p-3">Créée</th>
-                <th className="p-3">Expire</th>
-                <th className="p-3 text-right">Actions</th>
+                <th className="p-3">{t("adminVendors.email")}</th>
+                <th className="p-3">{t("adminVendors.vendor")}</th>
+                <th className="p-3">{t("adminVendors.status")}</th>
+                <th className="p-3">{t("adminVendors.created")}</th>
+                <th className="p-3">{t("adminVendors.expires")}</th>
+                <th className="p-3 text-right">{t("adminVendors.actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {invitationsPg.paged.map((i) => {
-                const link = typeof window !== "undefined" ? `${window.location.origin}/vendeur/invitation/${i.token}` : `/vendeur/invitation/${i.token}`;
                 const expiredByDate = new Date(i.expires_at) < new Date();
                 const effectiveStatus = i.status === "pending" && expiredByDate ? "expired" : i.status;
                 const isPending = i.status === "pending" && !expiredByDate;
                 const isAccepted = i.status === "accepted";
-                const canDelete = (i.status === "revoked" || i.status === "expired" || (i.status === "pending" && expiredByDate));
-                const referenceDate = i.status === "revoked"
-                  ? (i.revoked_at ?? i.created_at)
-                  : i.expires_at;
-                const eligibleForDelete = canDelete && Date.now() - new Date(referenceDate).getTime() >= 7 * 24 * 60 * 60 * 1000;
+                const canDelete = i.status === "revoked" || i.status === "expired" || (i.status === "pending" && expiredByDate);
                 const vendorLabel = i.vendor_id
-                  ? (vendorNameById.get(i.vendor_id) ?? "existant")
+                  ? (vendorNameById.get(i.vendor_id) ?? "—")
                   : (i.proposed_vendor_name ?? "—");
                 return (
                   <tr key={i.id} className="align-top">
@@ -217,66 +245,46 @@ function AdminVendors() {
                         {effectiveStatus}
                       </span>
                     </td>
-                    <td className="p-3 text-xs">
-                      {i.last_email_status === "sent" && (
-                        <span className="inline-flex items-center gap-1 text-success"><CheckCircle2 className="h-3 w-3" /> envoyé</span>
-                      )}
-                      {i.last_email_status === "mocked" && (
-                        <span className="inline-flex items-center gap-1 text-muted-foreground"><Mail className="h-3 w-3" /> non configuré</span>
-                      )}
-                      {i.last_email_status === "failed" && (
-                        <span className="inline-flex items-center gap-1 text-destructive" title={i.last_email_error ?? undefined}>
-                          <AlertCircle className="h-3 w-3" /> échec
-                        </span>
-                      )}
-                      {!i.last_email_status && <span className="text-muted-foreground">—</span>}
-                      {i.last_email_sent_at && (
-                        <div className="text-[10px] text-muted-foreground">{new Date(i.last_email_sent_at).toLocaleString("fr-FR")}</div>
-                      )}
-                    </td>
                     <td className="p-3 text-xs text-muted-foreground">{new Date(i.created_at).toLocaleDateString("fr-FR")}</td>
                     <td className="p-3 text-xs">{new Date(i.expires_at).toLocaleDateString("fr-FR")}</td>
                     <td className="p-3">
                       <div className="flex flex-wrap justify-end gap-1.5">
                         {isPending && (
                           <>
-                            <Button size="sm" variant="ghost" title="Copier le lien"
-                              onClick={() => { navigator.clipboard.writeText(link); toast.success("Lien copié"); }}>
-                              <Copy className="h-3.5 w-3.5" />
-                            </Button>
+                            <ShareRow token={i.token} expiresAt={i.expires_at} vendorName={vendorLabel === "—" ? null : vendorLabel} />
                             <Button size="sm" variant="outline" disabled={resend.isPending}
+                              title={t("adminVendors.regenerateHint")}
                               onClick={() => resend.mutate(i.id)}>
-                              <RotateCw className="mr-1 h-3.5 w-3.5" /> Renvoyer
+                              <RotateCw className="mr-1 h-3.5 w-3.5" /> {t("adminVendors.regenerate")}
                             </Button>
                             <ConfirmDialog
-                              trigger={<Button size="sm" variant="outline"><XCircle className="mr-1 h-3.5 w-3.5" /> Révoquer</Button>}
-                              title="Révoquer cette invitation ?"
-                              description={`Le lien envoyé à ${i.email} deviendra invalide. L'invitation restera visible pour l'audit.`}
-                              confirmLabel="Révoquer"
+                              trigger={<Button size="sm" variant="outline"><XCircle className="mr-1 h-3.5 w-3.5" /> {t("adminVendors.revoke")}</Button>}
+                              title={t("adminVendors.revokeTitle")}
+                              description={t("adminVendors.revokeDesc", { email: i.email })}
+                              confirmLabel={t("adminVendors.revoke")}
                               onConfirm={() => revoke.mutate(i.id)}
                             />
                           </>
                         )}
-                        {i.status === "expired" && (
+                        {effectiveStatus === "expired" && (
                           <Button size="sm" variant="outline" disabled={resend.isPending}
                             onClick={() => resend.mutate(i.id)}>
-                            <RotateCw className="mr-1 h-3.5 w-3.5" /> Réactiver
+                            <RotateCw className="mr-1 h-3.5 w-3.5" /> {t("adminVendors.reactivateInvite")}
                           </Button>
                         )}
                         {isAccepted && (
-                          <span className="text-xs text-muted-foreground">Lecture seule</span>
+                          <span className="text-xs text-muted-foreground">{t("adminVendors.readOnly")}</span>
                         )}
                         {canDelete && (
                           <ConfirmDialog
                             trigger={
-                              <Button size="sm" variant="outline" disabled={!eligibleForDelete}
-                                title={eligibleForDelete ? "Supprimer définitivement" : "Disponible 7 jours après révocation/expiration"}>
-                                <Trash2 className="mr-1 h-3.5 w-3.5" /> Supprimer
+                              <Button size="sm" variant="outline" className="border-destructive/40 text-destructive hover:bg-destructive/10">
+                                <Trash2 className="mr-1 h-3.5 w-3.5" /> {t("adminVendors.delete")}
                               </Button>
                             }
-                            title="Supprimer définitivement ?"
-                            description={`L'invitation pour ${i.email} sera supprimée sans possibilité de restauration.`}
-                            confirmLabel="Supprimer"
+                            title={t("adminVendors.deleteInviteTitle")}
+                            description={t("adminVendors.deleteInviteDesc", { email: i.email })}
+                            confirmLabel={t("adminVendors.delete")}
                             onConfirm={() => del.mutate(i.id)}
                           />
                         )}
@@ -285,31 +293,106 @@ function AdminVendors() {
                   </tr>
                 );
               })}
-              {filteredInvitations.length === 0 && <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">Aucune invitation.</td></tr>}
+              {filteredInvitations.length === 0 && <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">{t("adminVendors.noInvitations")}</td></tr>}
             </tbody>
           </table>
         </div>
-        <Pagination page={invitationsPg.page} pageCount={invitationsPg.pageCount} total={invitationsPg.total} rangeStart={invitationsPg.rangeStart} rangeEnd={invitationsPg.rangeEnd} onPageChange={invitationsPg.setPage} label="invitations" />
+        <Pagination page={invitationsPg.page} pageCount={invitationsPg.pageCount} total={invitationsPg.total} rangeStart={invitationsPg.rangeStart} rangeEnd={invitationsPg.rangeEnd} onPageChange={invitationsPg.setPage} label={t("adminVendors.invitationsLabel")} />
       </section>
 
       {inviteOpen && (
         <InviteDialog
           existingVendors={vendors.filter((v) => v.type === "external")}
           onClose={() => setInviteOpen(false)}
-          onSaved={() => { setInviteOpen(false); qc.invalidateQueries({ queryKey: ["admin-vendor-invitations"] }); }}
+          onCreated={() => qc.invalidateQueries({ queryKey: ["admin-vendor-invitations"] })}
+        />
+      )}
+
+      {deleteTarget && (
+        <DeleteVendorDialog
+          vendor={deleteTarget}
+          onClose={() => setDeleteTarget(null)}
+          onDeleted={() => {
+            setDeleteTarget(null);
+            qc.invalidateQueries({ queryKey: ["admin-vendors-full"] });
+            qc.invalidateQueries({ queryKey: ["admin-vendor-invitations"] });
+          }}
         />
       )}
     </div>
   );
 }
 
-function InviteDialog({ existingVendors, onClose, onSaved }: {
-  existingVendors: { id: string; name: string }[]; onClose: () => void; onSaved: () => void;
+function DeleteVendorDialog({ vendor, onClose, onDeleted }: {
+  vendor: { id: string; name: string }; onClose: () => void; onDeleted: () => void;
 }) {
+  const { t } = useTranslation();
+  const impactFn = useServerFn(getVendorDeletionImpact);
+  const deleteVendorFn = useServerFn(deleteVendor);
+
+  const { data: impact, isLoading, error } = useQuery({
+    queryKey: ["vendor-deletion-impact", vendor.id],
+    queryFn: () => impactFn({ data: { vendor_id: vendor.id } }),
+  });
+
+  const mut = useMutation({
+    mutationFn: () => deleteVendorFn({ data: { vendor_id: vendor.id } }),
+    onSuccess: () => { toast.success(t("adminVendors.vendorDeleted")); onDeleted(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const blocked = impact?.blocked ?? false;
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>{t("adminVendors.deleteVendorTitle", { name: vendor.name })}</DialogTitle></DialogHeader>
+        {isLoading && <p className="text-sm text-muted-foreground">{t("common.loading")}</p>}
+        {error && <p className="text-sm text-destructive">{(error as Error).message}</p>}
+        {impact && (
+          <div className="space-y-3 text-sm">
+            {blocked ? (
+              <p className="rounded-sm border border-destructive/40 bg-destructive/10 p-3 text-destructive">
+                {t("adminVendors.deleteBlocked")}
+              </p>
+            ) : (
+              <p className="text-muted-foreground">{t("adminVendors.deleteWarning")}</p>
+            )}
+            <ul className="list-disc space-y-1 pl-5">
+              <li>{t("adminVendors.countProducts", { count: impact.products })}</li>
+              <li>{t("adminVendors.countFollowers", { count: impact.followers })}</li>
+              <li>{t("adminVendors.countWithdrawals", { count: impact.withdrawals })}</li>
+              <li>{t("adminVendors.countCommissions", { count: impact.commissionRules })}</li>
+              <li>{t("adminVendors.countMembers", { count: impact.members })}</li>
+              <li>{t("adminVendors.countInvitations", { count: impact.invitations })}</li>
+            </ul>
+          </div>
+        )}
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose}>{t("common.cancel")}</Button>
+          <Button
+            type="button"
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            disabled={blocked || isLoading || mut.isPending}
+            onClick={() => mut.mutate()}
+          >
+            {mut.isPending ? "..." : t("adminVendors.deletePermanently")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function InviteDialog({ existingVendors, onClose, onCreated }: {
+  existingVendors: { id: string; name: string }[]; onClose: () => void; onCreated: () => void;
+}) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [mode, setMode] = useState<"new" | "existing">("new");
   const [name, setName] = useState("");
   const [vendorId, setVendorId] = useState("");
+  const [created, setCreated] = useState<{ token: string; expires_at: string } | null>(null);
 
   const createFn = useServerFn(createVendorInvitation);
   const mut = useMutation({
@@ -318,44 +401,66 @@ function InviteDialog({ existingVendors, onClose, onSaved }: {
       proposed_vendor_name: mode === "new" ? name : null,
       vendor_id: mode === "existing" ? vendorId : null,
     } }),
-    onSuccess: () => { toast.success("Invitation envoyée"); onSaved(); },
+    onSuccess: (res) => {
+      toast.success(t("adminVendors.invitationCreated"));
+      setCreated({ token: res.token, expires_at: res.expires_at });
+      onCreated();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const vendorName = mode === "new" ? name : (existingVendors.find((v) => v.id === vendorId)?.name ?? null);
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent>
-        <DialogHeader><DialogTitle>Inviter un vendeur</DialogTitle></DialogHeader>
-        <form onSubmit={(e) => { e.preventDefault(); mut.mutate(); }} className="space-y-3">
-          <div><Label>Email *</Label><Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></div>
-          <div>
-            <Label>Type</Label>
-            <Select value={mode} onValueChange={(v) => setMode(v as "new" | "existing")}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="new">Créer un nouveau vendeur</SelectItem>
-                <SelectItem value="existing" disabled={existingVendors.length === 0}>Rattacher à un vendeur existant</SelectItem>
-              </SelectContent>
-            </Select>
+        <DialogHeader><DialogTitle>{t("adminVendors.inviteVendor")}</DialogTitle></DialogHeader>
+        {created ? (
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">{t("adminVendors.shareInstructions")}</p>
+            <div className="rounded-sm border border-border bg-muted/40 p-2 text-xs break-all">
+              {invitationUrl(created.token)}
+            </div>
+            <ShareRow token={created.token} expiresAt={created.expires_at} vendorName={vendorName} />
+            <p className="text-xs text-muted-foreground">
+              {t("adminVendors.expiresOn", { date: new Date(created.expires_at).toLocaleDateString("fr-FR") })}
+            </p>
+            <DialogFooter>
+              <Button type="button" onClick={onClose}>{t("common.close")}</Button>
+            </DialogFooter>
           </div>
-          {mode === "new" ? (
-            <div><Label>Nom du vendeur proposé *</Label><Input required value={name} onChange={(e) => setName(e.target.value)} placeholder="ex : Techno Cameroun" /></div>
-          ) : (
+        ) : (
+          <form onSubmit={(e) => { e.preventDefault(); mut.mutate(); }} className="space-y-3">
+            <div><Label>{t("adminVendors.email")} *</Label><Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></div>
             <div>
-              <Label>Vendeur existant *</Label>
-              <Select value={vendorId} onValueChange={setVendorId}>
-                <SelectTrigger><SelectValue placeholder="Choisir..." /></SelectTrigger>
+              <Label>{t("adminVendors.type")}</Label>
+              <Select value={mode} onValueChange={(v) => setMode(v as "new" | "existing")}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {existingVendors.map((v) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}
+                  <SelectItem value="new">{t("adminVendors.modeNew")}</SelectItem>
+                  <SelectItem value="existing" disabled={existingVendors.length === 0}>{t("adminVendors.modeExisting")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-          )}
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>Annuler</Button>
-            <Button type="submit" disabled={mut.isPending}>{mut.isPending ? "..." : "Envoyer l'invitation"}</Button>
-          </DialogFooter>
-        </form>
+            {mode === "new" ? (
+              <div><Label>{t("adminVendors.proposedName")} *</Label><Input required value={name} onChange={(e) => setName(e.target.value)} placeholder="ex : Techno Cameroun" /></div>
+            ) : (
+              <div>
+                <Label>{t("adminVendors.existingVendor")} *</Label>
+                <Select value={vendorId} onValueChange={setVendorId}>
+                  <SelectTrigger><SelectValue placeholder={t("adminVendors.choose")} /></SelectTrigger>
+                  <SelectContent>
+                    {existingVendors.map((v) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={onClose}>{t("common.cancel")}</Button>
+              <Button type="submit" disabled={mut.isPending}>{mut.isPending ? "..." : t("adminVendors.generateLink")}</Button>
+            </DialogFooter>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );
