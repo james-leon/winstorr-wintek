@@ -116,18 +116,10 @@ export const resendVendorInvitation = createServerFn({ method: "POST" })
       .eq("id", data.id);
     if (updErr) throw new Error(updErr.message);
 
-    const send = await sendInvitationEmail(existing.email, token, expiresAt);
-    await admin.from("vendor_invitations").update({
-      last_email_status: send.status,
-      last_email_sent_at: new Date().toISOString(),
-      last_email_error: send.error ?? null,
-    }).eq("id", data.id);
+    await logAudit(admin, "vendor_invitation.resent", data.id, context.userId, { email: existing.email });
 
-    await logAudit(admin, "vendor_invitation.resent", data.id, context.userId, {
-      email: existing.email, email_status: send.status,
-    });
+    return { ok: true, token, email: existing.email, expires_at: expiresAt };
 
-    return { ok: true, token, email_status: send.status, email_error: send.error };
   });
 
 export const deleteVendorInvitation = createServerFn({ method: "POST" })
