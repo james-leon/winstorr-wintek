@@ -73,6 +73,8 @@ const productQuery = (slug: string) =>
 
 export const Route = createFileRoute("/produits/$slug")({
   loader: ({ context, params }) => context.queryClient.ensureQueryData(productQuery(params.slug)),
+  pendingComponent: SkeletonProductDetail,
+  pendingMs: 200,
   head: ({ loaderData, params }) => {
     if (!loaderData) {
       return { meta: [{ title: "Produit — Winstorr" }, { name: "robots", content: "noindex" }] };

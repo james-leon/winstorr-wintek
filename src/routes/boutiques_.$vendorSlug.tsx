@@ -11,6 +11,8 @@ import { useAuth } from "@/lib/auth-context";
 import { useIsFollowing, useFollowerCount, useToggleFollow } from "@/lib/vendor-follow";
 import type { ProductType } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { SkeletonProductGrid } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /* -------------------- data -------------------- */
 
@@ -115,6 +117,14 @@ const storefrontQuery = (vendorSlug: string) =>
 export const Route = createFileRoute("/boutiques_/$vendorSlug")({
   loader: ({ params, context }) =>
     context.queryClient.ensureQueryData(storefrontQuery(params.vendorSlug)),
+  pendingComponent: () => (
+    <div className="mx-auto max-w-7xl space-y-4 px-3 py-4">
+      <Skeleton className="h-32 w-full rounded-sm" />
+      <Skeleton className="h-5 w-48" />
+      <SkeletonProductGrid count={10} />
+    </div>
+  ),
+  pendingMs: 200,
   head: ({ loaderData }) => {
     if (!loaderData) {
       return { meta: [{ title: "Boutique introuvable — Winstorr" }, { name: "robots", content: "noindex" }] };

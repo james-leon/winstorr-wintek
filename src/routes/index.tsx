@@ -44,6 +44,7 @@ import { QualityBadge } from "@/components/quality-badge";
 import { displayPrice, formatFcfa, type ProductType } from "@/lib/format";
 import { imageAtWidth, imageSrcSet } from "@/lib/seo";
 import { cn } from "@/lib/utils";
+import { SkeletonHomepage } from "@/components/skeletons";
 
 /* -------------------- data -------------------- */
 
@@ -206,6 +207,8 @@ type DbBanner = {
 
 export const Route = createFileRoute("/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(homeShelvesQuery),
+  pendingComponent: SkeletonHomepage,
+  pendingMs: 200,
   head: () => {
     const title = "Winstorr — Marketplace tech de confiance au Cameroun";
     const description =
