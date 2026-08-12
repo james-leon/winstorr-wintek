@@ -14,6 +14,7 @@ import { Pagination, usePagination } from "@/components/pagination";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 import { waTemplates } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
+import { SkeletonTableRows } from "@/components/skeletons";
 
 
 export const Route = createFileRoute("/_authenticated/admin/commandes")({
@@ -34,7 +35,7 @@ function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selected, setSelected] = useState<any>(null);
 
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["admin-orders", statusFilter],
     queryFn: async () => {
       let q = supabase
@@ -174,6 +175,7 @@ function AdminOrdersPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
+            {isLoading && <SkeletonTableRows rows={6} cols={8} />}
             {paged.map((o) => (
               <tr key={o.id} className="hover:bg-muted/50">
                 <td className="p-2 font-mono">{o.order_number}</td>

@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatFcfa } from "@/lib/format";
 import { Pagination, usePagination } from "@/components/pagination";
+import { SkeletonTableRows } from "@/components/skeletons";
 
 export const Route = createFileRoute("/_authenticated/admin/codes-promo")({
   head: () => ({ meta: [{ title: "Codes promo — Admin Winstorr" }] }),
@@ -44,7 +45,7 @@ function AdminCoupons() {
   const [creating, setCreating] = useState(false);
   const [viewing, setViewing] = useState<Coupon | null>(null);
 
-  const { data: coupons = [] } = useQuery({
+  const { data: coupons = [], isLoading } = useQuery({
     queryKey: ["admin-coupons"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -98,6 +99,7 @@ function AdminCoupons() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
+            {isLoading && <SkeletonTableRows rows={6} cols={8} />}
             {paged.map((c) => (
               <tr key={c.id}>
                 <td className="p-3">
