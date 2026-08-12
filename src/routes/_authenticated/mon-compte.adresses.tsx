@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { CITIES, type CityValue, cityLabel } from "@/lib/address";
+import { SkeletonListRows } from "@/components/skeletons";
 
 export type Address = {
   id: string;
@@ -86,7 +87,7 @@ function AddressesPage() {
         <Button onClick={openNew} size="sm"><Plus className="h-4 w-4 mr-1" />Ajouter</Button>
       </div>
 
-      {isLoading && <p className="text-sm text-muted-foreground">Chargement…</p>}
+      {isLoading && <SkeletonListRows rows={3} />}
 
       {!isLoading && addresses.length === 0 && (
         <div className="rounded-sm border border-dashed border-border p-8 text-center">

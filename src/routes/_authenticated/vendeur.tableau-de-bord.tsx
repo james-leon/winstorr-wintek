@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyVendors } from "@/lib/vendor";
 import { formatFcfa } from "@/lib/format";
+import { SkeletonStatCards, SkeletonTableRows } from "@/components/skeletons";
 
 export const Route = createFileRoute("/_authenticated/vendeur/tableau-de-bord")({
   component: VendorDashboard,
@@ -12,7 +13,7 @@ function VendorDashboard() {
   const { data: memberships } = useMyVendors();
   const vendorId = memberships?.[0]?.vendor_id;
 
-  const { data: stats } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["vendor-dashboard", vendorId],
     enabled: !!vendorId,
     queryFn: async () => {
@@ -45,7 +46,7 @@ function VendorDashboard() {
     },
   });
 
-  const { data: recentOrders } = useQuery({
+  const { data: recentOrders, isLoading: ordersLoading } = useQuery({
     queryKey: ["vendor-recent-orders", vendorId],
     enabled: !!vendorId,
     queryFn: async () => {
@@ -70,7 +71,8 @@ function VendorDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-3 sm:grid-cols-4">
+      {statsLoading && <SkeletonStatCards count={4} />}
+      <div className={statsLoading ? "hidden" : "grid gap-3 sm:grid-cols-4"}>
         <StatCard label="Produits actifs" value={stats?.activeProducts ?? "—"} />
         <StatCard label="Commandes ce mois" value={stats?.ordersThisMonth ?? "—"} />
         <StatCard label="Unités vendues" value={stats?.unitsSold ?? "—"} />
@@ -92,6 +94,7 @@ function VendorDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
+              {ordersLoading && <SkeletonTableRows rows={5} cols={5} />}
               {(recentOrders ?? []).map((o: any) => (
                 <tr key={o.id}>
                   <td className="p-2 font-mono">{o.order_number}</td>
@@ -101,7 +104,7 @@ function VendorDashboard() {
                   <td className="p-2 text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("fr-FR")}</td>
                 </tr>
               ))}
-              {(!recentOrders || recentOrders.length === 0) && (
+              {!ordersLoading && (!recentOrders || recentOrders.length === 0) && (
                 <tr><td colSpan={5} className="p-6 text-center text-muted-foreground">Aucune commande récente.</td></tr>
               )}
             </tbody>

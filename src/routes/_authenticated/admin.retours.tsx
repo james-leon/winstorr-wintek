@@ -12,6 +12,7 @@ import { updateReturnRequest } from "@/lib/returns.functions";
 import { formatFcfa } from "@/lib/format";
 import { Pagination, usePagination } from "@/components/pagination";
 import { cn } from "@/lib/utils";
+import { SkeletonTableRows } from "@/components/skeletons";
 
 export const Route = createFileRoute("/_authenticated/admin/retours")({
   component: AdminReturnsPage,
@@ -50,7 +51,7 @@ function AdminReturnsPage() {
   const [notes, setNotes] = useState("");
   const [refund, setRefund] = useState<string>("");
 
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["admin-returns", statusFilter],
     queryFn: async () => {
       let q = supabase
@@ -121,6 +122,7 @@ function AdminReturnsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
+            {isLoading && <SkeletonTableRows rows={6} cols={7} />}
             {paged.map((r: any) => (
               <tr key={r.id} className="hover:bg-muted/50">
                 <td className="p-2 font-mono">{r.orders?.order_number}</td>

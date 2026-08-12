@@ -21,6 +21,7 @@ import {
   deleteVendorInvitation,
 } from "@/lib/vendor-invitations.functions";
 import { getVendorDeletionImpact, deleteVendor } from "@/lib/vendor-admin.functions";
+import { SkeletonTableRows } from "@/components/skeletons";
 
 export const Route = createFileRoute("/_authenticated/admin/vendeurs")({
   component: AdminVendors,
@@ -56,7 +57,7 @@ function AdminVendors() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
-  const { data: vendors = [] } = useQuery({
+  const { data: vendors = [], isLoading } = useQuery({
     queryKey: ["admin-vendors-full"],
     queryFn: async () => {
       const [{ data: vs, error: e1 }, { data: mems, error: e2 }] = await Promise.all([
@@ -147,6 +148,7 @@ function AdminVendors() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
+              {isLoading && <SkeletonTableRows rows={6} cols={6} />}
               {vendorsPg.paged.map((v) => (
                 <tr key={v.id}>
                   <td className="p-3 font-medium">{v.name}<div className="text-xs text-muted-foreground">{v.slug}{v.contact_email && ` · ${v.contact_email}`}</div></td>

@@ -4,6 +4,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Minus, Plus, Trash2, ShoppingBag, Tag, X, Check, AlertTriangle } from "lucide-react";
 import { useCart, cartItemKey, type CartItem } from "@/lib/cart-context";
+import { SkeletonCart } from "@/components/skeletons";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/panier")({
 });
 
 function CartPage() {
-  const { items, add, remove, coupon, setCoupon } = useCart();
+  const { items, add, remove, coupon, setCoupon, hydrated } = useCart();
   const { data: tiersMap } = useCartTiers(items.map((i) => ({ productId: i.productId, variantId: i.variantId })));
 
   const productIds = items.map((i) => i.productId);
@@ -122,6 +123,8 @@ function CartPage() {
     },
     onError: (e: Error) => setError(e.message),
   });
+
+  if (!hydrated) return <SkeletonCart />;
 
   if (items.length === 0) {
     return (

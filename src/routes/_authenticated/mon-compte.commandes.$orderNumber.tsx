@@ -11,6 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { createReturnRequest } from "@/lib/returns.functions";
 import { cn } from "@/lib/utils";
+import { SkeletonListRows } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_authenticated/mon-compte/commandes/$orderNumber")({
   head: () => ({ meta: [{ title: "Détail de commande — Winstorr" }] }),
@@ -100,7 +102,13 @@ function OrderDetail() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (!data) return <div className="mx-auto max-w-3xl px-4 py-8 text-center text-muted-foreground">Chargement…</div>;
+  if (!data)
+    return (
+      <div className="mx-auto max-w-3xl space-y-4 px-4 py-8">
+        <Skeleton className="h-6 w-48" />
+        <SkeletonListRows rows={3} />
+      </div>
+    );
   if (!data.order) return <div className="mx-auto max-w-3xl px-4 py-8 text-center">Commande introuvable.</div>;
 
   const { order, items, returns, shipments } = data;

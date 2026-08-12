@@ -8,6 +8,7 @@ import { StarRating } from "@/components/star-rating";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Pagination, usePagination } from "@/components/pagination";
 import { useState } from "react";
+import { SkeletonListRows } from "@/components/skeletons";
 
 export const Route = createFileRoute("/_authenticated/admin/avis")({
   component: AdminReviews,
@@ -90,7 +91,7 @@ function AdminReviews() {
       </div>
 
       {isLoading ? (
-        <div className="p-8 text-center text-muted-foreground">Chargement...</div>
+        <SkeletonListRows rows={5} />
       ) : rows.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border bg-muted/30 p-10 text-center text-muted-foreground">
           Aucun avis à afficher.

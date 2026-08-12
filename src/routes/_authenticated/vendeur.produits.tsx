@@ -15,6 +15,7 @@ import { displayPrice, slugify, PRODUCT_TYPE_LABELS, type ProductType } from "@/
 import { ImageGalleryManager } from "@/components/image-gallery-manager";
 import { VariantsManager } from "@/components/variants-manager";
 import { useMyVendors } from "@/lib/vendor";
+import { SkeletonTableRows } from "@/components/skeletons";
 
 export const Route = createFileRoute("/_authenticated/vendeur/produits")({
   component: VendorProducts,
@@ -85,7 +86,7 @@ function VendorProducts() {
             </tr>
           </thead>
           <tbody>
-            {isLoading && <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">Chargement...</td></tr>}
+            {isLoading && <SkeletonTableRows rows={6} cols={7} />}
             {rows.map((r) => {
               const meta = STATUS_META[r.status] ?? { label: r.status, cls: "bg-muted text-muted-foreground" };
               return (

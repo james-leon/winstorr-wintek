@@ -8,6 +8,7 @@ import { PublicRouteError } from "@/components/public-route-error";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /* -------------------- types & search -------------------- */
 
@@ -128,6 +129,21 @@ const directoryQuery = queryOptions({
 export const Route = createFileRoute("/boutiques")({
   validateSearch: (raw: Record<string, unknown>): BoutiquesSearch => searchSchema.parse(raw),
   loader: ({ context }) => context.queryClient.ensureQueryData(directoryQuery),
+  pendingComponent: () => (
+    <div className="mx-auto max-w-7xl space-y-4 px-3 py-4">
+      <Skeleton className="h-6 w-48" />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="space-y-2 rounded-sm border border-border bg-card p-4">
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-3 w-48" />
+          </div>
+        ))}
+      </div>
+    </div>
+  ),
+  pendingMs: 200,
   head: () => {
     const title = "Nos boutiques — Vendeurs vérifiés du marketplace Winstorr";
     const description =

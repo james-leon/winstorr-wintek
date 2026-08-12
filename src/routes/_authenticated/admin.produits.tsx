@@ -18,6 +18,7 @@ import { ImageGalleryManager } from "@/components/image-gallery-manager";
 import { VariantsManager } from "@/components/variants-manager";
 import { Pagination, usePagination } from "@/components/pagination";
 import { cn } from "@/lib/utils";
+import { SkeletonTableRows } from "@/components/skeletons";
 
 export const Route = createFileRoute("/_authenticated/admin/produits")({
   component: AdminProducts,
@@ -315,7 +316,7 @@ function AdminProducts() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {isLoading && <tr><td colSpan={10} className="p-6 text-center text-muted-foreground">Chargement...</td></tr>}
+            {isLoading && <SkeletonTableRows rows={6} cols={10} />}
             {paged.map((r) => {
               const isQE = quickEditId === r.id;
               const cover = r.images?.[0];

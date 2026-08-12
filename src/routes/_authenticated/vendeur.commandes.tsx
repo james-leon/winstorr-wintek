@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 import { waTemplates } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
+import { SkeletonTableRows } from "@/components/skeletons";
 
 export const Route = createFileRoute("/_authenticated/vendeur/commandes")({
   component: VendorOrders,
@@ -97,7 +98,7 @@ function VendorOrders() {
   const [refuseReason, setRefuseReason] = useState("rupture_stock");
   const [refuseNotes, setRefuseNotes] = useState("");
 
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["vendor-shipments", vendorId],
     enabled: !!vendorId,
     queryFn: async (): Promise<Shipment[]> => {
@@ -260,6 +261,7 @@ function VendorOrders() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
+              {isLoading && <SkeletonTableRows rows={6} cols={8} />}
               {others.map((s) => (
                 <tr key={s.id} className="hover:bg-muted/40">
                   <td className="p-2 font-mono text-xs">{s.shipment_number}</td>

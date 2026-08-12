@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { slugify, PRODUCT_TYPE_LABELS, type ProductType } from "@/lib/format";
+import { SkeletonTableRows } from "@/components/skeletons";
 
 export const Route = createFileRoute("/_authenticated/admin/categories")({
   component: AdminCategories,
@@ -157,7 +158,7 @@ function AdminCategories() {
             </tr>
           </thead>
           <tbody>
-            {isLoading && <tr><td colSpan={8} className="p-6 text-center text-muted-foreground">Chargement...</td></tr>}
+            {isLoading && <SkeletonTableRows rows={6} cols={8} />}
             {!isLoading && grouped.length === 0 && <tr><td colSpan={8} className="p-6 text-center text-muted-foreground">Aucune catégorie.</td></tr>}
             {grouped.map(({ row, depth }) => (
               <tr key={row.id} className="border-t border-border">

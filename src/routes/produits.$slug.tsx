@@ -25,6 +25,7 @@ import { useProductTiers, resolveUnitPrice, type PriceTier } from "@/lib/tiers";
 import { useProductVariants, extractAttributeOptions, findVariantByAttrs, isValueAvailable, type Variant } from "@/lib/variants";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { FinancingOffer } from "@/components/financing-offer";
+import { SkeletonListRows, SkeletonProductDetail } from "@/components/skeletons";
 
 
 type Product = {
@@ -72,6 +73,8 @@ const productQuery = (slug: string) =>
 
 export const Route = createFileRoute("/produits/$slug")({
   loader: ({ context, params }) => context.queryClient.ensureQueryData(productQuery(params.slug)),
+  pendingComponent: SkeletonProductDetail,
+  pendingMs: 200,
   head: ({ loaderData, params }) => {
     if (!loaderData) {
       return { meta: [{ title: "Produit — Winstorr" }, { name: "robots", content: "noindex" }] };
@@ -823,7 +826,7 @@ function ReviewsSection({ productId, rating, count }: { productId: string; ratin
 
         <div>
           {isLoading ? (
-            <div className="py-8 text-center text-muted-foreground">Chargement...</div>
+            <SkeletonListRows rows={3} />
           ) : reviews.length === 0 ? (
             <div className="rounded-xl border border-dashed border-border bg-muted/30 p-10 text-center text-muted-foreground">
               Aucun avis pour le moment. Soyez le premier à partager votre expérience !

@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
+import { SkeletonTableRows } from "@/components/skeletons";
 
 export const Route = createFileRoute("/_authenticated/admin/points-retrait")({
   component: PickupPointsAdmin,
@@ -188,7 +189,7 @@ function PickupPointsAdmin() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {isLoading && <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">Chargement…</td></tr>}
+              {isLoading && <SkeletonTableRows rows={6} cols={6} />}
               {!isLoading && data.length === 0 && (
                 <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">Aucun point de retrait.</td></tr>
               )}
