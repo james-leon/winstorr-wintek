@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { formatFcfa, PRODUCT_TYPE_LABELS, type ProductType } from "@/lib/format";
 import { StarRating } from "@/components/star-rating";
 import { RefreshCw, AlertTriangle } from "lucide-react";
+import { SkeletonStatCards } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_authenticated/admin/analytics")({
   head: () => ({ meta: [{ title: "Analytics — Admin Winstorr" }] }),
@@ -170,7 +172,12 @@ function AdminAnalytics() {
       </div>
 
       {error && <div className="rounded-sm border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{(error as Error).message}</div>}
-      {isLoading && <div className="p-8 text-center text-muted-foreground">Chargement...</div>}
+      {isLoading && (
+        <div className="space-y-4">
+          <SkeletonStatCards count={4} />
+          <Skeleton className="h-64 w-full rounded-sm" />
+        </div>
+      )}
 
       {data && (
         <>

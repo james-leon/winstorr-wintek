@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_authenticated/mon-compte/profil")({
   head: () => ({ meta: [{ title: "Profil — Winstorr" }, { name: "robots", content: "noindex" }] }),
@@ -86,7 +87,19 @@ function ProfilePage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Chargement…</p>;
+  if (isLoading)
+    return (
+      <div className="max-w-lg space-y-4">
+        <Skeleton className="h-5 w-40" />
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="space-y-2">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-9 w-full" />
+          </div>
+        ))}
+        <Skeleton className="h-9 w-32" />
+      </div>
+    );
 
   return (
     <div className="space-y-6">

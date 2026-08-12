@@ -13,6 +13,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
 import { UserPlus, Phone, Mail, MapPin, Link as LinkIcon, Check, X, MessageSquare } from "lucide-react";
+import { SkeletonTableRows } from "@/components/skeletons";
 
 export const Route = createFileRoute("/_authenticated/admin/candidatures-vendeurs")({
   component: VendorApplicationsPage,
@@ -157,7 +158,7 @@ function VendorApplicationsPage() {
             </thead>
             <tbody className="divide-y divide-border">
               {isLoading && (
-                <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">Chargement…</td></tr>
+                <SkeletonTableRows rows={6} cols={6} />
               )}
               {!isLoading && apps.length === 0 && (
                 <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">Aucune candidature.</td></tr>

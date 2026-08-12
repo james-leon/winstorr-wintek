@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { BannerImageUploader } from "@/components/banner-image-uploader";
+import { SkeletonListRows } from "@/components/skeletons";
 
 
 export const Route = createFileRoute("/_authenticated/admin/banieres")({
@@ -187,7 +188,7 @@ function AdminBannersPage() {
       <p className="text-xs text-muted-foreground">{TYPE_META[tab].help}</p>
 
       {isPending ? (
-        <div className="p-8 text-center text-sm text-muted-foreground">Chargement…</div>
+        <SkeletonListRows rows={4} />
       ) : filtered.length === 0 ? (
         <div className="rounded-sm border border-dashed border-border bg-muted/30 p-8 text-center text-sm text-muted-foreground">
           Aucune bannière pour le moment. Cliquez sur « Nouvelle » pour en créer une.

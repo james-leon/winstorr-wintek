@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatFcfa } from "@/lib/format";
 import { uploadProductImage } from "@/lib/image-upload";
+import { SkeletonListRows } from "@/components/skeletons";
 
 type VariantRow = {
   id: string;
@@ -170,7 +171,7 @@ export function VariantsManager({ productId }: { productId: string }) {
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Chargement…</p>
+        <SkeletonListRows rows={3} />
       ) : rows.length === 0 && openId !== "new" ? (
         <p className="rounded-sm border border-dashed border-border bg-muted/30 p-4 text-xs text-muted-foreground">
           Aucune variante définie. Le produit se comporte alors comme un article simple (prix et stock au niveau du produit).
