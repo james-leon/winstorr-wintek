@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMyFinancingPartners } from "@/lib/financing";
 import { FinancingRequestsTable, useFinancingRequests } from "@/components/financing-requests-table";
+import { SkeletonStatCards } from "@/components/skeletons";
 
 export const Route = createFileRoute("/_authenticated/partenaire/tableau-de-bord")({
   component: PartnerDashboard,
@@ -9,7 +10,7 @@ export const Route = createFileRoute("/_authenticated/partenaire/tableau-de-bord
 function PartnerDashboard() {
   const { data: memberships } = useMyFinancingPartners();
   const partnerId = memberships?.[0]?.financing_partner_id ?? null;
-  const { data: rows = [] } = useFinancingRequests(partnerId, !!partnerId);
+  const { data: rows = [], isLoading } = useFinancingRequests(partnerId, !!partnerId);
 
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
@@ -25,7 +26,8 @@ function PartnerDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {isLoading && <SkeletonStatCards count={4} />}
+      <div className={isLoading ? "hidden" : "grid grid-cols-2 gap-3 lg:grid-cols-4"}>
         {stats.map((s) => (
           <div key={s.label} className="rounded-lg border border-border bg-card p-3">
             <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{s.label}</div>

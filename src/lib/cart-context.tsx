@@ -34,6 +34,8 @@ type CartCtx = {
   setCoupon: (c: AppliedCoupon | null) => void;
   discount: number;
   tiersMap: Record<string, PriceTier[]>;
+  /** False until the cart has been read from localStorage (SSR/first paint). */
+  hydrated: boolean;
   effectiveUnit: (item: Pick<CartItem, "productId" | "variantId" | "price">, quantity: number) => number;
 };
 
@@ -44,6 +46,7 @@ const COUPON_KEY = "winstorr:coupon:v1";
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [coupon, setCouponState] = useState<AppliedCoupon | null>(null);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     try {
@@ -62,6 +65,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const rawC = localStorage.getItem(COUPON_KEY);
       if (rawC) setCouponState(JSON.parse(rawC));
     } catch { /* ignore */ }
+    setHydrated(true);
   }, []);
 
   useEffect(() => {
@@ -118,10 +122,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setCoupon,
       discount,
       tiersMap: tiers,
+      hydrated,
       effectiveUnit,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [items, coupon, subtotal, discount, tiers],
+    [items, coupon, subtotal, discount, tiers, hydrated],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
