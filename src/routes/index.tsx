@@ -1147,8 +1147,6 @@ function Home() {
         </section>
       ))}
 
-      {/* Circular category row */}
-      <CircleRow cats={cats} />
 
       {/* Les mieux notés + Spotlight */}
       <section className="mx-auto max-w-7xl px-4 pt-6 grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,380px)]">
