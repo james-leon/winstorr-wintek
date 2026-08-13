@@ -1122,7 +1122,6 @@ function Home() {
 
       {/* Primary promo mosaic */}
       <section className="mx-auto max-w-7xl px-4 pt-8">
-      <section className="mx-auto max-w-7xl px-4 pt-5">
         <PromoTiles tiles={PRIMARY_PROMO} dbTiles={dbPromo} />
       </section>
 
