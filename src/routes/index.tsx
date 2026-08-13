@@ -87,7 +87,7 @@ type RootCategory = CategoryRow & {
 };
 
 const BASE_SELECT =
-  "id, slug, name, images, price, price_type, rating_average, rating_count, quality_verified, type, category_id";
+  "id, slug, name, images, price, price_type, rating_average, rating_count, quality_verified, type, category_id, compare_at_price, has_variants, stock_quantity, min_order_quantity";
 
 function normalize(rows: unknown[]): MiniProduct[] {
   return (rows as MiniProduct[]).map((p) => ({
