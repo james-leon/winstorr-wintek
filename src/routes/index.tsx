@@ -1166,7 +1166,10 @@ function Home() {
       {/* Boutiques populaires — gated ≥6 vendors with products */}
       <PopularStoresShelf />
 
-      <div className="mx-auto max-w-7xl px-4 pt-8">
+      <WhatsAppSection />
+      <SellerBand />
+
+      <div className="mx-auto max-w-7xl px-4 pb-10 pt-8">
 
         <RecentlyViewedShelf />
       </div>
