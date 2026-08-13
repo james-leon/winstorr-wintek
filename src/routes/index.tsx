@@ -1261,7 +1261,7 @@ function PopularStoresShelf() {
                 {t("home.productsCount", { count: v.product_count })}
               </div>
               <span
-                className="mt-2.5 inline-flex w-full items-center justify-center rounded-[var(--radius-r-sm)] border px-3 py-1.5 text-[12px] font-bold transition-colors group-hover:text-white"
+                className="mt-2.5 inline-flex w-full items-center justify-center rounded-[var(--radius-r-sm)] border px-3 py-1.5 text-[12px] font-bold transition-colors"
                 style={{ borderColor: "var(--color-line)", color: "var(--color-blue-brand)" }}
               >
                 {t("home.viewStore")}
