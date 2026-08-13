@@ -1,11 +1,17 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { RecentlyViewedShelf } from "@/components/recently-viewed-shelf";
 import { supabase as supabaseClient } from "@/integrations/supabase/client";
-import { Store as StoreIcon, ShieldCheck as ShieldCheckIcon } from "lucide-react";
+import { Store as StoreIcon, ShieldCheck as ShieldCheckIcon, Search, Heart, MessageCircle, BadgeCheck, ShoppingCart } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { useCart } from "@/lib/cart-context";
+import { useWishlistIds, useToggleWishlist } from "@/lib/wishlist";
+import { SUPPORT_WHATSAPP_RAW } from "@/lib/site-contact";
+import { buildWaLink } from "@/lib/whatsapp";
+import { toast } from "sonner";
 
 
 import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Autoplay from "embla-carousel-autoplay";
 import {
   ShieldCheck,
