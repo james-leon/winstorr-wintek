@@ -66,6 +66,10 @@ type MiniProduct = {
   quality_verified: boolean | null;
   type: ProductType;
   category_id?: string | null;
+  compare_at_price?: number | null;
+  has_variants?: boolean | null;
+  stock_quantity?: number | null;
+  min_order_quantity?: number | null;
 };
 
 type CategoryRow = {
