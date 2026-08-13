@@ -1,11 +1,17 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { RecentlyViewedShelf } from "@/components/recently-viewed-shelf";
 import { supabase as supabaseClient } from "@/integrations/supabase/client";
-import { Store as StoreIcon, ShieldCheck as ShieldCheckIcon } from "lucide-react";
+import { Store as StoreIcon, ShieldCheck as ShieldCheckIcon, Search, Heart, MessageCircle, BadgeCheck, ShoppingCart } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { useCart } from "@/lib/cart-context";
+import { useWishlistIds, useToggleWishlist } from "@/lib/wishlist";
+import { SUPPORT_WHATSAPP_RAW } from "@/lib/site-contact";
+import { buildWaLink } from "@/lib/whatsapp";
+import { toast } from "sonner";
 
 
 import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Autoplay from "embla-carousel-autoplay";
 import {
   ShieldCheck,
@@ -60,6 +66,10 @@ type MiniProduct = {
   quality_verified: boolean | null;
   type: ProductType;
   category_id?: string | null;
+  compare_at_price?: number | null;
+  has_variants?: boolean | null;
+  stock_quantity?: number | null;
+  min_order_quantity?: number | null;
 };
 
 type CategoryRow = {
@@ -77,7 +87,7 @@ type RootCategory = CategoryRow & {
 };
 
 const BASE_SELECT =
-  "id, slug, name, images, price, price_type, rating_average, rating_count, quality_verified, type, category_id";
+  "id, slug, name, images, price, price_type, rating_average, rating_count, quality_verified, type, category_id, compare_at_price, has_variants, stock_quantity, min_order_quantity";
 
 function normalize(rows: unknown[]): MiniProduct[] {
   return (rows as MiniProduct[]).map((p) => ({
@@ -300,13 +310,15 @@ function SectionHeader({
   search?: Record<string, unknown>;
 }) {
   return (
-    <div className="mb-2 flex items-end justify-between gap-4 border-b border-border pb-1.5">
-      <h2 className="text-[15px] font-bold text-foreground tracking-tight">{title}</h2>
+    <div className="mb-3 flex items-end justify-between gap-4">
+      <h2 className="font-heading text-[17px] font-extrabold tracking-tight text-[var(--color-ink)] md:text-[20px]">
+        {title}
+      </h2>
       {to && (
         <Link
           to={to}
           search={search as never}
-          className="text-xs font-medium text-secondary hover:underline inline-flex items-center gap-0.5 shrink-0"
+          className="inline-flex shrink-0 items-center gap-1 rounded-[var(--radius-r-pill,999px)] border border-[var(--color-line)] bg-white px-3 py-1 text-xs font-semibold text-[var(--color-blue-brand)] transition-colors hover:border-[var(--color-blue-brand)]"
         >
           Voir tout <ArrowRight className="h-3 w-3" />
         </Link>
@@ -315,45 +327,151 @@ function SectionHeader({
   );
 }
 
+function Stars({ rating, count }: { rating: number; count: number }) {
+  if (!count) return <div className="h-[14px]" />;
+  return (
+    <div className="flex items-center gap-1 text-[11px] text-[var(--color-muted,#5B6B7F)]">
+      <span className="flex">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <Star
+            key={i}
+            className="h-3 w-3"
+            style={{
+              color: "var(--color-gold)",
+              fill: i < Math.round(rating) ? "var(--color-gold)" : "transparent",
+            }}
+            strokeWidth={2}
+          />
+        ))}
+      </span>
+      <span>({count})</span>
+    </div>
+  );
+}
+
 function MiniCard({ p }: { p: MiniProduct }) {
   const img = p.images?.[0];
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const cart = useCart();
+  const { data: wishlistIds } = useWishlistIds();
+  const toggle = useToggleWishlist();
+  const wished = wishlistIds?.has(p.id) ?? false;
+
+  const hasDiscount = !!(p.compare_at_price && p.price && p.compare_at_price > p.price);
+  const discountPct = hasDiscount
+    ? Math.round(((p.compare_at_price! - p.price!) / p.compare_at_price!) * 100)
+    : 0;
+
+  const canQuickAdd =
+    p.price_type === "fixed" &&
+    typeof p.price === "number" &&
+    !p.has_variants &&
+    (p.stock_quantity ?? 1) > 0;
+
+  const onAdd = () => {
+    if (!canQuickAdd) {
+      void navigate({ to: "/produits/$slug", params: { slug: p.slug } });
+      return;
+    }
+    cart.add(
+      {
+        productId: p.id,
+        variantId: null,
+        variantAttributes: null,
+        slug: p.slug,
+        name: p.name,
+        price: Number(p.price),
+        image: img ?? null,
+      },
+      Math.max(1, p.min_order_quantity ?? 1),
+    );
+    toast.success(t("home.addToCart"));
+  };
+
   return (
-    <Link
-      to="/produits/$slug"
-      params={{ slug: p.slug }}
-      className="group block w-[140px] shrink-0 sm:w-[160px] no-link-color"
-    >
-      <div className="aspect-square overflow-hidden rounded-sm bg-muted border border-border">
-        {img ? (
-          <img
-            src={imageAtWidth(img, 240) || img}
-            srcSet={imageSrcSet(img, [160, 240, 320])}
-            sizes="160px"
-            alt={p.name}
-            loading="lazy"
-            decoding="async"
-            width={240}
-            height={240}
-            className="h-full w-full object-cover transition-transform group-hover:scale-[1.03]"
-          />
-        ) : (
-          <div className="grid h-full w-full place-items-center text-xs text-muted-foreground">Sans image</div>
-        )}
+    <div className="group relative flex w-[168px] shrink-0 flex-col overflow-hidden rounded-[var(--radius-r)] border border-[var(--color-line)] bg-white shadow-[var(--shadow-soft)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--color-accent-500)] hover:shadow-[var(--shadow-lift)] sm:w-[196px]">
+      <button
+        type="button"
+        aria-label="Liste de souhaits"
+        onClick={() => toggle.mutate({ productId: p.id, wished })}
+        className="absolute right-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-full border border-[var(--color-line)] bg-white/95 text-[var(--color-muted,#5B6B7F)] shadow-sm transition-colors hover:text-[var(--color-deal)]"
+      >
+        <Heart className="h-4 w-4" fill={wished ? "currentColor" : "none"} />
+      </button>
+      {hasDiscount && (
+        <span
+          className="absolute left-2 top-2 z-10 rounded-full px-2 py-0.5 text-[11px] font-bold text-white"
+          style={{ background: "var(--color-deal)" }}
+        >
+          -{discountPct}%
+        </span>
+      )}
+      <Link
+        to="/produits/$slug"
+        params={{ slug: p.slug }}
+        className="no-link-color block"
+      >
+        <div className="aspect-square overflow-hidden bg-[var(--color-surface)]">
+          {img ? (
+            <img
+              src={imageAtWidth(img, 320) || img}
+              srcSet={imageSrcSet(img, [200, 320, 420])}
+              sizes="200px"
+              alt={p.name}
+              loading="lazy"
+              decoding="async"
+              width={320}
+              height={320}
+              className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.04]"
+            />
+          ) : (
+            <div className="grid h-full w-full place-items-center text-xs text-muted-foreground">Sans image</div>
+          )}
+        </div>
+        <div className="flex flex-col gap-1 p-2.5">
+          {p.quality_verified && (
+            <div className="flex items-center gap-1 text-[11px] font-semibold" style={{ color: "var(--color-green-brand)" }}>
+              <BadgeCheck className="h-3.5 w-3.5" /> {t("home.verified")}
+            </div>
+          )}
+          <div className="line-clamp-2 min-h-[2.4em] text-[13px] leading-snug text-[var(--color-ink)]">{p.name}</div>
+          <Stars rating={Number(p.rating_average ?? 0)} count={p.rating_count ?? 0} />
+          <div className="flex items-baseline gap-1.5">
+            <span className="font-heading text-[15px] font-extrabold text-[var(--color-navy-900)]">
+              {displayPrice({ price: p.price, price_type: p.price_type })}
+            </span>
+            {hasDiscount && (
+              <span className="text-[11px] text-[var(--color-muted,#5B6B7F)] line-through">
+                {formatFcfa(p.compare_at_price!)}
+              </span>
+            )}
+          </div>
+        </div>
+      </Link>
+      <div className="px-2.5 pb-2.5">
+        <button
+          type="button"
+          onClick={onAdd}
+          className="flex w-full items-center justify-center gap-1.5 rounded-[var(--radius-r-sm)] px-2 py-2 text-[12px] font-bold text-white transition-colors"
+          style={{ background: "var(--color-accent-500)" }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-accent-600)")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "var(--color-accent-500)")}
+        >
+          <ShoppingCart className="h-3.5 w-3.5" />
+          {canQuickAdd ? t("home.addToCart") : t("home.viewProduct")}
+        </button>
       </div>
-      <div className="mt-1.5 line-clamp-1 text-[12px] text-foreground leading-snug">{p.name}</div>
-      <div className="text-[13px] font-bold text-accent leading-tight">
-        {displayPrice({ price: p.price, price_type: p.price_type })}
-      </div>
-    </Link>
+    </div>
   );
 }
 
 function Shelf({ items }: { items: MiniProduct[] }) {
   if (items.length === 0) {
-    return <div className="rounded-sm border border-dashed border-border bg-muted/30 p-4 text-xs text-muted-foreground">Aucun produit à afficher.</div>;
+    return <div className="rounded-[var(--radius-r)] border border-dashed border-[var(--color-line)] bg-white p-4 text-xs text-muted-foreground">Aucun produit à afficher.</div>;
   }
   return (
-    <div className="-mx-1 flex gap-2 overflow-x-auto scrollbar-thin px-1 pb-1">
+    <div className="-mx-1 flex gap-3 overflow-x-auto scrollbar-thin px-1 pb-2 pt-1">
       {items.map((p) => <MiniCard key={p.id} p={p} />)}
     </div>
   );
@@ -409,15 +527,108 @@ const SLIDES: Slide[] = [
   },
 ];
 
+function HeroSearch({ popular }: { popular: { label: string; slug: string }[] }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [q, setQ] = useState("");
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const term = q.trim();
+    void navigate({ to: "/catalogue", search: (term ? { q: term } : {}) as never });
+  };
+
+  return (
+    <section
+      className="relative overflow-hidden"
+      style={{
+        background:
+          "radial-gradient(1000px 460px at 20% -10%, var(--color-navy-700) 0%, transparent 60%), linear-gradient(160deg, var(--color-navy-900) 0%, var(--color-navy-800) 100%)",
+      }}
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.18]"
+        style={{
+          backgroundImage: "radial-gradient(rgba(255,255,255,.55) 1px, transparent 1px)",
+          backgroundSize: "22px 22px",
+        }}
+      />
+      <div className="relative mx-auto max-w-7xl px-4 py-10 md:py-16">
+        <h1 className="font-heading max-w-3xl text-[26px] font-extrabold leading-tight text-white md:text-[42px]">
+          {t("home.heroTitle")}{" "}
+          <span style={{ color: "var(--color-accent-500)" }}>{t("home.heroAccent")}</span>{" "}
+          {t("home.heroTitleEnd")}
+        </h1>
+        <p className="mt-3 max-w-2xl text-sm text-white/75 md:text-base">{t("home.heroSub")}</p>
+
+        <form
+          onSubmit={submit}
+          className="mt-6 flex max-w-2xl items-center gap-2 rounded-[var(--radius-r-xl)] bg-white p-1.5 shadow-[0_10px_30px_rgba(0,0,0,.25)]"
+        >
+          <Search className="ml-2 h-4 w-4 shrink-0 text-[var(--color-muted,#5B6B7F)]" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder={t("home.searchPlaceholder")}
+            aria-label={t("home.searchPlaceholder")}
+            className="min-w-0 flex-1 bg-transparent py-2 text-sm text-[var(--color-ink)] outline-none placeholder:text-[var(--color-muted,#5B6B7F)]"
+          />
+          <button
+            type="submit"
+            className="shrink-0 rounded-[var(--radius-r-lg)] px-4 py-2 text-sm font-bold text-white"
+            style={{ background: "var(--color-accent-500)" }}
+          >
+            <span className="hidden sm:inline">{t("common.search")}</span>
+            <Search className="h-4 w-4 sm:hidden" />
+          </button>
+        </form>
+
+        {popular.length > 0 && (
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-white/70">
+            <span>{t("home.popular")}</span>
+            {popular.map((p) => (
+              <Link
+                key={p.slug + p.label}
+                to="/catalogue"
+                search={{ q: p.label } as never}
+                className="no-link-color rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/90 transition-colors hover:border-[var(--color-accent-500)]"
+              >
+                {p.label}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-6 flex flex-wrap gap-2">
+          <Link
+            to="/catalogue"
+            className="no-link-color inline-flex items-center gap-1.5 rounded-[var(--radius-r-lg)] px-5 py-2.5 text-sm font-bold text-white"
+            style={{ background: "var(--color-accent-500)" }}
+          >
+            {t("home.ctaBuy")} <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link
+            to="/devenir-vendeur"
+            className="no-link-color inline-flex items-center gap-1.5 rounded-[var(--radius-r-lg)] border border-white/30 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-white/10"
+          >
+            {t("home.ctaSell")}
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Hero({ dbSlides }: { dbSlides: DbBanner[] }) {
   const autoplay = useRef(Autoplay({ delay: 5500, stopOnInteraction: true }));
   const useDb = dbSlides.length > 0;
   return (
-    <section className="bg-primary">
+    <section className="mx-auto max-w-7xl px-4 pt-6">
       <Carousel
         opts={{ loop: true, align: "start" }}
         plugins={[autoplay.current]}
-        className="relative"
+        className="relative overflow-hidden rounded-[var(--radius-r-lg)] shadow-[var(--shadow-soft)]"
       >
         <CarouselContent>
           {useDb
@@ -492,22 +703,27 @@ function Hero({ dbSlides }: { dbSlides: DbBanner[] }) {
 }
 
 function TrustStrip() {
+  const { t } = useTranslation();
   const items = [
-    { Icon: ShieldCheck, title: "Produits garantis authentiques", desc: "Contrôle qualité Wintek avant chaque publication." },
-    { Icon: Wrench, title: "SAV assuré par Wintek", desc: "Support, réparation et retour local — pas d’intermédiaire." },
-    { Icon: Wallet, title: "Paiement sécurisé", desc: "MTN Mobile Money, Orange Money et carte bancaire." },
+    { Icon: ShieldCheck, title: t("home.trustQualityTitle"), desc: t("home.trustQualitySub") },
+    { Icon: Wallet, title: t("home.trustPaymentTitle"), desc: t("home.trustPaymentSub") },
+    { Icon: Wrench, title: t("home.trustServiceTitle"), desc: t("home.trustServiceSub") },
+    { Icon: Truck, title: t("home.trustDeliveryTitle"), desc: t("home.trustDeliverySub") },
   ];
   return (
-    <section className="border-b border-border bg-background">
-      <div className="mx-auto grid max-w-7xl gap-3 px-4 py-4 sm:grid-cols-3">
+    <section style={{ background: "var(--color-navy-800)" }}>
+      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-4 px-4 py-4 md:grid-cols-4">
         {items.map(({ Icon, title, desc }) => (
-          <div key={title} className="flex items-start gap-2.5">
-            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-sm bg-success/10 text-success border border-success/30">
+          <div key={title} className="flex items-center gap-2.5">
+            <div
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-[var(--radius-r-sm)]"
+              style={{ background: "rgba(255,255,255,.08)", color: "var(--color-green-2)" }}
+            >
               <Icon className="h-4 w-4" strokeWidth={2.5} />
             </div>
             <div className="min-w-0">
-              <div className="text-[13px] font-semibold text-foreground leading-tight">{title}</div>
-              <div className="text-xs text-muted-foreground leading-snug mt-0.5">{desc}</div>
+              <div className="text-[13px] font-bold leading-tight text-white">{title}</div>
+              <div className="mt-0.5 text-[11px] leading-snug text-white/60">{desc}</div>
             </div>
           </div>
         ))}
@@ -761,32 +977,115 @@ function Spotlight({ p }: { p: MiniProduct | null }) {
   );
 }
 
-/* Circular category row — dynamic from top-level categories with products */
+/* Category grid — dynamic from top-level categories with products */
 
-function CircleRow({ cats }: { cats: RootCategory[] }) {
+function CategoryGrid({ cats }: { cats: RootCategory[] }) {
+  const { t } = useTranslation();
   if (cats.length === 0) return null;
   return (
-    <section className="mx-auto max-w-7xl px-4 pt-6">
-      <div className="rounded-sm border border-border bg-[color-mix(in_oklab,var(--accent)_5%,var(--background))] p-4">
-        <SectionHeader title="Nos catégories" />
-        <div className="-mx-1 flex gap-4 overflow-x-auto scrollbar-thin px-1 pb-1">
-          {cats.map((c) => {
-            const Icon = iconFor(c.slug);
-            return (
-              <Link
-                key={c.id}
-                to="/catalogue"
-                search={searchFor(c) as never}
-                className="group flex w-[92px] shrink-0 flex-col items-center gap-1.5 no-link-color"
+    <section className="mx-auto max-w-7xl px-4 pt-8">
+      <SectionHeader title={t("home.categoriesTitle")} to="/catalogue" />
+      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+        {cats.map((c) => {
+          const Icon = iconFor(c.slug);
+          return (
+            <Link
+              key={c.id}
+              to="/catalogue"
+              search={searchFor(c) as never}
+              className="no-link-color group flex flex-col items-center gap-2 rounded-[var(--radius-r)] border border-[var(--color-line)] bg-white p-3 text-center shadow-[var(--shadow-soft)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--color-accent-500)] hover:shadow-[var(--shadow-lift)]"
+            >
+              <div
+                className="grid h-12 w-12 place-items-center rounded-[var(--radius-r)]"
+                style={{ background: "var(--color-blue-soft)", color: "var(--color-blue-brand)" }}
               >
-                <div className="grid h-[72px] w-[72px] place-items-center rounded-full bg-background border-2 border-border text-primary transition-colors group-hover:border-secondary">
-                  <Icon className="h-6 w-6" strokeWidth={2} />
-                </div>
-                <div className="text-[11px] font-medium text-foreground text-center leading-tight">{c.name}</div>
-              </Link>
-            );
-          })}
+                <Icon className="h-5 w-5" strokeWidth={2} />
+              </div>
+              <div className="text-[12px] font-semibold leading-tight text-[var(--color-ink)]">{c.name}</div>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+/* WhatsApp band */
+
+function WhatsAppSection() {
+  const { t } = useTranslation();
+  const href = buildWaLink(SUPPORT_WHATSAPP_RAW, t("home.whatsappMessage"));
+  return (
+    <section className="mx-auto max-w-7xl px-4 pt-10">
+      <div
+        className="flex flex-col items-start gap-4 rounded-[var(--radius-r-lg)] p-6 text-white md:flex-row md:items-center md:justify-between md:p-8"
+        style={{ background: "linear-gradient(135deg, #128C7E 0%, #25D366 100%)" }}
+      >
+        <div className="max-w-2xl">
+          <h2 className="font-heading text-[20px] font-extrabold leading-tight md:text-[26px]">
+            {t("home.whatsappTitle")}
+          </h2>
+          <p className="mt-2 text-sm text-white/90">{t("home.whatsappSub")}</p>
         </div>
+        <a
+          href={href ?? "#"}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="no-link-color inline-flex shrink-0 items-center gap-2 rounded-[var(--radius-r-lg)] bg-white px-5 py-2.5 text-sm font-bold"
+          style={{ color: "#128C7E" }}
+        >
+          <MessageCircle className="h-4 w-4" /> {t("home.whatsappCta")}
+        </a>
+      </div>
+    </section>
+  );
+}
+
+/* Seller CTA band */
+
+function SellerBand() {
+  const { t } = useTranslation();
+  const steps = [
+    t("home.sellerStep1"),
+    t("home.sellerStep2"),
+    t("home.sellerStep3"),
+    t("home.sellerStep4"),
+    t("home.sellerStep5"),
+  ];
+  return (
+    <section className="mx-auto max-w-7xl px-4 pt-6">
+      <div
+        className="rounded-[var(--radius-r-lg)] p-6 text-white md:p-8"
+        style={{ background: "linear-gradient(135deg, var(--color-accent-500) 0%, var(--color-accent-600) 100%)" }}
+      >
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="max-w-2xl">
+            <h2 className="font-heading text-[20px] font-extrabold leading-tight md:text-[26px]">
+              {t("home.sellerTitle")}
+            </h2>
+            <p className="mt-2 text-sm text-white/90">{t("home.sellerSub")}</p>
+          </div>
+          <Link
+            to="/devenir-vendeur"
+            className="no-link-color inline-flex w-max shrink-0 items-center gap-1.5 rounded-[var(--radius-r-lg)] bg-white px-5 py-2.5 text-sm font-bold"
+            style={{ color: "var(--color-accent-600)" }}
+          >
+            {t("home.sellerCta")} <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+        <ol className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {steps.map((s, i) => (
+            <li
+              key={s}
+              className="flex items-center gap-2 rounded-[var(--radius-r)] bg-white/15 px-3 py-2 text-[12px] font-semibold"
+            >
+              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-white text-[11px] font-extrabold" style={{ color: "var(--color-accent-600)" }}>
+                {i + 1}
+              </span>
+              {s}
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );
@@ -808,13 +1107,21 @@ function Home() {
   const dbPromo = banners.filter((b) => b.type === "promo_tile");
   const dbCategoryTiles = banners.filter((b) => b.type === "category_tile");
 
+  const popular = (data.topRated.length ? data.topRated : data.nouveautes)
+    .slice(0, 4)
+    .map((p) => ({ label: p.name.length > 28 ? p.name.slice(0, 28).trim() + "…" : p.name, slug: p.slug }));
+
   return (
     <div className="bg-background">
-      <Hero dbSlides={heroSlides} />
+      <HeroSearch popular={popular} />
       <TrustStrip />
+      <Hero dbSlides={heroSlides} />
+
+      {/* Category grid — real categories */}
+      <CategoryGrid cats={cats} />
 
       {/* Primary promo mosaic */}
-      <section className="mx-auto max-w-7xl px-4 pt-5">
+      <section className="mx-auto max-w-7xl px-4 pt-8">
         <PromoTiles tiles={PRIMARY_PROMO} dbTiles={dbPromo} />
       </section>
 
@@ -840,8 +1147,6 @@ function Home() {
         </section>
       ))}
 
-      {/* Circular category row */}
-      <CircleRow cats={cats} />
 
       {/* Les mieux notés + Spotlight */}
       <section className="mx-auto max-w-7xl px-4 pt-6 grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,380px)]">
@@ -861,7 +1166,10 @@ function Home() {
       {/* Boutiques populaires — gated ≥6 vendors with products */}
       <PopularStoresShelf />
 
-      <div className="mx-auto max-w-7xl px-4 pt-8">
+      <WhatsAppSection />
+      <SellerBand />
+
+      <div className="mx-auto max-w-7xl px-4 pb-10 pt-8">
 
         <RecentlyViewedShelf />
       </div>
@@ -916,34 +1224,48 @@ const popularStoresQuery = queryOptions({
 });
 
 function PopularStoresShelf() {
+  const { t } = useTranslation();
   const { data = [] } = useQuery(popularStoresQuery);
   if (data.length < 6) return null;
   return (
-    <section className="mx-auto max-w-7xl px-4 pt-6">
-      <SectionHeader title="Boutiques populaires" to="/boutiques" />
+    <section className="mx-auto max-w-7xl px-4 pt-10">
+      <SectionHeader title={t("home.storesTitle")} to="/boutiques" />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {data.map((v) => (
           <Link
             key={v.id}
             to="/boutiques/$vendorSlug"
             params={{ vendorSlug: v.slug }}
-            className="group flex items-center gap-3 rounded-sm border border-border bg-card p-3 no-link-color hover:border-secondary/60"
+            className="no-link-color group flex flex-col overflow-hidden rounded-[var(--radius-r)] border border-[var(--color-line)] bg-white shadow-[var(--shadow-soft)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--color-accent-500)] hover:shadow-[var(--shadow-lift)]"
           >
-            <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-sm border border-border bg-background text-primary">
-              {v.logo_url ? (
-                <img src={v.logo_url} alt="" className="h-full w-full object-cover" loading="lazy" />
-              ) : (
-                <StoreIcon className="h-5 w-5" />
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1">
-                <div className="truncate text-sm font-bold text-foreground group-hover:text-secondary">{v.name}</div>
-                {v.type === "internal" && <ShieldCheckIcon className="h-3 w-3 shrink-0 text-secondary" />}
+            <div
+              className="h-12 w-full"
+              style={{ background: "linear-gradient(120deg, var(--color-navy-900), var(--color-blue-brand))" }}
+            />
+            <div className="-mt-6 flex flex-col items-center px-3 pb-3 text-center">
+              <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-full border-2 border-white bg-[var(--color-surface)] text-[var(--color-navy-900)] shadow-sm">
+                {v.logo_url ? (
+                  <img src={v.logo_url} alt="" className="h-full w-full object-cover" loading="lazy" />
+                ) : (
+                  <StoreIcon className="h-5 w-5" />
+                )}
               </div>
-              <div className="mt-0.5 text-[11px] text-muted-foreground">
-                ★ {v.rating.toFixed(1)} · {v.product_count} produit{v.product_count > 1 ? "s" : ""}
+              <div className="mt-2 flex items-center gap-1">
+                <div className="truncate text-sm font-bold text-[var(--color-ink)]">{v.name}</div>
+                {v.type === "internal" && (
+                  <ShieldCheckIcon className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--color-green-brand)" }} />
+                )}
               </div>
+              <div className="mt-0.5 text-[11px] text-[var(--color-muted,#5B6B7F)]">
+                <span style={{ color: "var(--color-gold)" }}>★</span> {v.rating.toFixed(1)} ·{" "}
+                {t("home.productsCount", { count: v.product_count })}
+              </div>
+              <span
+                className="mt-2.5 inline-flex w-full items-center justify-center rounded-[var(--radius-r-sm)] border px-3 py-1.5 text-[12px] font-bold transition-colors"
+                style={{ borderColor: "var(--color-line)", color: "var(--color-blue-brand)" }}
+              >
+                {t("home.viewStore")}
+              </span>
             </div>
           </Link>
         ))}
