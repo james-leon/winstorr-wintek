@@ -527,15 +527,108 @@ const SLIDES: Slide[] = [
   },
 ];
 
+function HeroSearch({ popular }: { popular: { label: string; slug: string }[] }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [q, setQ] = useState("");
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const term = q.trim();
+    void navigate({ to: "/catalogue", search: (term ? { q: term } : {}) as never });
+  };
+
+  return (
+    <section
+      className="relative overflow-hidden"
+      style={{
+        background:
+          "radial-gradient(1000px 460px at 20% -10%, var(--color-navy-700) 0%, transparent 60%), linear-gradient(160deg, var(--color-navy-900) 0%, var(--color-navy-800) 100%)",
+      }}
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.18]"
+        style={{
+          backgroundImage: "radial-gradient(rgba(255,255,255,.55) 1px, transparent 1px)",
+          backgroundSize: "22px 22px",
+        }}
+      />
+      <div className="relative mx-auto max-w-7xl px-4 py-10 md:py-16">
+        <h1 className="font-heading max-w-3xl text-[26px] font-extrabold leading-tight text-white md:text-[42px]">
+          {t("home.heroTitle")}{" "}
+          <span style={{ color: "var(--color-accent-500)" }}>{t("home.heroAccent")}</span>{" "}
+          {t("home.heroTitleEnd")}
+        </h1>
+        <p className="mt-3 max-w-2xl text-sm text-white/75 md:text-base">{t("home.heroSub")}</p>
+
+        <form
+          onSubmit={submit}
+          className="mt-6 flex max-w-2xl items-center gap-2 rounded-[var(--radius-r-xl)] bg-white p-1.5 shadow-[0_10px_30px_rgba(0,0,0,.25)]"
+        >
+          <Search className="ml-2 h-4 w-4 shrink-0 text-[var(--color-muted,#5B6B7F)]" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder={t("home.searchPlaceholder")}
+            aria-label={t("home.searchPlaceholder")}
+            className="min-w-0 flex-1 bg-transparent py-2 text-sm text-[var(--color-ink)] outline-none placeholder:text-[var(--color-muted,#5B6B7F)]"
+          />
+          <button
+            type="submit"
+            className="shrink-0 rounded-[var(--radius-r-lg)] px-4 py-2 text-sm font-bold text-white"
+            style={{ background: "var(--color-accent-500)" }}
+          >
+            <span className="hidden sm:inline">{t("common.search")}</span>
+            <Search className="h-4 w-4 sm:hidden" />
+          </button>
+        </form>
+
+        {popular.length > 0 && (
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-white/70">
+            <span>{t("home.popular")}</span>
+            {popular.map((p) => (
+              <Link
+                key={p.slug + p.label}
+                to="/catalogue"
+                search={{ q: p.label } as never}
+                className="no-link-color rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/90 transition-colors hover:border-[var(--color-accent-500)]"
+              >
+                {p.label}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-6 flex flex-wrap gap-2">
+          <Link
+            to="/catalogue"
+            className="no-link-color inline-flex items-center gap-1.5 rounded-[var(--radius-r-lg)] px-5 py-2.5 text-sm font-bold text-white"
+            style={{ background: "var(--color-accent-500)" }}
+          >
+            {t("home.ctaBuy")} <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link
+            to="/devenir-vendeur"
+            className="no-link-color inline-flex items-center gap-1.5 rounded-[var(--radius-r-lg)] border border-white/30 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-white/10"
+          >
+            {t("home.ctaSell")}
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Hero({ dbSlides }: { dbSlides: DbBanner[] }) {
   const autoplay = useRef(Autoplay({ delay: 5500, stopOnInteraction: true }));
   const useDb = dbSlides.length > 0;
   return (
-    <section className="bg-primary">
+    <section className="mx-auto max-w-7xl px-4 pt-6">
       <Carousel
         opts={{ loop: true, align: "start" }}
         plugins={[autoplay.current]}
-        className="relative"
+        className="relative overflow-hidden rounded-[var(--radius-r-lg)] shadow-[var(--shadow-soft)]"
       >
         <CarouselContent>
           {useDb
