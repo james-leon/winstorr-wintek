@@ -1107,12 +1107,21 @@ function Home() {
   const dbPromo = banners.filter((b) => b.type === "promo_tile");
   const dbCategoryTiles = banners.filter((b) => b.type === "category_tile");
 
+  const popular = (data.topRated.length ? data.topRated : data.nouveautes)
+    .slice(0, 4)
+    .map((p) => ({ label: p.name.length > 28 ? p.name.slice(0, 28).trim() + "…" : p.name, slug: p.slug }));
+
   return (
     <div className="bg-background">
-      <Hero dbSlides={heroSlides} />
+      <HeroSearch popular={popular} />
       <TrustStrip />
+      <Hero dbSlides={heroSlides} />
+
+      {/* Category grid — real categories */}
+      <CategoryGrid cats={cats} />
 
       {/* Primary promo mosaic */}
+      <section className="mx-auto max-w-7xl px-4 pt-8">
       <section className="mx-auto max-w-7xl px-4 pt-5">
         <PromoTiles tiles={PRIMARY_PROMO} dbTiles={dbPromo} />
       </section>
