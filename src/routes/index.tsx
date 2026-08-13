@@ -703,22 +703,27 @@ function Hero({ dbSlides }: { dbSlides: DbBanner[] }) {
 }
 
 function TrustStrip() {
+  const { t } = useTranslation();
   const items = [
-    { Icon: ShieldCheck, title: "Produits garantis authentiques", desc: "Contrôle qualité Wintek avant chaque publication." },
-    { Icon: Wrench, title: "SAV assuré par Wintek", desc: "Support, réparation et retour local — pas d’intermédiaire." },
-    { Icon: Wallet, title: "Paiement sécurisé", desc: "MTN Mobile Money, Orange Money et carte bancaire." },
+    { Icon: ShieldCheck, title: t("home.trustQualityTitle"), desc: t("home.trustQualitySub") },
+    { Icon: Wallet, title: t("home.trustPaymentTitle"), desc: t("home.trustPaymentSub") },
+    { Icon: Wrench, title: t("home.trustServiceTitle"), desc: t("home.trustServiceSub") },
+    { Icon: Truck, title: t("home.trustDeliveryTitle"), desc: t("home.trustDeliverySub") },
   ];
   return (
-    <section className="border-b border-border bg-background">
-      <div className="mx-auto grid max-w-7xl gap-3 px-4 py-4 sm:grid-cols-3">
+    <section style={{ background: "var(--color-navy-800)" }}>
+      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-4 px-4 py-4 md:grid-cols-4">
         {items.map(({ Icon, title, desc }) => (
-          <div key={title} className="flex items-start gap-2.5">
-            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-sm bg-success/10 text-success border border-success/30">
+          <div key={title} className="flex items-center gap-2.5">
+            <div
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-[var(--radius-r-sm)]"
+              style={{ background: "rgba(255,255,255,.08)", color: "var(--color-green-2)" }}
+            >
               <Icon className="h-4 w-4" strokeWidth={2.5} />
             </div>
             <div className="min-w-0">
-              <div className="text-[13px] font-semibold text-foreground leading-tight">{title}</div>
-              <div className="text-xs text-muted-foreground leading-snug mt-0.5">{desc}</div>
+              <div className="text-[13px] font-bold leading-tight text-white">{title}</div>
+              <div className="mt-0.5 text-[11px] leading-snug text-white/60">{desc}</div>
             </div>
           </div>
         ))}
