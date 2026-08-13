@@ -1224,34 +1224,48 @@ const popularStoresQuery = queryOptions({
 });
 
 function PopularStoresShelf() {
+  const { t } = useTranslation();
   const { data = [] } = useQuery(popularStoresQuery);
   if (data.length < 6) return null;
   return (
-    <section className="mx-auto max-w-7xl px-4 pt-6">
-      <SectionHeader title="Boutiques populaires" to="/boutiques" />
+    <section className="mx-auto max-w-7xl px-4 pt-10">
+      <SectionHeader title={t("home.storesTitle")} to="/boutiques" />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {data.map((v) => (
           <Link
             key={v.id}
             to="/boutiques/$vendorSlug"
             params={{ vendorSlug: v.slug }}
-            className="group flex items-center gap-3 rounded-sm border border-border bg-card p-3 no-link-color hover:border-secondary/60"
+            className="no-link-color group flex flex-col overflow-hidden rounded-[var(--radius-r)] border border-[var(--color-line)] bg-white shadow-[var(--shadow-soft)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--color-accent-500)] hover:shadow-[var(--shadow-lift)]"
           >
-            <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-sm border border-border bg-background text-primary">
-              {v.logo_url ? (
-                <img src={v.logo_url} alt="" className="h-full w-full object-cover" loading="lazy" />
-              ) : (
-                <StoreIcon className="h-5 w-5" />
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1">
-                <div className="truncate text-sm font-bold text-foreground group-hover:text-secondary">{v.name}</div>
-                {v.type === "internal" && <ShieldCheckIcon className="h-3 w-3 shrink-0 text-secondary" />}
+            <div
+              className="h-12 w-full"
+              style={{ background: "linear-gradient(120deg, var(--color-navy-900), var(--color-blue-brand))" }}
+            />
+            <div className="-mt-6 flex flex-col items-center px-3 pb-3 text-center">
+              <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-full border-2 border-white bg-[var(--color-surface)] text-[var(--color-navy-900)] shadow-sm">
+                {v.logo_url ? (
+                  <img src={v.logo_url} alt="" className="h-full w-full object-cover" loading="lazy" />
+                ) : (
+                  <StoreIcon className="h-5 w-5" />
+                )}
               </div>
-              <div className="mt-0.5 text-[11px] text-muted-foreground">
-                ★ {v.rating.toFixed(1)} · {v.product_count} produit{v.product_count > 1 ? "s" : ""}
+              <div className="mt-2 flex items-center gap-1">
+                <div className="truncate text-sm font-bold text-[var(--color-ink)]">{v.name}</div>
+                {v.type === "internal" && (
+                  <ShieldCheckIcon className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--color-green-brand)" }} />
+                )}
               </div>
+              <div className="mt-0.5 text-[11px] text-[var(--color-muted,#5B6B7F)]">
+                <span style={{ color: "var(--color-gold)" }}>★</span> {v.rating.toFixed(1)} ·{" "}
+                {t("home.productsCount", { count: v.product_count })}
+              </div>
+              <span
+                className="mt-2.5 inline-flex w-full items-center justify-center rounded-[var(--radius-r-sm)] border px-3 py-1.5 text-[12px] font-bold transition-colors group-hover:text-white"
+                style={{ borderColor: "var(--color-line)", color: "var(--color-blue-brand)" }}
+              >
+                {t("home.viewStore")}
+              </span>
             </div>
           </Link>
         ))}
