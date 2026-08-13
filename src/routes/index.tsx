@@ -977,32 +977,115 @@ function Spotlight({ p }: { p: MiniProduct | null }) {
   );
 }
 
-/* Circular category row — dynamic from top-level categories with products */
+/* Category grid — dynamic from top-level categories with products */
 
-function CircleRow({ cats }: { cats: RootCategory[] }) {
+function CategoryGrid({ cats }: { cats: RootCategory[] }) {
+  const { t } = useTranslation();
   if (cats.length === 0) return null;
   return (
-    <section className="mx-auto max-w-7xl px-4 pt-6">
-      <div className="rounded-sm border border-border bg-[color-mix(in_oklab,var(--accent)_5%,var(--background))] p-4">
-        <SectionHeader title="Nos catégories" />
-        <div className="-mx-1 flex gap-4 overflow-x-auto scrollbar-thin px-1 pb-1">
-          {cats.map((c) => {
-            const Icon = iconFor(c.slug);
-            return (
-              <Link
-                key={c.id}
-                to="/catalogue"
-                search={searchFor(c) as never}
-                className="group flex w-[92px] shrink-0 flex-col items-center gap-1.5 no-link-color"
+    <section className="mx-auto max-w-7xl px-4 pt-8">
+      <SectionHeader title={t("home.categoriesTitle")} to="/catalogue" />
+      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+        {cats.map((c) => {
+          const Icon = iconFor(c.slug);
+          return (
+            <Link
+              key={c.id}
+              to="/catalogue"
+              search={searchFor(c) as never}
+              className="no-link-color group flex flex-col items-center gap-2 rounded-[var(--radius-r)] border border-[var(--color-line)] bg-white p-3 text-center shadow-[var(--shadow-soft)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--color-accent-500)] hover:shadow-[var(--shadow-lift)]"
+            >
+              <div
+                className="grid h-12 w-12 place-items-center rounded-[var(--radius-r)]"
+                style={{ background: "var(--color-blue-soft)", color: "var(--color-blue-brand)" }}
               >
-                <div className="grid h-[72px] w-[72px] place-items-center rounded-full bg-background border-2 border-border text-primary transition-colors group-hover:border-secondary">
-                  <Icon className="h-6 w-6" strokeWidth={2} />
-                </div>
-                <div className="text-[11px] font-medium text-foreground text-center leading-tight">{c.name}</div>
-              </Link>
-            );
-          })}
+                <Icon className="h-5 w-5" strokeWidth={2} />
+              </div>
+              <div className="text-[12px] font-semibold leading-tight text-[var(--color-ink)]">{c.name}</div>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+/* WhatsApp band */
+
+function WhatsAppSection() {
+  const { t } = useTranslation();
+  const href = buildWaLink(SUPPORT_WHATSAPP_RAW, t("home.whatsappMessage"));
+  return (
+    <section className="mx-auto max-w-7xl px-4 pt-10">
+      <div
+        className="flex flex-col items-start gap-4 rounded-[var(--radius-r-lg)] p-6 text-white md:flex-row md:items-center md:justify-between md:p-8"
+        style={{ background: "linear-gradient(135deg, #128C7E 0%, #25D366 100%)" }}
+      >
+        <div className="max-w-2xl">
+          <h2 className="font-heading text-[20px] font-extrabold leading-tight md:text-[26px]">
+            {t("home.whatsappTitle")}
+          </h2>
+          <p className="mt-2 text-sm text-white/90">{t("home.whatsappSub")}</p>
         </div>
+        <a
+          href={href ?? "#"}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="no-link-color inline-flex shrink-0 items-center gap-2 rounded-[var(--radius-r-lg)] bg-white px-5 py-2.5 text-sm font-bold"
+          style={{ color: "#128C7E" }}
+        >
+          <MessageCircle className="h-4 w-4" /> {t("home.whatsappCta")}
+        </a>
+      </div>
+    </section>
+  );
+}
+
+/* Seller CTA band */
+
+function SellerBand() {
+  const { t } = useTranslation();
+  const steps = [
+    t("home.sellerStep1"),
+    t("home.sellerStep2"),
+    t("home.sellerStep3"),
+    t("home.sellerStep4"),
+    t("home.sellerStep5"),
+  ];
+  return (
+    <section className="mx-auto max-w-7xl px-4 pt-6">
+      <div
+        className="rounded-[var(--radius-r-lg)] p-6 text-white md:p-8"
+        style={{ background: "linear-gradient(135deg, var(--color-accent-500) 0%, var(--color-accent-600) 100%)" }}
+      >
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="max-w-2xl">
+            <h2 className="font-heading text-[20px] font-extrabold leading-tight md:text-[26px]">
+              {t("home.sellerTitle")}
+            </h2>
+            <p className="mt-2 text-sm text-white/90">{t("home.sellerSub")}</p>
+          </div>
+          <Link
+            to="/devenir-vendeur"
+            className="no-link-color inline-flex w-max shrink-0 items-center gap-1.5 rounded-[var(--radius-r-lg)] bg-white px-5 py-2.5 text-sm font-bold"
+            style={{ color: "var(--color-accent-600)" }}
+          >
+            {t("home.sellerCta")} <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+        <ol className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {steps.map((s, i) => (
+            <li
+              key={s}
+              className="flex items-center gap-2 rounded-[var(--radius-r)] bg-white/15 px-3 py-2 text-[12px] font-semibold"
+            >
+              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-white text-[11px] font-extrabold" style={{ color: "var(--color-accent-600)" }}>
+                {i + 1}
+              </span>
+              {s}
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );
