@@ -325,7 +325,7 @@ export function VariantsManager({ productId }: { productId: string }) {
             <Label className="text-xs">Image (optionnelle)</Label>
             <div className="mt-1 flex items-center gap-2">
               {current.image_url && (
-                <img src={current.image_url} alt="" className="h-14 w-14 rounded-sm border border-border object-cover" />
+                <img src={current.image_url} alt="" className="h-14 w-14 rounded-sm border border-border object-contain bg-white" />
               )}
               <Input
                 placeholder="URL de l'image"

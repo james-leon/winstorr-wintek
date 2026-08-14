@@ -158,7 +158,7 @@ export function ImageGalleryManager({ value, onChange }: Props) {
                 <img
                   src={src}
                   alt={`Image ${i + 1}`}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-contain bg-white"
                   onError={(e) => {
                     (e.currentTarget as HTMLImageElement).style.opacity = "0.3";
                   }}

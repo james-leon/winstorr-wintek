@@ -326,7 +326,7 @@ function AdminProducts() {
                     <td className="p-2"><Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggleSelect(r.id)} /></td>
                     <td className="p-2">
                       {cover ? (
-                        <img src={cover} alt="" className="h-10 w-10 rounded object-cover border border-border" />
+                        <img src={cover} alt="" className="h-10 w-10 rounded object-contain bg-white border border-border" />
                       ) : (
                         <div className="grid h-10 w-10 place-items-center rounded border border-border bg-muted text-muted-foreground">
                           <ImageOff className="h-4 w-4" />

@@ -60,7 +60,7 @@ export function ProductCard({ p }: { p: ProductCardData }) {
               decoding="async"
               width={300}
               height={300}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-contain bg-white"
             />
           ) : (
             <div className="grid h-full w-full place-items-center text-muted-foreground">
