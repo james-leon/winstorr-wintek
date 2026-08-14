@@ -182,10 +182,11 @@ function AdminAnalytics() {
       {data && (
         <>
           {/* Summary cards */}
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            <StatCard label="Chiffre d'affaires" value={formatFcfa(data.summary.revenue)} highlight />
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+            <StatCard label="CA encaissé" value={formatFcfa(data.summary.revenue)} sub="Commandes payées uniquement" highlight />
+            <StatCard label="En attente d'encaissement" value={formatFcfa(data.summary.pending_revenue ?? 0)} sub="Non payées, hors annulées" />
             <StatCard label="Commandes payées" value={data.summary.paid_orders.toString()} sub={`sur ${data.summary.total_orders} créées`} />
-            <StatCard label="Panier moyen" value={formatFcfa(Math.round(data.summary.avg_order_value))} />
+            <StatCard label="Panier moyen" value={formatFcfa(Math.round(data.summary.avg_order_value))} sub="Sur commandes payées" />
             <StatCard
               label="Taux de conversion paiement"
               value={`${Math.round(data.summary.paid_rate * 100)}%`}
