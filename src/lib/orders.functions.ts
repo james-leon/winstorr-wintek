@@ -251,11 +251,17 @@ export const createOrder = createServerFn({ method: "POST" })
       .insert(itemsRows.map((r) => ({ ...r, order_id: order.id })));
     if (iErr) throw new Error(iErr.message);
 
-    // Fire-and-forget: notify the customer for cash-on-pickup orders (no CinetPay flow to trigger later).
+    // Cash on pickup: the vendor must prepare the order BEFORE the customer pays at the
+    // pickup point, so shipments (and the 24h acceptance countdown) start immediately.
+    // Online payments keep the "on paid" flow via the DB trigger.
     if (isCash) {
-      const { notifyOrderEvent } = await import("./notifications.server");
+      const { error: sErr } = await supabaseAdmin.rpc("generate_shipments_for_order", { _order_id: order.id });
+      if (sErr) console.error("[shipments]", sErr);
+      const { notifyOrderEvent, notifyVendorsOfNewShipments } = await import("./notifications.server");
       notifyOrderEvent(order.id, "order_placed_cop").catch((e) => console.error("[notify]", e));
+      notifyVendorsOfNewShipments(order.id).catch((e) => console.error("[notify:vendors]", e));
     }
+
 
     return { orderId: order.id, orderNumber: order.order_number, total, hasPhysical, isCash };
   });
