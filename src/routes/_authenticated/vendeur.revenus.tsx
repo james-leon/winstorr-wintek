@@ -28,11 +28,13 @@ function VendorRevenues() {
     enabled: !!vendorId,
     queryFn: async () => {
       const [{ data: items, error: e1 }, { data: bal, error: e2 }, { data: pending, error: e3 }] = await Promise.all([
+        // Ventes brutes / commissions = commandes réellement encaissées uniquement
         supabase
           .from("order_items")
           .select("subtotal, commission_amount, orders!inner(payment_status,status,created_at)")
           .eq("vendor_id", vendorId!)
-          .neq("orders.status", "cancelled"),
+          .eq("orders.payment_status", "paid")
+          .not("orders.status", "in", "(cancelled,payment_failed)"),
         supabase.rpc("vendor_available_balance", { _vendor_id: vendorId! }),
         supabase.rpc("vendor_pending_confirmation_amount", { _vendor_id: vendorId! }),
       ]);
