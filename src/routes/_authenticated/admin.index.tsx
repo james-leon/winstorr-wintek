@@ -34,9 +34,12 @@ function AdminDashboard() {
 
       const warningThreshold = new Date(Date.now() + 4 * 3600000).toISOString();
 
+      // RÈGLE CA : uniquement les commandes réellement encaissées
+      // payment_status = 'paid' ET status hors ('cancelled','payment_failed').
       const [todayOrders, weekOrders, lowStock, pendingReviews, pendingInvites, staleCash, pendingShipments, newApplications, newFinancing] = await Promise.all([
-        supabase.from("orders").select("id, total", { count: "exact" }).gte("created_at", startOfDay.toISOString()),
-        supabase.from("orders").select("total").gte("created_at", weekAgo.toISOString()).neq("status", "cancelled"),
+        supabase.from("orders").select("id, total, payment_status, status", { count: "exact" }).gte("created_at", startOfDay.toISOString()),
+        supabase.from("orders").select("total").gte("created_at", weekAgo.toISOString())
+          .eq("payment_status", "paid").not("status", "in", "(cancelled,payment_failed)"),
         supabase.from("products").select("id", { count: "exact", head: true }).eq("type", "physical").eq("status", "active").lte("stock_quantity", 5),
         supabase.from("product_reviews").select("id", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("vendor_invitations").select("id", { count: "exact", head: true }).eq("status", "pending"),
