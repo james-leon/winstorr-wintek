@@ -25,11 +25,13 @@ function VendorDashboard() {
       const [prod, items] = await Promise.all([
         supabase.from("products").select("id", { count: "exact", head: true })
           .eq("vendor_id", vendorId!).eq("status", "active"),
+        // Ventes = commandes réellement encaissées (payées, hors annulées / paiement échoué)
         supabase.from("order_items")
           .select("id, quantity, subtotal, order_id, orders!inner(created_at, status, payment_status)")
           .eq("vendor_id", vendorId!)
           .gte("orders.created_at", iso)
-          .neq("orders.status", "cancelled"),
+          .eq("orders.payment_status", "paid")
+          .not("orders.status", "in", "(cancelled,payment_failed)"),
       ]);
       if (prod.error) throw prod.error;
       if (items.error) throw items.error;
