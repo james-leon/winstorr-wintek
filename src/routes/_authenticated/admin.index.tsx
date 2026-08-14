@@ -100,8 +100,9 @@ function AdminDashboard() {
 
   const cards = [
     { label: "Commandes aujourd'hui", value: String(stats?.todayCount ?? "—"), icon: ShoppingCart, tint: "text-primary" },
-    { label: "CA aujourd'hui", value: stats ? formatFcfa(stats.todayRevenue) : "—", icon: TrendingUp, tint: "text-accent" },
-    { label: "CA 7 derniers jours", value: stats ? formatFcfa(stats.weekRevenue) : "—", icon: TrendingUp, tint: "text-success" },
+    { label: "CA encaissé aujourd'hui", value: stats ? formatFcfa(stats.todayRevenue) : "—", icon: TrendingUp, tint: "text-accent" },
+    { label: "À encaisser aujourd'hui", value: stats ? formatFcfa(stats.todayPending) : "—", icon: Wallet, tint: "text-muted-foreground" },
+    { label: "CA encaissé 7 derniers jours", value: stats ? formatFcfa(stats.weekRevenue) : "—", icon: TrendingUp, tint: "text-success" },
     { label: "Stock faible", value: String(stats?.lowStock ?? "—"), icon: PackageX, tint: "text-destructive", to: "/admin/produits" },
     { label: "Avis à modérer", value: String(stats?.pendingReviews ?? "—"), icon: MessageSquareWarning, tint: "text-secondary", to: "/admin/avis" },
     { label: "Candidatures vendeur", value: String(stats?.newApplications ?? "—"), icon: UserPlus, tint: "text-primary", to: "/admin/candidatures-vendeurs" },
