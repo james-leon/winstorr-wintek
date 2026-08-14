@@ -7,7 +7,9 @@ export function imageAtWidth(url: string | null | undefined, width: number): str
   if (!url.includes("/storage/v1/object/public/")) return url;
   const rendered = url.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/");
   const sep = rendered.includes("?") ? "&" : "?";
-  return `${rendered}${sep}width=${width}&resize=cover&quality=75`;
+  // Produits stockés en carré 1000×1000 (letterboxing blanc) : on demande un
+  // carré en "contain" pour ne jamais recadrer/déformer l'image.
+  return `${rendered}${sep}width=${width}&height=${width}&resize=contain&quality=75`;
 }
 
 /**
