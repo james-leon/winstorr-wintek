@@ -49,12 +49,19 @@ function AdminDashboard() {
         supabase.from("financing_requests").select("id", { count: "exact", head: true }).eq("status", "new"),
       ]);
 
-      const todayCount = todayOrders.count ?? 0;
-      const todayRevenue = (todayOrders.data ?? []).reduce((s, o) => s + Number(o.total ?? 0), 0);
+      const todayRows = todayOrders.data ?? [];
+      const isRevenue = (o: { payment_status: string; status: string }) =>
+        o.payment_status === "paid" && o.status !== "cancelled" && o.status !== "payment_failed";
+      const isPending = (o: { payment_status: string; status: string }) =>
+        o.payment_status !== "paid" && o.status !== "cancelled" && o.status !== "payment_failed";
+      const todayCount = todayRows.filter((o) => o.status !== "cancelled").length;
+      const todayRevenue = todayRows.filter(isRevenue).reduce((s, o) => s + Number(o.total ?? 0), 0);
+      const todayPending = todayRows.filter(isPending).reduce((s, o) => s + Number(o.total ?? 0), 0);
       const weekRevenue = (weekOrders.data ?? []).reduce((s, o) => s + Number(o.total ?? 0), 0);
       return {
         todayCount,
         todayRevenue,
+        todayPending,
         weekRevenue,
         lowStock: lowStock.count ?? 0,
         pendingReviews: pendingReviews.count ?? 0,
