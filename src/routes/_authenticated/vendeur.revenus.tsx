@@ -28,11 +28,13 @@ function VendorRevenues() {
     enabled: !!vendorId,
     queryFn: async () => {
       const [{ data: items, error: e1 }, { data: bal, error: e2 }, { data: pending, error: e3 }] = await Promise.all([
+        // Ventes brutes / commissions = commandes réellement encaissées uniquement
         supabase
           .from("order_items")
           .select("subtotal, commission_amount, orders!inner(payment_status,status,created_at)")
           .eq("vendor_id", vendorId!)
-          .neq("orders.status", "cancelled"),
+          .eq("orders.payment_status", "paid")
+          .not("orders.status", "in", "(cancelled,payment_failed)"),
         supabase.rpc("vendor_available_balance", { _vendor_id: vendorId! }),
         supabase.rpc("vendor_pending_confirmation_amount", { _vendor_id: vendorId! }),
       ]);
@@ -72,7 +74,7 @@ function VendorRevenues() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-        <Card label="Ventes brutes" value={summary ? formatFcfa(summary.gross) : "…"} />
+        <Card label="Ventes brutes encaissées" value={summary ? formatFcfa(summary.gross) : "…"} />
         <Card label="Commission Winstorr" value={summary ? formatFcfa(summary.commission) : "…"} />
         <Card label="Net perçu" value={summary ? formatFcfa(summary.net) : "…"} />
         <Card label="En attente confirmation client" value={summary ? formatFcfa(summary.pending) : "…"} />

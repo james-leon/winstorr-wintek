@@ -54,7 +54,7 @@ function computeRange(preset: Preset, fromStr?: string, toStr?: string): { from:
 
 type Analytics = {
   range: { from: string; to: string; bucket: "day" | "week" };
-  summary: { revenue: number; paid_orders: number; total_orders: number; avg_order_value: number; paid_rate: number };
+  summary: { revenue: number; pending_revenue: number; paid_orders: number; total_orders: number; avg_order_value: number; paid_rate: number };
   series: { bucket: string; revenue: number; orders: number }[];
   top_products: {
     product_id: string; name: string; slug: string; type: ProductType;
@@ -182,10 +182,11 @@ function AdminAnalytics() {
       {data && (
         <>
           {/* Summary cards */}
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            <StatCard label="Chiffre d'affaires" value={formatFcfa(data.summary.revenue)} highlight />
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+            <StatCard label="CA encaissé" value={formatFcfa(data.summary.revenue)} sub="Commandes payées uniquement" highlight />
+            <StatCard label="En attente d'encaissement" value={formatFcfa(data.summary.pending_revenue ?? 0)} sub="Non payées, hors annulées" />
             <StatCard label="Commandes payées" value={data.summary.paid_orders.toString()} sub={`sur ${data.summary.total_orders} créées`} />
-            <StatCard label="Panier moyen" value={formatFcfa(Math.round(data.summary.avg_order_value))} />
+            <StatCard label="Panier moyen" value={formatFcfa(Math.round(data.summary.avg_order_value))} sub="Sur commandes payées" />
             <StatCard
               label="Taux de conversion paiement"
               value={`${Math.round(data.summary.paid_rate * 100)}%`}

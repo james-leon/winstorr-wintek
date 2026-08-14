@@ -25,11 +25,13 @@ function VendorDashboard() {
       const [prod, items] = await Promise.all([
         supabase.from("products").select("id", { count: "exact", head: true })
           .eq("vendor_id", vendorId!).eq("status", "active"),
+        // Ventes = commandes réellement encaissées (payées, hors annulées / paiement échoué)
         supabase.from("order_items")
           .select("id, quantity, subtotal, order_id, orders!inner(created_at, status, payment_status)")
           .eq("vendor_id", vendorId!)
           .gte("orders.created_at", iso)
-          .neq("orders.status", "cancelled"),
+          .eq("orders.payment_status", "paid")
+          .not("orders.status", "in", "(cancelled,payment_failed)"),
       ]);
       if (prod.error) throw prod.error;
       if (items.error) throw items.error;
@@ -74,12 +76,12 @@ function VendorDashboard() {
       {statsLoading && <SkeletonStatCards count={4} />}
       <div className={statsLoading ? "hidden" : "grid gap-3 sm:grid-cols-4"}>
         <StatCard label="Produits actifs" value={stats?.activeProducts ?? "—"} />
-        <StatCard label="Commandes ce mois" value={stats?.ordersThisMonth ?? "—"} />
-        <StatCard label="Unités vendues" value={stats?.unitsSold ?? "—"} />
+        <StatCard label="Commandes payées ce mois" value={stats?.ordersThisMonth ?? "—"} />
+        <StatCard label="Unités vendues (payées)" value={stats?.unitsSold ?? "—"} />
         <StatCard
-          label="CA brut ce mois"
+          label="CA encaissé ce mois"
           value={stats ? formatFcfa(stats.gross) : "—"}
-          hint="Avant commission"
+          hint="Commandes payées, avant commission"
         />
       </div>
 

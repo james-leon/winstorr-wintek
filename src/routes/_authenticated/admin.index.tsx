@@ -34,9 +34,12 @@ function AdminDashboard() {
 
       const warningThreshold = new Date(Date.now() + 4 * 3600000).toISOString();
 
+      // RÈGLE CA : uniquement les commandes réellement encaissées
+      // payment_status = 'paid' ET status hors ('cancelled','payment_failed').
       const [todayOrders, weekOrders, lowStock, pendingReviews, pendingInvites, staleCash, pendingShipments, newApplications, newFinancing] = await Promise.all([
-        supabase.from("orders").select("id, total", { count: "exact" }).gte("created_at", startOfDay.toISOString()),
-        supabase.from("orders").select("total").gte("created_at", weekAgo.toISOString()).neq("status", "cancelled"),
+        supabase.from("orders").select("id, total, payment_status, status", { count: "exact" }).gte("created_at", startOfDay.toISOString()),
+        supabase.from("orders").select("total").gte("created_at", weekAgo.toISOString())
+          .eq("payment_status", "paid").not("status", "in", "(cancelled,payment_failed)"),
         supabase.from("products").select("id", { count: "exact", head: true }).eq("type", "physical").eq("status", "active").lte("stock_quantity", 5),
         supabase.from("product_reviews").select("id", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("vendor_invitations").select("id", { count: "exact", head: true }).eq("status", "pending"),
@@ -46,12 +49,19 @@ function AdminDashboard() {
         supabase.from("financing_requests").select("id", { count: "exact", head: true }).eq("status", "new"),
       ]);
 
-      const todayCount = todayOrders.count ?? 0;
-      const todayRevenue = (todayOrders.data ?? []).reduce((s, o) => s + Number(o.total ?? 0), 0);
+      const todayRows = todayOrders.data ?? [];
+      const isRevenue = (o: { payment_status: string; status: string }) =>
+        o.payment_status === "paid" && o.status !== "cancelled" && o.status !== "payment_failed";
+      const isPending = (o: { payment_status: string; status: string }) =>
+        o.payment_status !== "paid" && o.status !== "cancelled" && o.status !== "payment_failed";
+      const todayCount = todayRows.filter((o) => o.status !== "cancelled").length;
+      const todayRevenue = todayRows.filter(isRevenue).reduce((s, o) => s + Number(o.total ?? 0), 0);
+      const todayPending = todayRows.filter(isPending).reduce((s, o) => s + Number(o.total ?? 0), 0);
       const weekRevenue = (weekOrders.data ?? []).reduce((s, o) => s + Number(o.total ?? 0), 0);
       return {
         todayCount,
         todayRevenue,
+        todayPending,
         weekRevenue,
         lowStock: lowStock.count ?? 0,
         pendingReviews: pendingReviews.count ?? 0,
@@ -90,8 +100,9 @@ function AdminDashboard() {
 
   const cards = [
     { label: "Commandes aujourd'hui", value: String(stats?.todayCount ?? "—"), icon: ShoppingCart, tint: "text-primary" },
-    { label: "CA aujourd'hui", value: stats ? formatFcfa(stats.todayRevenue) : "—", icon: TrendingUp, tint: "text-accent" },
-    { label: "CA 7 derniers jours", value: stats ? formatFcfa(stats.weekRevenue) : "—", icon: TrendingUp, tint: "text-success" },
+    { label: "CA encaissé aujourd'hui", value: stats ? formatFcfa(stats.todayRevenue) : "—", icon: TrendingUp, tint: "text-accent" },
+    { label: "À encaisser aujourd'hui", value: stats ? formatFcfa(stats.todayPending) : "—", icon: Wallet, tint: "text-muted-foreground" },
+    { label: "CA encaissé 7 derniers jours", value: stats ? formatFcfa(stats.weekRevenue) : "—", icon: TrendingUp, tint: "text-success" },
     { label: "Stock faible", value: String(stats?.lowStock ?? "—"), icon: PackageX, tint: "text-destructive", to: "/admin/produits" },
     { label: "Avis à modérer", value: String(stats?.pendingReviews ?? "—"), icon: MessageSquareWarning, tint: "text-secondary", to: "/admin/avis" },
     { label: "Candidatures vendeur", value: String(stats?.newApplications ?? "—"), icon: UserPlus, tint: "text-primary", to: "/admin/candidatures-vendeurs" },
