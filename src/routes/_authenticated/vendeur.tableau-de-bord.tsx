@@ -76,12 +76,12 @@ function VendorDashboard() {
       {statsLoading && <SkeletonStatCards count={4} />}
       <div className={statsLoading ? "hidden" : "grid gap-3 sm:grid-cols-4"}>
         <StatCard label="Produits actifs" value={stats?.activeProducts ?? "—"} />
-        <StatCard label="Commandes ce mois" value={stats?.ordersThisMonth ?? "—"} />
-        <StatCard label="Unités vendues" value={stats?.unitsSold ?? "—"} />
+        <StatCard label="Commandes payées ce mois" value={stats?.ordersThisMonth ?? "—"} />
+        <StatCard label="Unités vendues (payées)" value={stats?.unitsSold ?? "—"} />
         <StatCard
-          label="CA brut ce mois"
+          label="CA encaissé ce mois"
           value={stats ? formatFcfa(stats.gross) : "—"}
-          hint="Avant commission"
+          hint="Commandes payées, avant commission"
         />
       </div>
 
