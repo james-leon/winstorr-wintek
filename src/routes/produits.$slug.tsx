@@ -195,7 +195,7 @@ function ProductDetail() {
                 decoding="async"
                 width={800}
                 height={800}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain bg-white"
               />
             ) : (
               <div className="grid h-full w-full place-items-center text-muted-foreground text-sm">Pas d'image</div>
@@ -210,7 +210,7 @@ function ProductDetail() {
                   onClick={() => setActiveImg(i)}
                   className={`aspect-square overflow-hidden rounded-sm border ${i === activeImg ? "border-secondary" : "border-border"}`}
                 >
-                  <img src={src} alt="" className="h-full w-full object-cover" />
+                  <img src={src} alt="" className="h-full w-full object-contain bg-white" />
                 </button>
               ))}
             </div>
@@ -307,7 +307,7 @@ function BuyBox({ p }: { p: Product }) {
     <div className="rounded-sm border border-border bg-background p-4">
       {displayImage && (
         <div className="mb-3 overflow-hidden rounded-sm border border-border bg-muted">
-          <img src={displayImage} alt="" className="h-32 w-full object-cover" />
+          <img src={displayImage} alt="" className="h-32 w-full object-contain bg-white" />
         </div>
       )}
       <div className="flex items-baseline gap-2">

@@ -196,7 +196,7 @@ function CartPage() {
             return (
               <div key={key} className="flex items-start gap-3 p-3">
                 <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-sm bg-muted">
-                  {i.image ? <img src={i.image} alt={i.name} className="h-full w-full object-cover" /> : null}
+                  {i.image ? <img src={i.image} alt={i.name} className="h-full w-full object-contain bg-white" /> : null}
                 </div>
                 <div className="flex-1 min-w-0">
                   <Link to="/produits/$slug" params={{ slug: i.slug }} className="block font-medium text-foreground line-clamp-2">

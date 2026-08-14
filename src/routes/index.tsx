@@ -423,7 +423,7 @@ function MiniCard({ p }: { p: MiniProduct }) {
               decoding="async"
               width={320}
               height={320}
-              className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.04]"
+              className="h-full w-full object-contain bg-white transition-transform duration-200 group-hover:scale-[1.04]"
             />
           ) : (
             <div className="grid h-full w-full place-items-center text-xs text-muted-foreground">Sans image</div>
@@ -952,7 +952,7 @@ function Spotlight({ p }: { p: MiniProduct | null }) {
               loading="lazy"
               width={360}
               height={360}
-              className="h-full w-full object-cover transition-transform group-hover:scale-[1.02]"
+              className="h-full w-full object-contain bg-white transition-transform group-hover:scale-[1.02]"
             />
           )}
         </div>
