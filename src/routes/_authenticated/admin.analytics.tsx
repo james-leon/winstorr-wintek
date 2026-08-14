@@ -54,7 +54,7 @@ function computeRange(preset: Preset, fromStr?: string, toStr?: string): { from:
 
 type Analytics = {
   range: { from: string; to: string; bucket: "day" | "week" };
-  summary: { revenue: number; paid_orders: number; total_orders: number; avg_order_value: number; paid_rate: number };
+  summary: { revenue: number; pending_revenue: number; paid_orders: number; total_orders: number; avg_order_value: number; paid_rate: number };
   series: { bucket: string; revenue: number; orders: number }[];
   top_products: {
     product_id: string; name: string; slug: string; type: ProductType;
