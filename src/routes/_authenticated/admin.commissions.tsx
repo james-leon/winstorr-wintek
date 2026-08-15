@@ -154,6 +154,21 @@ function CreateRuleDialog({ onClose, onDone }: { onClose: () => void; onDone: ()
   const [ctype, setCtype] = useState<"percentage" | "fixed_amount">("percentage");
   const [cval, setCval] = useState("10");
   const [priority, setPriority] = useState<string>("10");
+  const [productSearch, setProductSearch] = useState("");
+  const { vendors, categories } = useScopeTargets();
+
+  const { data: productOptions = [] } = useQuery({
+    queryKey: ["commission-product-search", productSearch],
+    enabled: scope === "product",
+    queryFn: async () => {
+      let q = supabase.from("products").select("id, name").order("name").limit(50);
+      if (productSearch.trim()) q = q.ilike("name", `%${productSearch.trim()}%`);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
 
   const mut = useMutation({
     mutationFn: async () => {
