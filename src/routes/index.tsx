@@ -46,7 +46,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { QualityBadge } from "@/components/quality-badge";
+import { QualityBadge, SellerVerifiedBadge } from "@/components/quality-badge";
 import { displayPrice, formatFcfa, type ProductType } from "@/lib/format";
 import { imageAtWidth, imageSrcSet } from "@/lib/seo";
 import { cn } from "@/lib/utils";
