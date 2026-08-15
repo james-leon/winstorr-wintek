@@ -17,9 +17,34 @@ export const Route = createFileRoute("/_authenticated/admin/commissions")({
 
 type Scope = "global" | "vendor" | "category" | "product";
 
+function useScopeTargets() {
+  const { data: vendors = [] } = useQuery({
+    queryKey: ["commission-vendors"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("vendors").select("id, name").order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const { data: categories = [] } = useQuery({
+    queryKey: ["commission-categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("id, name, product_type")
+        .eq("status", "active")
+        .order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  return { vendors, categories };
+}
+
 function AdminCommissions() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const { vendors, categories } = useScopeTargets();
 
   const { data: rules = [] } = useQuery({
     queryKey: ["commission-rules"],
@@ -32,6 +57,23 @@ function AdminCommissions() {
       return data ?? [];
     },
   });
+
+  const scopeIds = rules.filter((r) => r.scope === "product" && r.scope_id).map((r) => r.scope_id as string);
+  const { data: products = [] } = useQuery({
+    queryKey: ["commission-rule-products", scopeIds.join(",")],
+    enabled: scopeIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("products").select("id, name").in("id", scopeIds);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const targetName = (scope: string, id: string | null) => {
+    if (scope === "global" || !id) return "—";
+    const list = scope === "vendor" ? vendors : scope === "category" ? categories : products;
+    return (list as { id: string; name: string }[]).find((x) => x.id === id)?.name ?? "—";
+  };
 
   const del = useMutation({
     mutationFn: async (id: string) => {
@@ -48,6 +90,7 @@ function AdminCommissions() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["commission-rules"] }),
   });
+
 
   return (
     <div className="space-y-4">
@@ -66,7 +109,7 @@ function AdminCommissions() {
           <thead className="bg-muted text-left">
             <tr>
               <th className="p-3">Portée</th>
-              <th className="p-3">Cible (ID)</th>
+              <th className="p-3">Cible</th>
               <th className="p-3">Type</th>
               <th className="p-3">Valeur</th>
               <th className="p-3">Priorité</th>
@@ -78,7 +121,7 @@ function AdminCommissions() {
             {rules.map((r) => (
               <tr key={r.id}>
                 <td className="p-3 font-medium capitalize">{r.scope}</td>
-                <td className="p-3 text-xs text-muted-foreground">{r.scope_id ? r.scope_id.slice(0, 8) + "…" : "—"}</td>
+                <td className="p-3 text-xs">{targetName(r.scope, r.scope_id)}</td>
                 <td className="p-3 text-xs">{r.commission_type === "percentage" ? "Pourcentage" : "Fixe"}</td>
                 <td className="p-3 font-semibold">{r.commission_type === "percentage" ? `${r.commission_value}%` : `${r.commission_value} FCFA`}</td>
                 <td className="p-3 text-xs">{r.priority}</td>
@@ -111,6 +154,21 @@ function CreateRuleDialog({ onClose, onDone }: { onClose: () => void; onDone: ()
   const [ctype, setCtype] = useState<"percentage" | "fixed_amount">("percentage");
   const [cval, setCval] = useState("10");
   const [priority, setPriority] = useState<string>("10");
+  const [productSearch, setProductSearch] = useState("");
+  const { vendors, categories } = useScopeTargets();
+
+  const { data: productOptions = [] } = useQuery({
+    queryKey: ["commission-product-search", productSearch],
+    enabled: scope === "product",
+    queryFn: async () => {
+      let q = supabase.from("products").select("id, name").order("name").limit(50);
+      if (productSearch.trim()) q = q.ilike("name", `%${productSearch.trim()}%`);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
 
   const mut = useMutation({
     mutationFn: async () => {
@@ -135,7 +193,7 @@ function CreateRuleDialog({ onClose, onDone }: { onClose: () => void; onDone: ()
         <div className="space-y-3">
           <div>
             <Label>Portée *</Label>
-            <Select value={scope} onValueChange={(v) => setScope(v as Scope)}>
+            <Select value={scope} onValueChange={(v) => { setScope(v as Scope); setScopeId(""); setProductSearch(""); }}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="global">Global (défaut)</SelectItem>
@@ -145,12 +203,42 @@ function CreateRuleDialog({ onClose, onDone }: { onClose: () => void; onDone: ()
               </SelectContent>
             </Select>
           </div>
-          {scope !== "global" && (
+          {scope === "vendor" && (
             <div>
-              <Label>ID {scope} *</Label>
-              <Input value={scopeId} onChange={(e) => setScopeId(e.target.value)} placeholder="UUID" />
+              <Label>Vendeur *</Label>
+              <Select value={scopeId} onValueChange={setScopeId}>
+                <SelectTrigger><SelectValue placeholder="Choisir un vendeur…" /></SelectTrigger>
+                <SelectContent>
+                  {vendors.map((v) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
           )}
+          {scope === "category" && (
+            <div>
+              <Label>Catégorie *</Label>
+              <Select value={scopeId} onValueChange={setScopeId}>
+                <SelectTrigger><SelectValue placeholder="Choisir une catégorie…" /></SelectTrigger>
+                <SelectContent>
+                  {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {scope === "product" && (
+            <div className="space-y-2">
+              <Label>Produit *</Label>
+              <Input value={productSearch} onChange={(e) => setProductSearch(e.target.value)} placeholder="Rechercher un produit par nom…" />
+              <Select value={scopeId} onValueChange={setScopeId}>
+                <SelectTrigger><SelectValue placeholder="Choisir un produit…" /></SelectTrigger>
+                <SelectContent>
+                  {productOptions.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  {productOptions.length === 0 && <div className="p-2 text-xs text-muted-foreground">Aucun produit trouvé.</div>}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label>Type *</Label>
@@ -168,7 +256,7 @@ function CreateRuleDialog({ onClose, onDone }: { onClose: () => void; onDone: ()
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Annuler</Button>
-          <Button disabled={mut.isPending} onClick={() => mut.mutate()}>{mut.isPending ? "…" : "Créer"}</Button>
+          <Button disabled={mut.isPending || (scope !== "global" && !scopeId)} onClick={() => mut.mutate()}>{mut.isPending ? "…" : "Créer"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
