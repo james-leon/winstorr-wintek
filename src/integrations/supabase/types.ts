@@ -2004,7 +2004,9 @@ export type Database = {
           status: Database["public"]["Enums"]["vendor_status"]
           type: Database["public"]["Enums"]["vendor_type"]
           updated_at: string
+          verification_note: string | null
           verified: boolean
+          verified_at: string | null
         }
         Insert: {
           allow_financing?: boolean
@@ -2024,7 +2026,9 @@ export type Database = {
           status?: Database["public"]["Enums"]["vendor_status"]
           type?: Database["public"]["Enums"]["vendor_type"]
           updated_at?: string
+          verification_note?: string | null
           verified?: boolean
+          verified_at?: string | null
         }
         Update: {
           allow_financing?: boolean
@@ -2044,7 +2048,9 @@ export type Database = {
           status?: Database["public"]["Enums"]["vendor_status"]
           type?: Database["public"]["Enums"]["vendor_type"]
           updated_at?: string
+          verification_note?: string | null
           verified?: boolean
+          verified_at?: string | null
         }
         Relationships: []
       }
