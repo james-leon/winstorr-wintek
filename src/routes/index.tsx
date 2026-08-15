@@ -71,6 +71,8 @@ type MiniProduct = {
   has_variants?: boolean | null;
   stock_quantity?: number | null;
   min_order_quantity?: number | null;
+  vendor?: { name: string; slug: string | null; city: string | null; verified: boolean | null } | null;
+  product_price_tiers?: { unit_price: number }[] | null;
 };
 
 type CategoryRow = {
@@ -88,7 +90,7 @@ type RootCategory = CategoryRow & {
 };
 
 const BASE_SELECT =
-  "id, slug, name, images, price, price_type, rating_average, rating_count, quality_verified, type, category_id, vendor_id, compare_at_price, has_variants, stock_quantity, min_order_quantity";
+  "id, slug, name, images, price, price_type, rating_average, rating_count, quality_verified, type, category_id, vendor_id, compare_at_price, has_variants, stock_quantity, min_order_quantity, vendor:vendors(name, slug, city, verified), product_price_tiers(unit_price)";
 
 function normalize(rows: unknown[]): MiniProduct[] {
   return (rows as MiniProduct[]).map((p) => ({
