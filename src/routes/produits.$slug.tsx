@@ -52,6 +52,8 @@ type Product = {
   quality_verified: boolean;
   warranty_duration: string | null;
   source_type: "direct_import" | "authorized_wholesaler" | "other" | null;
+  category_id: string | null;
+
   vendor: { id: string; name: string; slug: string; type: "internal" | "external"; allow_financing: boolean; logo_url: string | null; contact_phone: string | null } | null;
   category: { name: string; slug: string } | null;
 };
