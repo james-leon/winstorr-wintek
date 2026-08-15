@@ -6,7 +6,10 @@ import { pushRecentlyViewed } from "@/lib/recently-viewed";
 import { RecentlyViewedShelf } from "@/components/recently-viewed-shelf";
 
 import { toast } from "sonner";
-import { ChevronLeft, MapPin, Calendar, Clock, Package, Download, ShieldCheck, Truck, BadgeCheck, Heart } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Calendar, Clock, Package, Download, ShieldCheck, Truck, BadgeCheck, Heart, Store, MessageCircleQuestion } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { WhatsAppButton } from "@/components/whatsapp-button";
+import { ProductCard, type ProductCardData } from "@/components/product-card";
 import { useWishlistIds, useToggleWishlist } from "@/lib/wishlist";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,7 +55,10 @@ type Product = {
   quality_verified: boolean;
   warranty_duration: string | null;
   source_type: "direct_import" | "authorized_wholesaler" | "other" | null;
-  vendor: { id: string; name: string; slug: string; type: "internal" | "external"; allow_financing: boolean } | null;
+  category_id: string | null;
+
+  vendor: { id: string; name: string; slug: string; type: "internal" | "external"; allow_financing: boolean; logo_url: string | null; contact_phone: string | null } | null;
+  category: { name: string; slug: string } | null;
 };
 
 const productQuery = (slug: string) =>
@@ -61,13 +67,14 @@ const productQuery = (slug: string) =>
     queryFn: async (): Promise<Product> => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, slug, name, short_description, description, images, type, price, price_type, compare_at_price, stock_quantity, min_order_quantity, has_variants, delivery_type, delivery_instructions, service_area, estimated_duration, delivery_mode, rating_average, rating_count, quality_verified, warranty_duration, source_type, vendor:vendors(id, name, slug, type, allow_financing)")
+        .select("id, slug, name, short_description, description, images, type, price, price_type, compare_at_price, stock_quantity, min_order_quantity, has_variants, delivery_type, delivery_instructions, service_area, estimated_duration, delivery_mode, rating_average, rating_count, quality_verified, warranty_duration, source_type, category_id, vendor:vendors(id, name, slug, type, allow_financing, logo_url, contact_phone), category:categories(name, slug)")
         .eq("slug", slug)
         .eq("status", "active")
         .maybeSingle();
       if (error) throw error;
       if (!data) throw notFound();
       return { ...data, images: Array.isArray(data.images) ? (data.images as string[]) : [] } as Product;
+
     },
   });
 
@@ -168,98 +175,218 @@ const SOURCE_LABELS: Record<NonNullable<Product["source_type"]>, string> = {
 function ProductDetail() {
   const { slug } = Route.useParams();
   const { data: p } = useSuspenseQuery(productQuery(slug));
-  const [activeImg, setActiveImg] = useState(0);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (p?.id) pushRecentlyViewed(p.id);
   }, [p?.id]);
 
   return (
-    <div className="mx-auto max-w-6xl px-3 py-4">
-
-      <Link to="/catalogue" className="mb-3 inline-flex items-center gap-1 text-xs text-secondary hover:underline">
-        <ChevronLeft className="h-3.5 w-3.5" /> Retour au catalogue
-      </Link>
-
-      <div className="grid gap-5 rounded-sm border border-border bg-card p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)_320px]">
-        {/* Gallery */}
-        <div>
-          <div className="aspect-square overflow-hidden rounded-sm border border-border bg-muted">
-            {p.images[activeImg] ? (
-              <img
-                src={imageAtWidth(p.images[activeImg], 800) || p.images[activeImg]}
-                srcSet={imageSrcSet(p.images[activeImg], [400, 600, 800, 1200])}
-                sizes="(min-width: 1024px) 480px, 100vw"
-                alt={p.name}
-                fetchPriority="high"
-                decoding="async"
-                width={800}
-                height={800}
-                className="h-full w-full object-contain bg-white"
-              />
+    <div className="pb-24 lg:pb-10">
+      {/* Breadcrumb */}
+      <nav className="mx-auto max-w-7xl px-4 pt-4 text-xs text-muted-foreground">
+        <ol className="flex flex-wrap items-center gap-1.5">
+          <li><Link to="/" className="hover:underline">{t("pdp.home")}</Link></li>
+          <li aria-hidden><ChevronRight className="h-3 w-3" /></li>
+          <li>
+            {p.category ? (
+              <Link to="/catalogue" search={{ category: p.category.slug } as never} className="hover:underline">
+                {p.category.name}
+              </Link>
             ) : (
-              <div className="grid h-full w-full place-items-center text-muted-foreground text-sm">Pas d'image</div>
+              <Link to="/catalogue" className="hover:underline">{t("pdp.catalog")}</Link>
             )}
-          </div>
+          </li>
+          <li aria-hidden><ChevronRight className="h-3 w-3" /></li>
+          <li className="truncate max-w-[55vw] font-medium text-[var(--color-ink)]">{p.name}</li>
+        </ol>
+      </nav>
 
-          {p.images.length > 1 && (
-            <div className="mt-2 grid grid-cols-6 gap-1.5">
-              {p.images.map((src, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveImg(i)}
-                  className={`aspect-square overflow-hidden rounded-sm border ${i === activeImg ? "border-secondary" : "border-border"}`}
-                >
-                  <img src={src} alt="" className="h-full w-full object-contain bg-white" />
-                </button>
-              ))}
-            </div>
-          )}
+      <div className="mx-auto mt-4 max-w-7xl px-4">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,46%)_minmax(0,1fr)]">
+          <Gallery p={p} />
+          <InfoColumn p={p} />
         </div>
-
-        {/* Middle info */}
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <TypeBadge type={p.type} />
-            {p.quality_verified && <QualityBadge />}
-          </div>
-          <h1 className="mt-2 text-xl md:text-2xl font-semibold text-foreground leading-tight">{p.name}</h1>
-          {p.vendor && <div className="mt-1"><VendorLine name={p.vendor.name} slug={p.vendor.slug} internal={p.vendor.type === "internal"} /></div>}
-          <div className="mt-1.5"><StarRating rating={Number(p.rating_average)} count={p.rating_count} size="sm" /></div>
-          {p.short_description && <p className="mt-3 text-sm text-foreground/80">{p.short_description}</p>}
-
-          {(p.warranty_duration || p.source_type) && (
-            <div className="mt-4 flex flex-wrap gap-1.5">
-              {p.warranty_duration && (
-                <span className="inline-flex items-center gap-1 rounded-sm border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-foreground/80">
-                  <BadgeCheck className="h-3 w-3 text-secondary" /> Garantie {p.warranty_duration}
-                </span>
-              )}
-              {p.source_type && (
-                <span className="inline-flex items-center gap-1 rounded-sm border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-foreground/80">
-                  <Truck className="h-3 w-3" /> {SOURCE_LABELS[p.source_type]}
-                </span>
-              )}
-            </div>
-          )}
-
-          {p.description && (
-            <div className="mt-6 border-t border-border pt-4">
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Description</h2>
-              <div className="mt-2 whitespace-pre-wrap text-sm text-foreground/85 leading-relaxed">{p.description}</div>
-            </div>
-          )}
-        </div>
-
-        {/* Buy box */}
-        <aside className="lg:sticky lg:top-24 self-start">
-          <BuyBox p={p} />
-        </aside>
       </div>
 
-      <ReviewsSection productId={p.id} rating={Number(p.rating_average)} count={p.rating_count} />
-      <RecentlyViewedShelf excludeId={p.id} />
+      <div className="mx-auto mt-10 max-w-7xl space-y-8 px-4">
+        {p.description && (
+          <Panel title={t("pdp.description")}>
+            <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/85">{p.description}</div>
+          </Panel>
+        )}
 
+        <QuestionsSection productId={p.id} />
+
+        <ReviewsSection productId={p.id} rating={Number(p.rating_average)} count={p.rating_count} />
+
+        <SimilarProducts categoryId={p.category_id} excludeId={p.id} />
+        {p.vendor && <SameShopProducts vendorId={p.vendor.id} vendorName={p.vendor.name} excludeId={p.id} />}
+        {p.vendor && <VendorCard vendor={p.vendor} />}
+
+        <RecentlyViewedShelf excludeId={p.id} />
+      </div>
+
+      <MobileBuyBar p={p} />
+    </div>
+  );
+}
+
+/* -------------------- primitives -------------------- */
+
+function Panel({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) {
+  return (
+    <section className="rounded-[var(--radius-r-lg)] border border-[var(--color-line)] bg-white p-5 shadow-[var(--shadow-soft)] md:p-6">
+      <div className="mb-4 flex items-end justify-between gap-4">
+        <h2 className="font-heading text-[17px] font-extrabold tracking-tight text-[var(--color-ink)] md:text-[20px]">{title}</h2>
+        {action}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+/* -------------------- gallery -------------------- */
+
+function Gallery({ p }: { p: Product }) {
+  const [activeImg, setActiveImg] = useState(0);
+  const [zoom, setZoom] = useState<{ x: number; y: number } | null>(null);
+  const src = p.images[activeImg];
+
+  return (
+    <div className="lg:sticky lg:top-24 self-start">
+      <div
+        className="relative aspect-square overflow-hidden rounded-[var(--radius-r-lg)] border border-[var(--color-line)] bg-white shadow-[var(--shadow-soft)]"
+        onMouseMove={(e) => {
+          const r = e.currentTarget.getBoundingClientRect();
+          setZoom({ x: ((e.clientX - r.left) / r.width) * 100, y: ((e.clientY - r.top) / r.height) * 100 });
+        }}
+        onMouseLeave={() => setZoom(null)}
+      >
+        {src ? (
+          <img
+            src={imageAtWidth(src, 800) || src}
+            srcSet={imageSrcSet(src, [400, 600, 800, 1200])}
+            sizes="(min-width: 1024px) 560px, 100vw"
+            alt={p.name}
+            fetchPriority="high"
+            decoding="async"
+            width={800}
+            height={800}
+            className="h-full w-full bg-white object-contain transition-transform duration-200"
+            style={zoom ? { transform: "scale(1.8)", transformOrigin: `${zoom.x}% ${zoom.y}%` } : undefined}
+          />
+        ) : (
+          <div className="grid h-full w-full place-items-center text-sm text-muted-foreground">Pas d'image</div>
+        )}
+
+        {p.quality_verified && (
+          <div className="absolute left-3 top-3">
+            <QualityBadge size="md" />
+          </div>
+        )}
+      </div>
+
+      {p.images.length > 1 && (
+        <div className="mt-3 flex gap-2 overflow-x-auto scrollbar-thin pb-1">
+          {p.images.map((img, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => setActiveImg(i)}
+              aria-label={`Image ${i + 1}`}
+              className={cn(
+                "h-16 w-16 shrink-0 overflow-hidden rounded-[var(--radius-r-sm)] border-2 bg-white transition",
+                i === activeImg
+                  ? "border-[var(--color-accent-500)] shadow-[var(--shadow-soft)]"
+                  : "border-[var(--color-line)] hover:border-[var(--color-blue-brand)]",
+              )}
+            >
+              <img src={imageAtWidth(img, 200) || img} alt="" loading="lazy" className="h-full w-full bg-white object-contain" />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* -------------------- right column -------------------- */
+
+function InfoColumn({ p }: { p: Product }) {
+  const { t } = useTranslation();
+  const waMessage = `Bonjour, je suis intéressé(e) par « ${p.name} » sur Winstorr (https://winstorr.com/produits/${p.slug}).`;
+
+  return (
+    <div className="min-w-0" id="buy">
+      <div className="flex flex-wrap items-center gap-1.5">
+        <TypeBadge type={p.type} />
+        {p.warranty_duration && (
+          <span className="inline-flex items-center gap-1 rounded-full border border-[var(--color-line)] bg-white px-2 py-0.5 text-[11px] font-medium text-foreground/80">
+            <BadgeCheck className="h-3 w-3 text-[var(--color-blue-brand)]" /> Garantie {p.warranty_duration}
+          </span>
+        )}
+        {p.source_type && (
+          <span className="inline-flex items-center gap-1 rounded-full border border-[var(--color-line)] bg-white px-2 py-0.5 text-[11px] font-medium text-foreground/80">
+            <Truck className="h-3 w-3" /> {SOURCE_LABELS[p.source_type]}
+          </span>
+        )}
+      </div>
+
+      <h1 className="mt-2.5 font-heading text-[22px] font-extrabold leading-tight tracking-tight text-[var(--color-navy-900)] md:text-[28px]">
+        {p.name}
+      </h1>
+
+      <div className="mt-2 flex flex-wrap items-center gap-3">
+        {p.rating_count > 0 ? (
+          <StarRating rating={Number(p.rating_average)} count={p.rating_count} size="md" />
+        ) : (
+          <span className="rounded-full bg-[var(--color-blue-soft)] px-2 py-0.5 text-[11px] font-semibold text-[var(--color-blue-brand)]">
+            {t("pdp.newProduct")}
+          </span>
+        )}
+        {p.vendor && (
+          <Link
+            to="/boutiques/$vendorSlug"
+            params={{ vendorSlug: p.vendor.slug }}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--color-blue-brand)] no-link-color hover:underline"
+          >
+            <Store className="h-3.5 w-3.5" />
+            {t("pdp.soldBy")} {p.vendor.name}
+            <BadgeCheck className="h-3.5 w-3.5 text-[var(--color-green-brand)]" />
+          </Link>
+        )}
+      </div>
+
+      {p.short_description && <p className="mt-3 text-sm leading-relaxed text-foreground/80">{p.short_description}</p>}
+
+      <div className="mt-5 rounded-[var(--radius-r-lg)] border border-[var(--color-line)] bg-white p-4 shadow-[var(--shadow-soft)] md:p-5">
+        <BuyBox p={p} />
+      </div>
+
+      {/* Delivery / pickup */}
+      <div className="mt-4 rounded-[var(--radius-r-lg)] border border-[var(--color-line)] bg-[var(--color-surface)] p-4">
+        <div className="flex items-start gap-2.5">
+          <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-blue-brand)]" />
+          <div className="text-xs leading-relaxed">
+            <div className="text-sm font-semibold text-[var(--color-ink)]">{t("pdp.pickupTitle")}</div>
+            <p className="mt-0.5 text-muted-foreground">{t("pdp.pickupText")}</p>
+            <Link to="/points-retrait" className="mt-1 inline-block font-medium text-[var(--color-blue-brand)] hover:underline">
+              {t("pdp.seePickupPoints")}
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {p.vendor?.contact_phone && (
+        <WhatsAppButton
+          phone={p.vendor.contact_phone}
+          message={waMessage}
+          size="lg"
+          label={t("pdp.contactVendor")}
+          className="mt-3 w-full justify-center"
+        />
+      )}
     </div>
   );
 }
@@ -268,6 +395,7 @@ function BuyBox({ p }: { p: Product }) {
   const isPhysical = p.type === "physical";
   const { data: variants = [] } = useProductVariants(isPhysical && p.has_variants ? p.id : undefined);
   const attrOptions = extractAttributeOptions(variants);
+  const { t } = useTranslation();
 
   // Default selection: from the `is_default` variant, or the first one.
   const initialSelected: Record<string, string> = {};
@@ -276,6 +404,18 @@ function BuyBox({ p }: { p: Product }) {
     for (const [k, v] of Object.entries(def.attributes || {})) initialSelected[k] = String(v);
   }
   const [selected, setSelected] = useState<Record<string, string>>(initialSelected);
+  // Variants arrive after the first render — apply the default selection once loaded.
+  useEffect(() => {
+    if (variants.length === 0) return;
+    setSelected((cur) => {
+      if (Object.keys(cur).length > 0) return cur;
+      const def = variants.find((v) => v.is_default) ?? variants[0];
+      const next: Record<string, string> = {};
+      for (const [k, v] of Object.entries(def.attributes || {})) next[k] = String(v);
+      return next;
+    });
+  }, [variants]);
+
   const currentVariant: Variant | null = variants.length > 0 ? findVariantByAttrs(variants, selected) : null;
   const fullySelected = attrOptions.every((o) => selected[o.key]);
 
@@ -303,29 +443,46 @@ function BuyBox({ p }: { p: Product }) {
     ? resolveUnitPrice(tiers, qty, displayPricePoint)
     : displayPricePoint;
 
+  const discountPct =
+    displayCompare && displayPricePoint && displayCompare > displayPricePoint
+      ? Math.round((1 - Number(displayPricePoint) / Number(displayCompare)) * 100)
+      : null;
+
   return (
-    <div className="rounded-sm border border-border bg-background p-4">
+    <div>
       {displayImage && (
-        <div className="mb-3 overflow-hidden rounded-sm border border-border bg-muted">
-          <img src={displayImage} alt="" className="h-32 w-full object-contain bg-white" />
+        <div className="mb-3 overflow-hidden rounded-[var(--radius-r-sm)] border border-[var(--color-line)] bg-white">
+          <img src={displayImage} alt="" className="h-28 w-full bg-white object-contain" />
         </div>
       )}
-      <div className="flex items-baseline gap-2">
-        <div className="text-2xl font-bold text-accent leading-none">
+
+      <div className="flex flex-wrap items-baseline gap-2.5">
+        <div className="font-heading text-[28px] font-extrabold leading-none text-[var(--color-accent-500)] md:text-[32px]">
           {p.price_type === "quote_only" || effectiveUnit == null
             ? displayPrice(p)
             : (p.price_type === "starting_at" ? "À partir de " : "") + formatFcfa(effectiveUnit)}
         </div>
-        {displayCompare && displayPricePoint && displayCompare > displayPricePoint && (
-          <div className="text-sm text-muted-foreground line-through">{formatFcfa(displayCompare)}</div>
+        {discountPct != null && (
+          <>
+            <span className="text-sm text-muted-foreground line-through">{formatFcfa(displayCompare!)}</span>
+            <span
+              className="rounded-full px-2 py-0.5 text-[11px] font-bold text-white"
+              style={{ background: "var(--color-deal)" }}
+            >
+              −{discountPct}%
+            </span>
+          </>
         )}
       </div>
+
       {hasTiers && (
-        <div className="mt-1 inline-flex items-center gap-1 rounded-sm bg-success/10 px-2 py-0.5 text-[11px] font-medium text-success">
-          <Truck className="h-3 w-3" /> Tarif dégressif — prix de gros disponible
+        <div className="mt-2.5">
+          <div className="inline-flex items-center gap-1 rounded-full bg-[var(--color-green-soft)] px-2 py-0.5 text-[11px] font-semibold text-[var(--color-green-brand)]">
+            <Truck className="h-3 w-3" /> {t("pdp.tiersBadge")}
+          </div>
+          <TierTable tiers={tiers!} basePrice={displayPricePoint} qty={qty} />
         </div>
       )}
-      {hasTiers && <TierTable tiers={tiers!} basePrice={displayPricePoint} qty={qty} />}
 
       <FinancingOffer
         productId={p.id}
@@ -337,11 +494,11 @@ function BuyBox({ p }: { p: Product }) {
       />
 
       {variants.length > 0 && (
-        <div className="mt-4 space-y-3 border-t border-border pt-3">
+        <div className="mt-4 space-y-3 border-t border-[var(--color-line)] pt-4">
           {attrOptions.map(({ key, values }) => (
             <div key={key}>
-              <Label className="text-xs uppercase tracking-wide text-muted-foreground">{key}</Label>
-              <div className="mt-1 flex flex-wrap gap-1.5">
+              <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{key}</Label>
+              <div className="mt-1.5 flex flex-wrap gap-2">
                 {values.map((value) => {
                   const isSelected = selected[key] === value;
                   const otherKeys: Record<string, string> = { ...selected };
@@ -354,12 +511,12 @@ function BuyBox({ p }: { p: Product }) {
                       disabled={!available}
                       onClick={() => setSelected({ ...selected, [key]: value })}
                       className={cn(
-                        "rounded-sm border px-3 py-1.5 text-sm transition",
+                        "rounded-full border px-3.5 py-1.5 text-sm transition",
                         isSelected
-                          ? "border-accent bg-accent/10 font-medium text-accent"
+                          ? "border-[var(--color-accent-500)] bg-[var(--color-accent-soft)] font-semibold text-[var(--color-accent-600)]"
                           : available
-                            ? "border-border hover:border-foreground/40"
-                            : "cursor-not-allowed border-border/40 text-muted-foreground line-through",
+                            ? "border-[var(--color-line)] bg-white hover:border-[var(--color-blue-brand)]"
+                            : "cursor-not-allowed border-[var(--color-line)]/60 text-muted-foreground line-through",
                       )}
                     >
                       {value}
@@ -393,16 +550,16 @@ function BuyBox({ p }: { p: Product }) {
 
       <WishlistToggle productId={p.id} />
 
-      <ul className="mt-4 space-y-1.5 border-t border-border pt-3 text-[11px] text-muted-foreground">
+      <ul className="mt-4 space-y-1.5 border-t border-[var(--color-line)] pt-3 text-[11px] text-muted-foreground">
         {p.quality_verified && (
-          <li className="flex items-center gap-1.5 text-success font-medium">
+          <li className="flex items-center gap-1.5 font-semibold text-[var(--color-green-brand)]">
             <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2.5} /> Qualité vérifiée par Wintek
           </li>
         )}
         <li className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5" /> Achat sécurisé sur Winstorr</li>
         {p.vendor && (
           <li className="flex items-center gap-1.5">
-            <BadgeCheck className="h-3.5 w-3.5 text-secondary" />
+            <BadgeCheck className="h-3.5 w-3.5 text-[var(--color-blue-brand)]" />
             Expédié par <span className="font-medium text-foreground">{p.vendor.name}</span>
           </li>
         )}
@@ -410,6 +567,28 @@ function BuyBox({ p }: { p: Product }) {
     </div>
   );
 }
+
+function MobileBuyBar({ p }: { p: Product }) {
+  const { t } = useTranslation();
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--color-line)] bg-white/95 px-3 py-2.5 backdrop-blur shadow-[0_-4px_14px_rgba(13,44,84,0.08)] lg:hidden">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+        <div className="min-w-0">
+          <div className="truncate text-[11px] text-muted-foreground">{p.name}</div>
+          <div className="font-heading text-base font-extrabold text-[var(--color-accent-500)]">{displayPrice(p)}</div>
+        </div>
+        <a
+          href="#buy"
+          className="shrink-0 rounded-full px-5 py-2.5 text-sm font-bold text-white"
+          style={{ background: "var(--color-accent-500)" }}
+        >
+          {t("pdp.buyNow")}
+        </a>
+      </div>
+    </div>
+  );
+}
+
 
 function TierTable({ tiers, basePrice, qty }: { tiers: PriceTier[]; basePrice: number | null; qty: number }) {
   const sorted = [...tiers].sort((a, b) => a.min_quantity - b.min_quantity);
@@ -476,9 +655,10 @@ function PhysicalActions({
   const nav = useNavigate();
   const stock = displayStock ?? 0;
   const stockLabel =
-    stock <= 0 ? { text: "Rupture de stock", cls: "text-destructive" }
-    : stock <= 3 ? { text: `Stock limité (${stock})`, cls: "text-accent" }
-    : { text: "En stock", cls: "text-success" };
+    stock <= 0 ? { text: "Rupture de stock", cls: "text-destructive", dot: "var(--color-deal)" }
+    : stock <= 3 ? { text: `Stock limité (${stock})`, cls: "text-[var(--color-accent-600)]", dot: "var(--color-accent-500)" }
+    : { text: "En stock", cls: "text-[var(--color-green-brand)]", dot: "var(--color-green-brand)" };
+
   const unit = resolveUnitPrice(tiers, qty, pricePoint);
   const moq = Math.max(1, variant?.min_order_quantity ?? p.min_order_quantity ?? 1);
   const maxQty = stock > 0 ? stock : moq;
@@ -508,29 +688,33 @@ function PhysicalActions({
 
   return (
     <div className="space-y-3">
-      <div className={`flex items-center gap-2 text-sm font-medium ${stockLabel.cls}`}>
-        <Package className="h-4 w-4" /> {stockLabel.text}
+      <div className={`flex items-center gap-2 text-sm font-semibold ${stockLabel.cls}`}>
+        <span className="h-2 w-2 rounded-full" style={{ background: stockLabel.dot }} />
+        {stockLabel.text}
       </div>
       <div className="flex items-center gap-3">
-        <div className="flex items-center rounded-md border border-input">
-          <button type="button" onClick={() => setQty((q) => Math.max(moq, q - 1))} className="px-3 py-2 text-lg" disabled={qty <= moq}>−</button>
-          <span className="min-w-8 text-center">{qty}</span>
-          <button type="button" onClick={() => setQty((q) => Math.min(maxQty, q + 1))} className="px-3 py-2 text-lg" disabled={atMax || stock <= 0}>+</button>
+        <div className="flex items-center overflow-hidden rounded-full border border-[var(--color-line)] bg-white">
+          <button type="button" onClick={() => setQty((q) => Math.max(moq, q - 1))} className="px-3.5 py-2 text-lg leading-none disabled:opacity-40" disabled={qty <= moq}>−</button>
+          <span className="min-w-8 text-center text-sm font-semibold">{qty}</span>
+          <button type="button" onClick={() => setQty((q) => Math.min(maxQty, q + 1))} className="px-3.5 py-2 text-lg leading-none disabled:opacity-40" disabled={atMax || stock <= 0}>+</button>
         </div>
       </div>
       {moq > 1 && (
-        <div className="text-xs text-muted-foreground">Quantité minimum : {moq} unités</div>
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-blue-soft)] px-2.5 py-1 text-[11px] font-semibold text-[var(--color-blue-brand)]">
+          <Package className="h-3 w-3" /> Commande minimum : {moq} unités
+        </div>
       )}
       {stock > 0 && atMax && (
-        <div className="text-xs text-accent">Quantité maximum disponible : {stock}.</div>
+        <div className="text-xs text-[var(--color-accent-600)]">Quantité maximum disponible : {stock}.</div>
       )}
 
       {hasVariants && !fullySelected && (
-        <div className="text-xs text-accent">Sélectionnez une combinaison pour continuer.</div>
+        <div className="text-xs text-[var(--color-accent-600)]">Sélectionnez une combinaison pour continuer.</div>
       )}
       <Button
         size="lg"
-        className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
+        className="w-full rounded-full font-bold text-white hover:opacity-90"
+        style={{ background: "var(--color-accent-500)" }}
         disabled={disabled}
         onClick={() => { addToCart(); nav({ to: "/commande" }); }}
       >
@@ -539,7 +723,7 @@ function PhysicalActions({
       <Button
         size="lg"
         variant="outline"
-        className="w-full"
+        className="w-full rounded-full border-[var(--color-navy-900)]/25 font-semibold text-[var(--color-navy-900)]"
         disabled={disabled}
         onClick={() => { addToCart(); toast.success(`${p.name} ajouté au panier`); }}
       >
@@ -547,6 +731,7 @@ function PhysicalActions({
       </Button>
     </div>
   );
+
 }
 
 
@@ -781,15 +966,16 @@ function ReviewsSection({ productId, rating, count }: { productId: string; ratin
   });
 
   return (
-    <section className="mt-14 border-t border-border pt-10">
-      <div className="grid gap-10 lg:grid-cols-[280px_1fr]">
+    <section className="rounded-[var(--radius-r-lg)] border border-[var(--color-line)] bg-white p-5 shadow-[var(--shadow-soft)] md:p-6">
+      <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
         <div>
-          <h2 className="font-display text-2xl text-foreground">Avis clients</h2>
+          <h2 className="font-heading text-[17px] font-extrabold tracking-tight text-[var(--color-ink)] md:text-[20px]">Avis clients</h2>
           <div className="mt-3">
-            <div className="font-display text-4xl text-foreground">{rating.toFixed(1)}<span className="text-lg text-muted-foreground">/5</span></div>
+            <div className="font-heading text-4xl font-extrabold text-[var(--color-navy-900)]">{rating.toFixed(1)}<span className="text-lg font-normal text-muted-foreground">/5</span></div>
             <StarRating rating={rating} showCount={false} size="lg" className="mt-1" />
             <div className="mt-1 text-sm text-muted-foreground">{count} avis publié{count > 1 ? "s" : ""}</div>
           </div>
+
 
           <div className="mt-6 rounded-lg border border-border bg-card p-4">
             {user ? (
@@ -860,5 +1046,174 @@ function ReviewsSection({ productId, rating, count }: { productId: string; ratin
       </div>
       {myReview && null}
     </section>
+  );
+}
+
+/* -------------------- questions & answers -------------------- */
+type PublicQuestion = { id: string; question: string; answer: string | null; created_at: string; answered_at: string | null };
+
+function QuestionsSection({ productId }: { productId: string }) {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  const [text, setText] = useState("");
+
+  const { data: questions = [], isLoading } = useQuery({
+    queryKey: ["product-questions", productId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("product_questions")
+        .select("id, question, answer, created_at, answered_at")
+        .eq("product_id", productId)
+        .eq("status", "answered")
+        .order("answered_at", { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return data as PublicQuestion[];
+    },
+  });
+
+  const ask = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("product_questions").insert({
+        product_id: productId,
+        question: text.trim(),
+        customer_id: user?.id ?? null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(t("pdp.questionSent"));
+      setText("");
+      qc.invalidateQueries({ queryKey: ["product-questions", productId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Panel title={t("pdp.questions")}>
+      {isLoading ? (
+        <SkeletonListRows rows={2} />
+      ) : questions.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{t("pdp.noQuestions")}</p>
+      ) : (
+        <ul className="space-y-4">
+          {questions.map((q) => (
+            <li key={q.id} className="rounded-[var(--radius-r)] border border-[var(--color-line)] bg-[var(--color-surface)] p-4">
+              <div className="flex items-start gap-2 text-sm font-semibold text-[var(--color-ink)]">
+                <MessageCircleQuestion className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-blue-brand)]" />
+                {q.question}
+              </div>
+              {q.answer && (
+                <div className="mt-2 border-l-2 border-[var(--color-green-brand)] pl-3 text-sm text-foreground/80">
+                  {q.answer}
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <form
+        onSubmit={(e) => { e.preventDefault(); if (text.trim().length >= 5) ask.mutate(); }}
+        className="mt-5 border-t border-[var(--color-line)] pt-4"
+      >
+        <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("pdp.askQuestion")}</Label>
+        <div className="mt-2 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+          <Input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            maxLength={500}
+            placeholder={t("pdp.questionPlaceholder")}
+          />
+          <Button type="submit" disabled={ask.isPending || text.trim().length < 5}>
+            {ask.isPending ? "..." : t("pdp.send")}
+          </Button>
+        </div>
+      </form>
+    </Panel>
+  );
+}
+
+/* -------------------- related shelves -------------------- */
+const SHELF_SELECT = "id, slug, name, short_description, images, type, price, price_type, stock_quantity, compare_at_price, rating_average, rating_count, quality_verified";
+
+function Shelf({ items }: { items: ProductCardData[] }) {
+  return (
+    <div className="-mx-1 grid grid-flow-col auto-cols-[minmax(150px,180px)] gap-3 overflow-x-auto scrollbar-thin px-1 pb-2">
+      {items.map((p) => <ProductCard key={p.id} p={p} />)}
+    </div>
+  );
+}
+
+function SimilarProducts({ categoryId, excludeId }: { categoryId: string | null; excludeId: string }) {
+  const { t } = useTranslation();
+  const { data: items = [] } = useQuery({
+    queryKey: ["similar-products", categoryId, excludeId],
+    enabled: !!categoryId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select(SHELF_SELECT)
+        .eq("status", "active")
+        .eq("category_id", categoryId!)
+        .neq("id", excludeId)
+        .order("rating_count", { ascending: false })
+        .limit(12);
+      if (error) throw error;
+      return data as ProductCardData[];
+    },
+  });
+  if (!categoryId || items.length === 0) return null;
+  return <Panel title={t("pdp.similar")}><Shelf items={items} /></Panel>;
+}
+
+function SameShopProducts({ vendorId, vendorName, excludeId }: { vendorId: string; vendorName: string; excludeId: string }) {
+  const { t } = useTranslation();
+  const { data: items = [] } = useQuery({
+    queryKey: ["same-shop-products", vendorId, excludeId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select(SHELF_SELECT)
+        .eq("status", "active")
+        .eq("vendor_id", vendorId)
+        .neq("id", excludeId)
+        .order("created_at", { ascending: false })
+        .limit(12);
+      if (error) throw error;
+      return data as ProductCardData[];
+    },
+  });
+  if (items.length === 0) return null;
+  return <Panel title={`${t("pdp.sameShop")} — ${vendorName}`}><Shelf items={items} /></Panel>;
+}
+
+function VendorCard({ vendor }: { vendor: NonNullable<Product["vendor"]> }) {
+  const { t } = useTranslation();
+  return (
+    <Panel title={t("pdp.vendorInfo")}>
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-[var(--radius-r)] border border-[var(--color-line)] bg-white">
+          {vendor.logo_url ? (
+            <img src={vendor.logo_url} alt={vendor.name} className="h-full w-full object-contain" />
+          ) : (
+            <Store className="h-6 w-6 text-[var(--color-blue-brand)]" />
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5">
+            <span className="font-heading text-base font-extrabold text-[var(--color-navy-900)]">{vendor.name}</span>
+            <BadgeCheck className="h-4 w-4 text-[var(--color-green-brand)]" />
+          </div>
+          {vendor.type === "internal" && (
+            <div className="text-xs text-[var(--color-blue-brand)]">Vendeur officiel Winstorr</div>
+          )}
+        </div>
+        <Button asChild variant="outline" className="shrink-0">
+          <Link to="/boutiques/$vendorSlug" params={{ vendorSlug: vendor.slug }}>{t("pdp.visitShop")}</Link>
+        </Button>
+      </div>
+    </Panel>
   );
 }
