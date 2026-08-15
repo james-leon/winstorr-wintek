@@ -187,28 +187,32 @@ const homeShelvesQuery = queryOptions({
       const descendantIds = collectDescendants(r.id);
       const set = new Set(descendantIds);
       const rootProducts = products.filter((p) => p.category_id && set.has(p.category_id));
-      return { ...r, descendantIds, products: rootProducts };
+      // Quality still decides WHICH product of each vendor shows first,
+      // but vendors alternate strictly (round-robin).
+      return { ...r, descendantIds, products: interleaveByVendor(rootProducts) };
     });
 
     const rootsWithProducts = rootCats.filter((c) => c.products.length > 0);
 
     // Generic shelves
-    const nouveautes = await supabase
+    const nouveautesRes = await supabase
       .from("products")
       .select(BASE_SELECT)
       .eq("status", "active")
       .order("created_at", { ascending: false })
-      .limit(12);
-    if (nouveautes.error) throw nouveautes.error;
+      .limit(60);
+    if (nouveautesRes.error) throw nouveautesRes.error;
+    const nouveautes = interleaveByVendor(normalize(nouveautesRes.data ?? []), 12);
 
-    const topRated = products
+    const topRatedPool = products
       .filter((p) => (p.rating_count ?? 0) > 0)
-      .sort((a, b) => (b.rating_average ?? 0) - (a.rating_average ?? 0))
-      .slice(0, 12);
+      .sort((a, b) => (b.rating_average ?? 0) - (a.rating_average ?? 0));
+    const topRated = interleaveByVendor(topRatedPool, 12);
 
-    const verified = products.filter((p) => p.quality_verified).slice(0, 12);
+    const verifiedPool = products.filter((p) => p.quality_verified);
+    const verified = interleaveByVendor(verifiedPool, 12);
 
-    const spotlight = verified[0] ?? topRated[0] ?? null;
+    const spotlight = verifiedPool[0] ?? topRatedPool[0] ?? null;
 
     const bannersRes = await supabase
       .from("homepage_banners")
