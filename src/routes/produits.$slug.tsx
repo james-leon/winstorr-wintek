@@ -6,7 +6,10 @@ import { pushRecentlyViewed } from "@/lib/recently-viewed";
 import { RecentlyViewedShelf } from "@/components/recently-viewed-shelf";
 
 import { toast } from "sonner";
-import { ChevronLeft, MapPin, Calendar, Clock, Package, Download, ShieldCheck, Truck, BadgeCheck, Heart } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Calendar, Clock, Package, Download, ShieldCheck, Truck, BadgeCheck, Heart, Store, MessageCircleQuestion } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { WhatsAppButton } from "@/components/whatsapp-button";
+import { ProductCard, type ProductCardData } from "@/components/product-card";
 import { useWishlistIds, useToggleWishlist } from "@/lib/wishlist";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
