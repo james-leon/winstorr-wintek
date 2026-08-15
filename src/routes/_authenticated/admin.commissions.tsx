@@ -109,7 +109,7 @@ function AdminCommissions() {
           <thead className="bg-muted text-left">
             <tr>
               <th className="p-3">Portée</th>
-              <th className="p-3">Cible (ID)</th>
+              <th className="p-3">Cible</th>
               <th className="p-3">Type</th>
               <th className="p-3">Valeur</th>
               <th className="p-3">Priorité</th>
