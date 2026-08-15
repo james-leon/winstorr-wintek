@@ -485,8 +485,9 @@ function MiniCard({ p }: { p: MiniProduct }) {
           {p.quality_verified && <QualityBadge className="self-start" />}
           <div className="line-clamp-2 min-h-[2.4em] text-[13px] leading-snug text-[var(--color-ink)]">{p.name}</div>
           {p.vendor?.name && (
-            <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-[11px] text-[var(--color-muted,#5B6B7F)]">
-              <span className="truncate">
+            <div className="flex min-w-0 flex-wrap items-center gap-x-1 gap-y-1 text-[12px]">
+              <span className="text-[var(--color-muted,#5B6B7F)]">{t("common.soldBy")}</span>
+              <span className="truncate text-[var(--color-ink)]">
                 {p.vendor.name}
                 {p.vendor.city ? ` · ${p.vendor.city}` : ""}
               </span>

@@ -8,7 +8,8 @@
     "close": "Close",
     "cancel": "Cancel",
     "save": "Save",
-    "back": "Back"
+    "back": "Back",
+    "soldBy": "Sold by"
   },
   "header": {
     "menuOpen": "Open menu",
