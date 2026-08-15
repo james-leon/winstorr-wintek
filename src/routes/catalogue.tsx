@@ -110,6 +110,7 @@ function Catalogue() {
       return (data ?? []).map((p) => ({
         ...p,
         images: Array.isArray(p.images) ? (p.images as string[]) : [],
+        tier_prices: ((p as { product_price_tiers?: { unit_price: number }[] }).product_price_tiers ?? []).map((t) => Number(t.unit_price)),
       })) as ProductCardData[];
     },
   });
