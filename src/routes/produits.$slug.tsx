@@ -643,9 +643,10 @@ function PhysicalActions({
   const nav = useNavigate();
   const stock = displayStock ?? 0;
   const stockLabel =
-    stock <= 0 ? { text: "Rupture de stock", cls: "text-destructive" }
-    : stock <= 3 ? { text: `Stock limité (${stock})`, cls: "text-accent" }
-    : { text: "En stock", cls: "text-success" };
+    stock <= 0 ? { text: "Rupture de stock", cls: "text-destructive", dot: "var(--color-deal)" }
+    : stock <= 3 ? { text: `Stock limité (${stock})`, cls: "text-[var(--color-accent-600)]", dot: "var(--color-accent-500)" }
+    : { text: "En stock", cls: "text-[var(--color-green-brand)]", dot: "var(--color-green-brand)" };
+
   const unit = resolveUnitPrice(tiers, qty, pricePoint);
   const moq = Math.max(1, variant?.min_order_quantity ?? p.min_order_quantity ?? 1);
   const maxQty = stock > 0 ? stock : moq;
