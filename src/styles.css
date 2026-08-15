@@ -73,8 +73,11 @@
   --color-deal-soft: #FDEDE8;
   --color-gold: #F5A623;
   --color-ink: #0F1B2D;
+  /* Secondary text — darkened for AA contrast on cream/white (~7:1). */
+  --color-muted-ink: #4A5769;
   --color-line: #E6EAF0;
   --color-surface: #F5F7FA;
+
 
   --shadow-soft: 0 4px 14px rgba(13, 44, 84, 0.08);
   --shadow-lift: 0 10px 24px rgba(13, 44, 84, 0.12);
