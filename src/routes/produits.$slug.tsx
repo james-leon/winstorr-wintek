@@ -6,7 +6,7 @@ import { pushRecentlyViewed } from "@/lib/recently-viewed";
 import { RecentlyViewedShelf } from "@/components/recently-viewed-shelf";
 
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, MapPin, Calendar, Clock, Package, Download, ShieldCheck, Truck, BadgeCheck, Heart, Store, MessageCircleQuestion } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Calendar, Clock, Package, Download, ShieldCheck, Truck, BadgeCheck, Heart, Store, MessageCircleQuestion, CheckCircle2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 import { ProductCard, type ProductCardData } from "@/components/product-card";
@@ -20,7 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { TypeBadge } from "@/components/type-badge";
 import { StarRating } from "@/components/star-rating";
-import { QualityBadge, VendorLine } from "@/components/quality-badge";
+import { QualityBadge, SellerVerifiedBadge, VendorLine } from "@/components/quality-badge";
 import { displayPrice, formatFcfa, type ProductType } from "@/lib/format";
 import { useCart } from "@/lib/cart-context";
 import { useAuth } from "@/lib/auth-context";
@@ -553,7 +553,7 @@ function BuyBox({ p }: { p: Product }) {
       <ul className="mt-4 space-y-1.5 border-t border-[var(--color-line)] pt-3 text-[11px] text-muted-foreground">
         {p.quality_verified && (
           <li className="flex items-center gap-1.5 font-semibold text-[var(--color-green-brand)]">
-            <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2.5} /> Qualité vérifiée par Wintek
+            <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={2.5} /> {t("trust.qualityVerified")} — Wintek
           </li>
         )}
         <li className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5" /> Achat sécurisé sur Winstorr</li>
@@ -1204,11 +1204,7 @@ function VendorCard({ vendor }: { vendor: NonNullable<Product["vendor"]> }) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="font-heading text-base font-extrabold text-[var(--color-navy-900)]">{vendor.name}</span>
-            {vendor.verified && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-green-brand)]/10 px-2 py-0.5 text-[11px] font-semibold text-[var(--color-green-brand)]">
-                <BadgeCheck className="h-3.5 w-3.5" /> {t("trust.verified")}
-              </span>
-            )}
+            {vendor.verified && <SellerVerifiedBadge size="md" />}
           </div>
           {vendor.type === "internal" && (
             <div className="text-xs text-[var(--color-blue-brand)]">Vendeur officiel Winstorr</div>

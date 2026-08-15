@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, ShieldCheck } from "lucide-react";
+import { Plus, Pencil, Trash2, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -94,7 +94,7 @@ function VendorProducts() {
               <tr key={r.id} className="border-t border-border">
                 <td className="p-3 font-medium">
                   {r.name}
-                  {r.quality_verified && <ShieldCheck className="ml-2 inline h-3.5 w-3.5 text-success" />}
+                  {r.quality_verified && <CheckCircle2 className="ml-2 inline h-3.5 w-3.5 text-success" aria-label="Qualité vérifiée" />}
                 </td>
                 <td className="p-3"><TypeBadge type={r.type} /></td>
                 <td className="p-3">{displayPrice(r)}</td>

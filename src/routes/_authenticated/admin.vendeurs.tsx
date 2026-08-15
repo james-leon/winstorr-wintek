@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { SellerVerifiedBadge } from "@/components/quality-badge";
 import { toast } from "sonner";
 import { Copy, Plus, RotateCw, Trash2, XCircle, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -61,7 +62,7 @@ function AdminVendors() {
     queryKey: ["admin-vendors-full"],
     queryFn: async () => {
       const [{ data: vs, error: e1 }, { data: mems, error: e2 }] = await Promise.all([
-        supabase.from("vendors").select("id, name, slug, status, type, contact_email, created_at, city, verified, sales_count").order("name"),
+        supabase.from("vendors").select("id, name, slug, status, type, contact_email, created_at, city, verified, verification_note, sales_count").order("name"),
         supabase.from("vendor_members").select("vendor_id"),
       ]);
       if (e1) throw e1;
@@ -110,7 +111,7 @@ function AdminVendors() {
   });
 
   const updateTrust = useMutation({
-    mutationFn: async ({ id, patch }: { id: string; patch: { city?: string | null; verified?: boolean } }) => {
+    mutationFn: async ({ id, patch }: { id: string; patch: { city?: string | null; verified?: boolean; verification_note?: string | null } }) => {
       const { error } = await supabase.from("vendors").update(patch).eq("id", id);
       if (error) throw error;
     },
@@ -174,17 +175,29 @@ function AdminVendors() {
                           if (val !== (v.city ?? "")) updateTrust.mutate({ id: v.id, patch: { city: val || null } });
                         }}
                       />
+                      <input
+                        defaultValue={v.verification_note ?? ""}
+                        placeholder={t("trust.verificationNotePlaceholder")}
+                        title={t("trust.verificationNote")}
+                        className="h-8 w-44 rounded-sm border border-border bg-background px-2 text-xs"
+                        onBlur={(e) => {
+                          const val = e.target.value.trim();
+                          if (val !== (v.verification_note ?? "")) updateTrust.mutate({ id: v.id, patch: { verification_note: val || null } });
+                        }}
+                      />
                       <Button
                         size="sm"
                         variant={v.verified ? "default" : "outline"}
                         className="h-7 px-2 text-[11px]"
                         onClick={() => updateTrust.mutate({ id: v.id, patch: { verified: !v.verified } })}
                       >
-                        {v.verified ? t("trust.verified") : "—"}
+                        {v.verified ? t("trust.removeVerification") : t("trust.markVerified")}
                       </Button>
+                      {v.verified && <SellerVerifiedBadge />}
                       <span className="text-[11px] text-muted-foreground">
                         {Number(v.sales_count ?? 0) > 0 ? t("trust.sales", { count: Number(v.sales_count) }) : t("trust.noSalesYet")}
                       </span>
+
                     </div>
                   </td>
                   <td className="p-3">

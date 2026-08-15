@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { RecentlyViewedShelf } from "@/components/recently-viewed-shelf";
 import { supabase as supabaseClient } from "@/integrations/supabase/client";
-import { Store as StoreIcon, ShieldCheck as ShieldCheckIcon, Search, Heart, MessageCircle, BadgeCheck, ShoppingCart } from "lucide-react";
+import { Store as StoreIcon, ShieldCheck as ShieldCheckIcon, Search, Heart, MessageCircle, ShoppingCart } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useCart } from "@/lib/cart-context";
 import { useWishlistIds, useToggleWishlist } from "@/lib/wishlist";
@@ -46,7 +46,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { QualityBadge } from "@/components/quality-badge";
+import { QualityBadge, SellerVerifiedBadge } from "@/components/quality-badge";
 import { displayPrice, formatFcfa, type ProductType } from "@/lib/format";
 import { imageAtWidth, imageSrcSet } from "@/lib/seo";
 import { cn } from "@/lib/utils";
@@ -482,21 +482,15 @@ function MiniCard({ p }: { p: MiniProduct }) {
           )}
         </div>
         <div className="flex flex-col gap-1 p-2.5">
-          {p.quality_verified && (
-            <div className="flex items-center gap-1 text-[11px] font-semibold" style={{ color: "var(--color-green-brand)" }}>
-              <BadgeCheck className="h-3.5 w-3.5" /> {t("home.verified")}
-            </div>
-          )}
+          {p.quality_verified && <QualityBadge className="self-start" />}
           <div className="line-clamp-2 min-h-[2.4em] text-[13px] leading-snug text-[var(--color-ink)]">{p.name}</div>
           {p.vendor?.name && (
-            <div className="flex min-w-0 items-center gap-1 text-[11px] text-[var(--color-muted,#5B6B7F)]">
-              {p.vendor.verified && (
-                <BadgeCheck className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--color-green-brand)" }} />
-              )}
+            <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-[11px] text-[var(--color-muted,#5B6B7F)]">
               <span className="truncate">
                 {p.vendor.name}
                 {p.vendor.city ? ` · ${p.vendor.city}` : ""}
               </span>
+              {p.vendor.verified && <SellerVerifiedBadge />}
             </div>
           )}
           {(p.rating_count ?? 0) > 0 && (
