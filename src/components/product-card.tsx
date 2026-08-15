@@ -98,14 +98,12 @@ export function ProductCard({ p }: { p: ProductCardData }) {
 
           {/* Trust line — vendor · city, small and muted */}
           {p.vendor?.name && (
-            <div className="flex min-w-0 items-center gap-1 text-[11px] text-muted-foreground">
-              {p.vendor.verified && (
-                <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-success" strokeWidth={2.5} aria-label={t("trust.verified")} />
-              )}
+            <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-[11px] text-muted-foreground">
               <span className="truncate">
                 {p.vendor.name}
                 {p.vendor.city ? ` · ${p.vendor.city}` : ""}
               </span>
+              {p.vendor.verified && <SellerVerifiedBadge />}
             </div>
           )}
 
