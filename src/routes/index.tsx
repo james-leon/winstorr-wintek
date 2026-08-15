@@ -405,6 +405,16 @@ function MiniCard({ p }: { p: MiniProduct }) {
     ? Math.round(((p.compare_at_price! - p.price!) / p.compare_at_price!) * 100)
     : 0;
 
+  const tierPrices = (p.product_price_tiers ?? []).map((t) => Number(t.unit_price)).filter((n) => n > 0);
+  const priceValues = p.price != null ? [...tierPrices, Number(p.price)] : tierPrices;
+  const lo = priceValues.length ? Math.min(...priceValues) : null;
+  const hi = priceValues.length ? Math.max(...priceValues) : null;
+  const showRange = p.price_type === "fixed" && lo != null && hi != null && lo !== hi;
+  const priceLabel = showRange
+    ? `${formatFcfa(lo!)} – ${formatFcfa(hi!)}`
+    : displayPrice({ price: p.price, price_type: p.price_type });
+
+
   const canQuickAdd =
     p.price_type === "fixed" &&
     typeof p.price === "number" &&
