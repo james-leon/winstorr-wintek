@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { SellerVerifiedBadge } from "@/components/quality-badge";
 import { toast } from "sonner";
 import { Copy, Plus, RotateCw, Trash2, XCircle, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -61,7 +62,7 @@ function AdminVendors() {
     queryKey: ["admin-vendors-full"],
     queryFn: async () => {
       const [{ data: vs, error: e1 }, { data: mems, error: e2 }] = await Promise.all([
-        supabase.from("vendors").select("id, name, slug, status, type, contact_email, created_at, city, verified, sales_count").order("name"),
+        supabase.from("vendors").select("id, name, slug, status, type, contact_email, created_at, city, verified, verification_note, sales_count").order("name"),
         supabase.from("vendor_members").select("vendor_id"),
       ]);
       if (e1) throw e1;
@@ -110,7 +111,7 @@ function AdminVendors() {
   });
 
   const updateTrust = useMutation({
-    mutationFn: async ({ id, patch }: { id: string; patch: { city?: string | null; verified?: boolean } }) => {
+    mutationFn: async ({ id, patch }: { id: string; patch: { city?: string | null; verified?: boolean; verification_note?: string | null } }) => {
       const { error } = await supabase.from("vendors").update(patch).eq("id", id);
       if (error) throw error;
     },
