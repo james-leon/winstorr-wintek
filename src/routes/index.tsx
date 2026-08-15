@@ -487,7 +487,7 @@ function MiniCard({ p }: { p: MiniProduct }) {
           {p.vendor?.name && (
             <div className="flex min-w-0 flex-wrap items-center gap-x-1 gap-y-1 text-[12px]">
               <span className="text-[var(--color-muted-ink)]">{t("common.soldBy")}</span>
-              <span className="truncate text-[var(--color-ink)]">
+              <span className="truncate font-medium text-[var(--color-ink)]">
                 {p.vendor.name}
                 {p.vendor.city ? ` · ${p.vendor.city}` : ""}
               </span>
