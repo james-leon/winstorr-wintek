@@ -115,7 +115,7 @@
   --secondary-foreground: oklch(1 0 0);
 
   --muted: oklch(0.955 0.008 85);          /* warm cream muted */
-  --muted-foreground: oklch(0.47 0.035 262); /* darker secondary text — AA on cream and white */
+  --muted-foreground: oklch(0.40 0.035 262); /* darker secondary text — AA on cream and white */
 
 
 
@@ -147,7 +147,7 @@
   --secondary: oklch(0.3 0.06 265);
   --secondary-foreground: oklch(0.98 0.005 250);
   --muted: oklch(0.3 0.04 265);
-  --muted-foreground: oklch(0.72 0.03 260);
+  --muted-foreground: oklch(0.80 0.03 260);
   --accent: oklch(0.73 0.17 55);
   --accent-foreground: oklch(0.2 0.05 265);
   --success: oklch(0.68 0.19 145);
