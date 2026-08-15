@@ -17,9 +17,34 @@ export const Route = createFileRoute("/_authenticated/admin/commissions")({
 
 type Scope = "global" | "vendor" | "category" | "product";
 
+function useScopeTargets() {
+  const { data: vendors = [] } = useQuery({
+    queryKey: ["commission-vendors"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("vendors").select("id, name").order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const { data: categories = [] } = useQuery({
+    queryKey: ["commission-categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("id, name, product_type")
+        .eq("status", "active")
+        .order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  return { vendors, categories };
+}
+
 function AdminCommissions() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const { vendors, categories } = useScopeTargets();
 
   const { data: rules = [] } = useQuery({
     queryKey: ["commission-rules"],
@@ -32,6 +57,23 @@ function AdminCommissions() {
       return data ?? [];
     },
   });
+
+  const scopeIds = rules.filter((r) => r.scope === "product" && r.scope_id).map((r) => r.scope_id as string);
+  const { data: products = [] } = useQuery({
+    queryKey: ["commission-rule-products", scopeIds.join(",")],
+    enabled: scopeIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("products").select("id, name").in("id", scopeIds);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const targetName = (scope: string, id: string | null) => {
+    if (scope === "global" || !id) return "—";
+    const list = scope === "vendor" ? vendors : scope === "category" ? categories : products;
+    return (list as { id: string; name: string }[]).find((x) => x.id === id)?.name ?? "—";
+  };
 
   const del = useMutation({
     mutationFn: async (id: string) => {
@@ -48,6 +90,7 @@ function AdminCommissions() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["commission-rules"] }),
   });
+
 
   return (
     <div className="space-y-4">
