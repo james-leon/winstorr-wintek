@@ -193,7 +193,7 @@ function CreateRuleDialog({ onClose, onDone }: { onClose: () => void; onDone: ()
         <div className="space-y-3">
           <div>
             <Label>Portée *</Label>
-            <Select value={scope} onValueChange={(v) => setScope(v as Scope)}>
+            <Select value={scope} onValueChange={(v) => { setScope(v as Scope); setScopeId(""); setProductSearch(""); }}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="global">Global (défaut)</SelectItem>
@@ -203,12 +203,42 @@ function CreateRuleDialog({ onClose, onDone }: { onClose: () => void; onDone: ()
               </SelectContent>
             </Select>
           </div>
-          {scope !== "global" && (
+          {scope === "vendor" && (
             <div>
-              <Label>ID {scope} *</Label>
-              <Input value={scopeId} onChange={(e) => setScopeId(e.target.value)} placeholder="UUID" />
+              <Label>Vendeur *</Label>
+              <Select value={scopeId} onValueChange={setScopeId}>
+                <SelectTrigger><SelectValue placeholder="Choisir un vendeur…" /></SelectTrigger>
+                <SelectContent>
+                  {vendors.map((v) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
           )}
+          {scope === "category" && (
+            <div>
+              <Label>Catégorie *</Label>
+              <Select value={scopeId} onValueChange={setScopeId}>
+                <SelectTrigger><SelectValue placeholder="Choisir une catégorie…" /></SelectTrigger>
+                <SelectContent>
+                  {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {scope === "product" && (
+            <div className="space-y-2">
+              <Label>Produit *</Label>
+              <Input value={productSearch} onChange={(e) => setProductSearch(e.target.value)} placeholder="Rechercher un produit par nom…" />
+              <Select value={scopeId} onValueChange={setScopeId}>
+                <SelectTrigger><SelectValue placeholder="Choisir un produit…" /></SelectTrigger>
+                <SelectContent>
+                  {productOptions.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  {productOptions.length === 0 && <div className="p-2 text-xs text-muted-foreground">Aucun produit trouvé.</div>}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label>Type *</Label>
