@@ -1989,6 +1989,7 @@ export type Database = {
         Row: {
           allow_financing: boolean
           boost_score: number
+          city: string | null
           commission_rate: number | null
           contact_email: string | null
           contact_phone: string | null
@@ -1998,14 +1999,17 @@ export type Database = {
           logo_url: string | null
           name: string
           pinned_until: string | null
+          sales_count: number
           slug: string
           status: Database["public"]["Enums"]["vendor_status"]
           type: Database["public"]["Enums"]["vendor_type"]
           updated_at: string
+          verified: boolean
         }
         Insert: {
           allow_financing?: boolean
           boost_score?: number
+          city?: string | null
           commission_rate?: number | null
           contact_email?: string | null
           contact_phone?: string | null
@@ -2015,14 +2019,17 @@ export type Database = {
           logo_url?: string | null
           name: string
           pinned_until?: string | null
+          sales_count?: number
           slug: string
           status?: Database["public"]["Enums"]["vendor_status"]
           type?: Database["public"]["Enums"]["vendor_type"]
           updated_at?: string
+          verified?: boolean
         }
         Update: {
           allow_financing?: boolean
           boost_score?: number
+          city?: string | null
           commission_rate?: number | null
           contact_email?: string | null
           contact_phone?: string | null
@@ -2032,10 +2039,12 @@ export type Database = {
           logo_url?: string | null
           name?: string
           pinned_until?: string | null
+          sales_count?: number
           slug?: string
           status?: Database["public"]["Enums"]["vendor_status"]
           type?: Database["public"]["Enums"]["vendor_type"]
           updated_at?: string
+          verified?: boolean
         }
         Relationships: []
       }
@@ -2245,6 +2254,13 @@ export type Database = {
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       is_vendor_member: {
         Args: { _user_id: string; _vendor_id: string }
+        Returns: boolean
+      }
+      order_counts_as_sale: {
+        Args: {
+          _payment_status: Database["public"]["Enums"]["payment_status"]
+          _status: Database["public"]["Enums"]["order_status"]
+        }
         Returns: boolean
       }
       recompute_vendor_boost_scores: { Args: never; Returns: undefined }
