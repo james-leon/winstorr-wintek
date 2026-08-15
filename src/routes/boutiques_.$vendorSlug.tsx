@@ -1,5 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery, useQuery } from "@tanstack/react-query";
+import { SellerVerifiedBadge } from "@/components/quality-badge";
 import { ShieldCheck, Store as StoreIcon, Star, Users, Package, Heart, ExternalLink, MapPin } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
@@ -259,11 +260,7 @@ function Storefront() {
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="font-display text-2xl text-foreground md:text-3xl">{vendor.name}</h1>
-                {vendor.verified && (
-                  <span className="inline-flex items-center gap-1 rounded-sm bg-success/10 px-1.5 py-0.5 text-[11px] font-semibold text-success">
-                    <ShieldCheck className="h-3 w-3" /> {t("trust.verified")}
-                  </span>
-                )}
+                {vendor.verified && <SellerVerifiedBadge size="md" />}
                 {vendor.type === "internal" && (
                   <span className="inline-flex items-center gap-1 rounded-sm bg-secondary/10 px-1.5 py-0.5 text-[11px] font-semibold text-secondary">
                     <ShieldCheck className="h-3 w-3" /> Officiel Wintek
