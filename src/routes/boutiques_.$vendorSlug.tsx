@@ -27,6 +27,9 @@ type StorefrontData = {
     contact_email: string | null;
     contact_phone: string | null;
     created_at: string;
+    city: string | null;
+    verified: boolean | null;
+    sales_count: number | null;
   };
   storefront: {
     banner_url: string | null;
@@ -45,7 +48,7 @@ const storefrontQuery = (vendorSlug: string) =>
     queryFn: async (): Promise<StorefrontData> => {
       const vendorRes = await supabase
         .from("vendors")
-        .select("id, slug, name, type, logo_url, description, contact_email, contact_phone, created_at, status")
+        .select("id, slug, name, type, logo_url, description, contact_email, contact_phone, created_at, status, city, verified, sales_count")
         .eq("slug", vendorSlug)
         .eq("status", "active")
         .maybeSingle();
@@ -62,7 +65,7 @@ const storefrontQuery = (vendorSlug: string) =>
         supabase
           .from("products")
           .select(
-            "id, slug, name, short_description, images, type, price, price_type, stock_quantity, compare_at_price, rating_average, rating_count, quality_verified",
+            "id, slug, name, short_description, images, type, price, price_type, stock_quantity, compare_at_price, rating_average, rating_count, quality_verified, min_order_quantity, product_price_tiers(unit_price)",
           )
           .eq("vendor_id", vendor.id)
           .eq("status", "active")
@@ -73,9 +76,11 @@ const storefrontQuery = (vendorSlug: string) =>
       if (storefrontRes.error) throw storefrontRes.error;
       if (productsRes.error) throw productsRes.error;
 
-      const products = ((productsRes.data ?? []) as ProductCardData[]).map((p) => ({
+      const products = ((productsRes.data ?? []) as (ProductCardData & { product_price_tiers?: { unit_price: number }[] })[]).map((p) => ({
         ...p,
         images: Array.isArray(p.images) ? p.images : [],
+        tier_prices: (p.product_price_tiers ?? []).map((t) => Number(t.unit_price)),
+        vendor: { name: vendor.name, slug: vendor.slug, city: vendor.city, verified: vendor.verified },
       }));
 
       // Weighted (Bayesian) rating over this vendor's products.
@@ -102,6 +107,9 @@ const storefrontQuery = (vendorSlug: string) =>
           contact_email: vendor.contact_email,
           contact_phone: vendor.contact_phone,
           created_at: vendor.created_at,
+          city: vendor.city,
+          verified: vendor.verified,
+          sales_count: vendor.sales_count,
         },
         storefront: (storefrontRes.data as StorefrontData["storefront"]) ?? null,
         products,
