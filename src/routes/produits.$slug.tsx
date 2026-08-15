@@ -404,6 +404,18 @@ function BuyBox({ p }: { p: Product }) {
     for (const [k, v] of Object.entries(def.attributes || {})) initialSelected[k] = String(v);
   }
   const [selected, setSelected] = useState<Record<string, string>>(initialSelected);
+  // Variants arrive after the first render — apply the default selection once loaded.
+  useEffect(() => {
+    if (variants.length === 0) return;
+    setSelected((cur) => {
+      if (Object.keys(cur).length > 0) return cur;
+      const def = variants.find((v) => v.is_default) ?? variants[0];
+      const next: Record<string, string> = {};
+      for (const [k, v] of Object.entries(def.attributes || {})) next[k] = String(v);
+      return next;
+    });
+  }, [variants]);
+
   const currentVariant: Variant | null = variants.length > 0 ? findVariantByAttrs(variants, selected) : null;
   const fullySelected = attrOptions.every((o) => selected[o.key]);
 
