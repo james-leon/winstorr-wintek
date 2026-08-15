@@ -140,14 +140,17 @@ function AdminProducts() {
   const [rejectReason, setRejectReason] = useState("");
 
   const bulkUpdate = useMutation({
-    mutationFn: async ({ action, reason }: { action: "active" | "archived" | "delete" | "approve" | "reject"; reason?: string }) => {
+    mutationFn: async ({ action, reason }: { action: "active" | "archived" | "delete" | "approve" | "approve_verified" | "reject"; reason?: string }) => {
       const ids = Array.from(selected);
       if (ids.length === 0) return;
       if (action === "delete") {
         const { error } = await supabase.from("products").delete().in("id", ids);
         if (error) throw error;
-      } else if (action === "approve") {
-        const { error } = await supabase.from("products").update({ status: "active", rejection_reason: null }).in("id", ids);
+      } else if (action === "approve" || action === "approve_verified") {
+        const { error } = await supabase
+          .from("products")
+          .update({ status: "active", rejection_reason: null, ...(action === "approve_verified" ? { quality_verified: true } : {}) })
+          .in("id", ids);
         if (error) throw error;
       } else if (action === "reject") {
         const { error } = await supabase.from("products").update({ status: "rejected", rejection_reason: reason ?? null }).in("id", ids);
@@ -166,8 +169,12 @@ function AdminProducts() {
   });
 
   const reviewOne = useMutation({
-    mutationFn: async ({ id, status, reason }: { id: string; status: "active" | "rejected"; reason?: string | null }) => {
-      const patch = { status, rejection_reason: status === "rejected" ? (reason ?? null) : null };
+    mutationFn: async ({ id, status, reason, qualityVerified }: { id: string; status: "active" | "rejected"; reason?: string | null; qualityVerified?: boolean }) => {
+      const patch = {
+        status,
+        rejection_reason: status === "rejected" ? (reason ?? null) : null,
+        ...(qualityVerified ? { quality_verified: true } : {}),
+      };
       const { error } = await supabase.from("products").update(patch).eq("id", id);
       if (error) throw error;
     },
@@ -272,6 +279,7 @@ function AdminProducts() {
           <span className="font-medium">{selected.size} sélectionné(s)</span>
           <div className="ml-auto flex gap-2">
             <Button size="sm" variant="outline" onClick={() => bulkUpdate.mutate({ action: "approve" })}>Approuver</Button>
+            <Button size="sm" variant="outline" onClick={() => bulkUpdate.mutate({ action: "approve_verified" })}>Approuver + Qualité vérifiée</Button>
             <Button size="sm" variant="outline" onClick={() => { const r = prompt("Motif du rejet (facultatif) :") ?? undefined; bulkUpdate.mutate({ action: "reject", reason: r }); }}>Rejeter</Button>
             <Button size="sm" variant="outline" onClick={() => bulkUpdate.mutate({ action: "active" })}>Activer</Button>
             <Button size="sm" variant="outline" onClick={() => bulkUpdate.mutate({ action: "archived" })}>Archiver</Button>
@@ -336,7 +344,7 @@ function AdminProducts() {
                     <td className="p-2 font-medium">
                       {r.name}
                       {r.featured && <span className="ml-2 text-xs text-accent">★</span>}
-                      {r.quality_verified && <ShieldCheck className="ml-2 inline h-3.5 w-3.5 text-success" />}
+                      {r.quality_verified && <CheckCircle2 className="ml-2 inline h-3.5 w-3.5 text-success" aria-label="Qualité vérifiée" />}
                       {r.sku && <div className="text-[11px] text-muted-foreground">SKU: {r.sku}</div>}
                     </td>
                     <td className="p-2"><TypeBadge type={r.type} /></td>
@@ -365,6 +373,7 @@ function AdminProducts() {
                         {r.status === "pending_review" && (
                           <>
                             <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => reviewOne.mutate({ id: r.id, status: "active" })}>Approuver</Button>
+                            <Button variant="outline" size="sm" className="h-7 px-2 text-xs text-success" onClick={() => reviewOne.mutate({ id: r.id, status: "active", qualityVerified: true })}>Approuver + Qualité vérifiée</Button>
                             <Button variant="outline" size="sm" className="h-7 px-2 text-xs text-destructive" onClick={() => { setRejectFor(r); setRejectReason(""); }}>Rejeter</Button>
                           </>
                         )}

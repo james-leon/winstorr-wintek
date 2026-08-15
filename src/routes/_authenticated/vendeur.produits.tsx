@@ -94,7 +94,7 @@ function VendorProducts() {
               <tr key={r.id} className="border-t border-border">
                 <td className="p-3 font-medium">
                   {r.name}
-                  {r.quality_verified && <ShieldCheck className="ml-2 inline h-3.5 w-3.5 text-success" />}
+                  {r.quality_verified && <CheckCircle2 className="ml-2 inline h-3.5 w-3.5 text-success" aria-label="Qualité vérifiée" />}
                 </td>
                 <td className="p-3"><TypeBadge type={r.type} /></td>
                 <td className="p-3">{displayPrice(r)}</td>
