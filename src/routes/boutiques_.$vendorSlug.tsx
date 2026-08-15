@@ -257,6 +257,11 @@ function Storefront() {
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="font-display text-2xl text-foreground md:text-3xl">{vendor.name}</h1>
+                {vendor.verified && (
+                  <span className="inline-flex items-center gap-1 rounded-sm bg-success/10 px-1.5 py-0.5 text-[11px] font-semibold text-success">
+                    <ShieldCheck className="h-3 w-3" /> {t("trust.verified")}
+                  </span>
+                )}
                 {vendor.type === "internal" && (
                   <span className="inline-flex items-center gap-1 rounded-sm bg-secondary/10 px-1.5 py-0.5 text-[11px] font-semibold text-secondary">
                     <ShieldCheck className="h-3 w-3" /> Officiel Wintek
@@ -274,6 +279,17 @@ function Storefront() {
                 </span>
                 <span className="inline-flex items-center gap-1">
                   <Users className="h-3.5 w-3.5" /> {followers} abonné{followers > 1 ? "s" : ""}
+                </span>
+                <span>{t("trust.sellerSince", { year: new Date(vendor.created_at).getFullYear() })}</span>
+                {vendor.city && (
+                  <span className="inline-flex items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5" /> {vendor.city}
+                  </span>
+                )}
+                <span>
+                  {Number(vendor.sales_count ?? 0) > 0
+                    ? t("trust.sales", { count: Number(vendor.sales_count) })
+                    : t("trust.noSalesYet")}
                 </span>
               </div>
               {(storefront?.description || vendor.description) && (
