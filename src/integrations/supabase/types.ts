@@ -2113,6 +2113,7 @@ export type Database = {
         Args: { _shipment_id: string }
         Returns: Json
       }
+      delete_vendor_cascade: { Args: { _vendor_id: string }; Returns: Json }
       generate_order_number: { Args: never; Returns: string }
       generate_shipment_number: { Args: never; Returns: string }
       generate_shipments_for_order: {
@@ -2303,6 +2304,7 @@ export type Database = {
         Args: { _vendor_id: string }
         Returns: number
       }
+      vendor_deletion_impact: { Args: { _vendor_id: string }; Returns: Json }
       vendor_pending_confirmation_amount: {
         Args: { _vendor_id: string }
         Returns: number
