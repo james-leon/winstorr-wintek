@@ -96,10 +96,11 @@ export function ProductCard({ p }: { p: ProductCardData }) {
             {p.name}
           </h3>
 
-          {/* Trust line — vendor · city, small and muted */}
+          {/* Trust line — vendor · city, readable but secondary */}
           {p.vendor?.name && (
-            <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-[11px] text-muted-foreground">
-              <span className="truncate">
+            <div className="flex min-w-0 flex-wrap items-center gap-x-1 gap-y-1 text-[12px]">
+              <span className="text-muted-foreground/80">{t("common.soldBy")}</span>
+              <span className="truncate text-foreground/90">
                 {p.vendor.name}
                 {p.vendor.city ? ` · ${p.vendor.city}` : ""}
               </span>
