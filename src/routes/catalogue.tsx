@@ -88,7 +88,7 @@ function Catalogue() {
     queryFn: async () => {
       let query = supabase
         .from("products")
-        .select("id, slug, name, short_description, images, type, price, price_type, stock_quantity, compare_at_price, rating_average, rating_count, quality_verified")
+        .select("id, slug, name, short_description, images, type, price, price_type, stock_quantity, compare_at_price, rating_average, rating_count, quality_verified, min_order_quantity, vendor:vendors(name, slug, city, verified), product_price_tiers(unit_price)")
         .eq("status", "active");
       if (search.type) query = query.eq("type", search.type);
       if (search.q) query = query.ilike("name", `%${search.q}%`);
@@ -110,6 +110,7 @@ function Catalogue() {
       return (data ?? []).map((p) => ({
         ...p,
         images: Array.isArray(p.images) ? (p.images as string[]) : [],
+        tier_prices: ((p as { product_price_tiers?: { unit_price: number }[] }).product_price_tiers ?? []).map((t) => Number(t.unit_price)),
       })) as ProductCardData[];
     },
   });

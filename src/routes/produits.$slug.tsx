@@ -57,7 +57,7 @@ type Product = {
   source_type: "direct_import" | "authorized_wholesaler" | "other" | null;
   category_id: string | null;
 
-  vendor: { id: string; name: string; slug: string; type: "internal" | "external"; allow_financing: boolean; logo_url: string | null; contact_phone: string | null } | null;
+  vendor: { id: string; name: string; slug: string; type: "internal" | "external"; allow_financing: boolean; logo_url: string | null; contact_phone: string | null; city: string | null; verified: boolean | null; sales_count: number | null; created_at: string | null } | null;
   category: { name: string; slug: string } | null;
 };
 
@@ -67,7 +67,7 @@ const productQuery = (slug: string) =>
     queryFn: async (): Promise<Product> => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, slug, name, short_description, description, images, type, price, price_type, compare_at_price, stock_quantity, min_order_quantity, has_variants, delivery_type, delivery_instructions, service_area, estimated_duration, delivery_mode, rating_average, rating_count, quality_verified, warranty_duration, source_type, category_id, vendor:vendors(id, name, slug, type, allow_financing, logo_url, contact_phone), category:categories(name, slug)")
+        .select("id, slug, name, short_description, description, images, type, price, price_type, compare_at_price, stock_quantity, min_order_quantity, has_variants, delivery_type, delivery_instructions, service_area, estimated_duration, delivery_mode, rating_average, rating_count, quality_verified, warranty_duration, source_type, category_id, vendor:vendors(id, name, slug, type, allow_financing, logo_url, contact_phone, city, verified, sales_count, created_at), category:categories(name, slug)")
         .eq("slug", slug)
         .eq("status", "active")
         .maybeSingle();
@@ -1202,13 +1202,26 @@ function VendorCard({ vendor }: { vendor: NonNullable<Product["vendor"]> }) {
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
             <span className="font-heading text-base font-extrabold text-[var(--color-navy-900)]">{vendor.name}</span>
-            <BadgeCheck className="h-4 w-4 text-[var(--color-green-brand)]" />
+            {vendor.verified && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-green-brand)]/10 px-2 py-0.5 text-[11px] font-semibold text-[var(--color-green-brand)]">
+                <BadgeCheck className="h-3.5 w-3.5" /> {t("trust.verified")}
+              </span>
+            )}
           </div>
           {vendor.type === "internal" && (
             <div className="text-xs text-[var(--color-blue-brand)]">Vendeur officiel Winstorr</div>
           )}
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--color-muted,#5B6B7F)]">
+            {vendor.created_at && <span>{t("trust.sellerSince", { year: new Date(vendor.created_at).getFullYear() })}</span>}
+            {vendor.city && <span>{vendor.city}</span>}
+            <span>
+              {Number(vendor.sales_count ?? 0) > 0
+                ? t("trust.sales", { count: Number(vendor.sales_count) })
+                : t("trust.noSalesYet")}
+            </span>
+          </div>
         </div>
         <Button asChild variant="outline" className="shrink-0">
           <Link to="/boutiques/$vendorSlug" params={{ vendorSlug: vendor.slug }}>{t("pdp.visitShop")}</Link>

@@ -232,5 +232,16 @@
     "send": "Send",
     "questionSent": "Question sent. The seller will reply soon.",
     "noQuestions": "No questions yet. Be the first to ask one."
+  },
+  "trust": {
+    "verified": "Verified",
+    "moq": "MOQ: {{count}}",
+    "sellerSince": "Seller since {{year}}",
+    "sales_one": "{{count}} sale",
+    "sales_other": "{{count}} sales",
+    "products": "{{count}} products",
+    "followers": "{{count}} followers",
+    "noSalesYet": "New seller",
+    "trustProfile": "Seller profile"
   }
 }

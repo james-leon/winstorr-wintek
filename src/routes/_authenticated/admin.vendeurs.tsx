@@ -61,7 +61,7 @@ function AdminVendors() {
     queryKey: ["admin-vendors-full"],
     queryFn: async () => {
       const [{ data: vs, error: e1 }, { data: mems, error: e2 }] = await Promise.all([
-        supabase.from("vendors").select("id, name, slug, status, type, contact_email, created_at").order("name"),
+        supabase.from("vendors").select("id, name, slug, status, type, contact_email, created_at, city, verified, sales_count").order("name"),
         supabase.from("vendor_members").select("vendor_id"),
       ]);
       if (e1) throw e1;
@@ -109,6 +109,15 @@ function AdminVendors() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const updateTrust = useMutation({
+    mutationFn: async ({ id, patch }: { id: string; patch: { city?: string | null; verified?: boolean } }) => {
+      const { error } = await supabase.from("vendors").update(patch).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success(t("adminVendors.vendorUpdated")); qc.invalidateQueries({ queryKey: ["admin-vendors-full"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const invalidateInv = () => qc.invalidateQueries({ queryKey: ["admin-vendor-invitations"] });
 
   const revokeFn = useServerFn(revokeVendorInvitation);
@@ -144,7 +153,7 @@ function AdminVendors() {
             <thead className="bg-muted text-left">
               <tr>
                 <th className="p-3">{t("adminVendors.name")}</th><th className="p-3">{t("adminVendors.type")}</th>
-                <th className="p-3">{t("adminVendors.members")}</th><th className="p-3">{t("adminVendors.status")}</th><th className="p-3"></th>
+                <th className="p-3">{t("adminVendors.members")}</th><th className="p-3">{t("trust.trustProfile")}</th><th className="p-3">{t("adminVendors.status")}</th><th className="p-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -154,6 +163,30 @@ function AdminVendors() {
                   <td className="p-3 font-medium">{v.name}<div className="text-xs text-muted-foreground">{v.slug}{v.contact_email && ` · ${v.contact_email}`}</div></td>
                   <td className="p-3 text-xs">{v.type === "internal" ? t("adminVendors.official") : t("adminVendors.external")}</td>
                   <td className="p-3 text-xs">{v.members}</td>
+                  <td className="p-3">
+                    <div className="flex flex-col gap-1.5">
+                      <input
+                        defaultValue={v.city ?? ""}
+                        placeholder="Ville"
+                        className="h-8 w-32 rounded-sm border border-border bg-background px-2 text-xs"
+                        onBlur={(e) => {
+                          const val = e.target.value.trim();
+                          if (val !== (v.city ?? "")) updateTrust.mutate({ id: v.id, patch: { city: val || null } });
+                        }}
+                      />
+                      <Button
+                        size="sm"
+                        variant={v.verified ? "default" : "outline"}
+                        className="h-7 px-2 text-[11px]"
+                        onClick={() => updateTrust.mutate({ id: v.id, patch: { verified: !v.verified } })}
+                      >
+                        {v.verified ? t("trust.verified") : "—"}
+                      </Button>
+                      <span className="text-[11px] text-muted-foreground">
+                        {Number(v.sales_count ?? 0) > 0 ? t("trust.sales", { count: Number(v.sales_count) }) : t("trust.noSalesYet")}
+                      </span>
+                    </div>
+                  </td>
                   <td className="p-3">
                     <span className={`inline-block rounded-full px-2 py-0.5 text-xs ${v.status === "active" ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"}`}>
                       {v.status}
@@ -176,7 +209,7 @@ function AdminVendors() {
                   </td>
                 </tr>
               ))}
-              {vendors.length === 0 && <tr><td colSpan={5} className="p-6 text-center text-muted-foreground">{t("adminVendors.noVendors")}</td></tr>}
+              {vendors.length === 0 && <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">{t("adminVendors.noVendors")}</td></tr>}
             </tbody>
           </table>
         </div>

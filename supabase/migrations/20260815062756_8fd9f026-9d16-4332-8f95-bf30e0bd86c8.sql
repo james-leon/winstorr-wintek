@@ -1,0 +1,2 @@
+REVOKE ALL ON FUNCTION public.sync_vendor_sales_count() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.order_counts_as_sale(public.payment_status, public.order_status) FROM PUBLIC, anon, authenticated;

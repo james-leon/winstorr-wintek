@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery, useQuery } from "@tanstack/react-query";
-import { ShieldCheck, Store as StoreIcon, Star, Users, Package, Heart, ExternalLink } from "lucide-react";
+import { ShieldCheck, Store as StoreIcon, Star, Users, Package, Heart, ExternalLink, MapPin } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductCard, type ProductCardData } from "@/components/product-card";
 import { EmptyState } from "@/components/empty-state";
@@ -27,6 +28,9 @@ type StorefrontData = {
     contact_email: string | null;
     contact_phone: string | null;
     created_at: string;
+    city: string | null;
+    verified: boolean | null;
+    sales_count: number | null;
   };
   storefront: {
     banner_url: string | null;
@@ -45,7 +49,7 @@ const storefrontQuery = (vendorSlug: string) =>
     queryFn: async (): Promise<StorefrontData> => {
       const vendorRes = await supabase
         .from("vendors")
-        .select("id, slug, name, type, logo_url, description, contact_email, contact_phone, created_at, status")
+        .select("id, slug, name, type, logo_url, description, contact_email, contact_phone, created_at, status, city, verified, sales_count")
         .eq("slug", vendorSlug)
         .eq("status", "active")
         .maybeSingle();
@@ -62,7 +66,7 @@ const storefrontQuery = (vendorSlug: string) =>
         supabase
           .from("products")
           .select(
-            "id, slug, name, short_description, images, type, price, price_type, stock_quantity, compare_at_price, rating_average, rating_count, quality_verified",
+            "id, slug, name, short_description, images, type, price, price_type, stock_quantity, compare_at_price, rating_average, rating_count, quality_verified, min_order_quantity, product_price_tiers(unit_price)",
           )
           .eq("vendor_id", vendor.id)
           .eq("status", "active")
@@ -73,9 +77,11 @@ const storefrontQuery = (vendorSlug: string) =>
       if (storefrontRes.error) throw storefrontRes.error;
       if (productsRes.error) throw productsRes.error;
 
-      const products = ((productsRes.data ?? []) as ProductCardData[]).map((p) => ({
+      const products = ((productsRes.data ?? []) as (ProductCardData & { product_price_tiers?: { unit_price: number }[] })[]).map((p) => ({
         ...p,
         images: Array.isArray(p.images) ? p.images : [],
+        tier_prices: (p.product_price_tiers ?? []).map((t) => Number(t.unit_price)),
+        vendor: { name: vendor.name, slug: vendor.slug, city: vendor.city, verified: vendor.verified },
       }));
 
       // Weighted (Bayesian) rating over this vendor's products.
@@ -102,6 +108,9 @@ const storefrontQuery = (vendorSlug: string) =>
           contact_email: vendor.contact_email,
           contact_phone: vendor.contact_phone,
           created_at: vendor.created_at,
+          city: vendor.city,
+          verified: vendor.verified,
+          sales_count: vendor.sales_count,
         },
         storefront: (storefrontRes.data as StorefrontData["storefront"]) ?? null,
         products,
@@ -189,6 +198,7 @@ function Storefront() {
   const { data } = useSuspenseQuery(storefrontQuery(Route.useParams().vendorSlug));
   const { vendor, storefront, products, weighted_rating, total_reviews } = data;
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const { data: followers = 0 } = useFollowerCount(vendor.id);
   const { data: following = false } = useIsFollowing(vendor.id);
@@ -249,6 +259,11 @@ function Storefront() {
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="font-display text-2xl text-foreground md:text-3xl">{vendor.name}</h1>
+                {vendor.verified && (
+                  <span className="inline-flex items-center gap-1 rounded-sm bg-success/10 px-1.5 py-0.5 text-[11px] font-semibold text-success">
+                    <ShieldCheck className="h-3 w-3" /> {t("trust.verified")}
+                  </span>
+                )}
                 {vendor.type === "internal" && (
                   <span className="inline-flex items-center gap-1 rounded-sm bg-secondary/10 px-1.5 py-0.5 text-[11px] font-semibold text-secondary">
                     <ShieldCheck className="h-3 w-3" /> Officiel Wintek
@@ -266,6 +281,17 @@ function Storefront() {
                 </span>
                 <span className="inline-flex items-center gap-1">
                   <Users className="h-3.5 w-3.5" /> {followers} abonné{followers > 1 ? "s" : ""}
+                </span>
+                <span>{t("trust.sellerSince", { year: new Date(vendor.created_at).getFullYear() })}</span>
+                {vendor.city && (
+                  <span className="inline-flex items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5" /> {vendor.city}
+                  </span>
+                )}
+                <span>
+                  {Number(vendor.sales_count ?? 0) > 0
+                    ? t("trust.sales", { count: Number(vendor.sales_count) })
+                    : t("trust.noSalesYet")}
                 </span>
               </div>
               {(storefront?.description || vendor.description) && (
