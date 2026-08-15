@@ -476,17 +476,35 @@ function MiniCard({ p }: { p: MiniProduct }) {
             </div>
           )}
           <div className="line-clamp-2 min-h-[2.4em] text-[13px] leading-snug text-[var(--color-ink)]">{p.name}</div>
-          <Stars rating={Number(p.rating_average ?? 0)} count={p.rating_count ?? 0} />
+          {p.vendor?.name && (
+            <div className="flex min-w-0 items-center gap-1 text-[11px] text-[var(--color-muted,#5B6B7F)]">
+              {p.vendor.verified && (
+                <BadgeCheck className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--color-green-brand)" }} />
+              )}
+              <span className="truncate">
+                {p.vendor.name}
+                {p.vendor.city ? ` · ${p.vendor.city}` : ""}
+              </span>
+            </div>
+          )}
+          {(p.rating_count ?? 0) > 0 && (
+            <Stars rating={Number(p.rating_average ?? 0)} count={p.rating_count ?? 0} />
+          )}
           <div className="flex items-baseline gap-1.5">
             <span className="font-heading text-[15px] font-extrabold text-[var(--color-navy-900)]">
-              {displayPrice({ price: p.price, price_type: p.price_type })}
+              {priceLabel}
             </span>
-            {hasDiscount && (
+            {hasDiscount && !showRange && (
               <span className="text-[11px] text-[var(--color-muted,#5B6B7F)] line-through">
                 {formatFcfa(p.compare_at_price!)}
               </span>
             )}
           </div>
+          {(p.min_order_quantity ?? 1) > 1 && (
+            <span className="self-start rounded-sm border border-[var(--color-line)] bg-[var(--color-surface)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--color-muted,#5B6B7F)]">
+              {t("trust.moq", { count: p.min_order_quantity })}
+            </span>
+          )}
         </div>
       </Link>
       <div className="px-2.5 pb-2.5">
