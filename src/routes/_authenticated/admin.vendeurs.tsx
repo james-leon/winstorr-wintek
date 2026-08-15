@@ -354,9 +354,9 @@ function DeleteVendorDialog({ vendor, onClose, onDeleted }: {
         {impact && (
           <div className="space-y-3 text-sm">
             {blocked ? (
-              <p className="rounded-sm border border-destructive/40 bg-destructive/10 p-3 text-destructive">
-                {t("adminVendors.deleteBlocked")}
-              </p>
+              <div className="space-y-1 rounded-sm border border-destructive/40 bg-destructive/10 p-3 text-destructive">
+                {(impact.blockers ?? []).map((b) => <p key={b}>{b}</p>)}
+              </div>
             ) : (
               <p className="text-muted-foreground">{t("adminVendors.deleteWarning")}</p>
             )}
@@ -368,6 +368,7 @@ function DeleteVendorDialog({ vendor, onClose, onDeleted }: {
               <li>{t("adminVendors.countMembers", { count: impact.members })}</li>
               <li>{t("adminVendors.countInvitations", { count: impact.invitations })}</li>
             </ul>
+
           </div>
         )}
         <DialogFooter>
