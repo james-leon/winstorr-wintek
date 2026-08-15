@@ -372,7 +372,7 @@ function SectionHeader({
 function Stars({ rating, count }: { rating: number; count: number }) {
   if (!count) return <div className="h-[14px]" />;
   return (
-    <div className="flex items-center gap-1 text-[11px] text-[var(--color-muted,#5B6B7F)]">
+    <div className="flex items-center gap-1 text-[11px] text-[var(--color-muted-ink)]">
       <span className="flex">
         {[0, 1, 2, 3, 4].map((i) => (
           <Star
@@ -447,7 +447,7 @@ function MiniCard({ p }: { p: MiniProduct }) {
         type="button"
         aria-label="Liste de souhaits"
         onClick={() => toggle.mutate({ productId: p.id, wished })}
-        className="absolute right-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-full border border-[var(--color-line)] bg-white/95 text-[var(--color-muted,#5B6B7F)] shadow-sm transition-colors hover:text-[var(--color-deal)]"
+        className="absolute right-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-full border border-[var(--color-line)] bg-white/95 text-[var(--color-muted-ink)] shadow-sm transition-colors hover:text-[var(--color-deal)]"
       >
         <Heart className="h-4 w-4" fill={wished ? "currentColor" : "none"} />
       </button>
@@ -486,8 +486,8 @@ function MiniCard({ p }: { p: MiniProduct }) {
           <div className="line-clamp-2 min-h-[2.4em] text-[13px] leading-snug text-[var(--color-ink)]">{p.name}</div>
           {p.vendor?.name && (
             <div className="flex min-w-0 flex-wrap items-center gap-x-1 gap-y-1 text-[12px]">
-              <span className="text-[var(--color-muted,#5B6B7F)]">{t("common.soldBy")}</span>
-              <span className="truncate text-[var(--color-ink)]">
+              <span className="text-[var(--color-muted-ink)]">{t("common.soldBy")}</span>
+              <span className="truncate font-medium text-[var(--color-ink)]">
                 {p.vendor.name}
                 {p.vendor.city ? ` · ${p.vendor.city}` : ""}
               </span>
@@ -502,13 +502,13 @@ function MiniCard({ p }: { p: MiniProduct }) {
               {priceLabel}
             </span>
             {hasDiscount && !showRange && (
-              <span className="text-[11px] text-[var(--color-muted,#5B6B7F)] line-through">
+              <span className="text-[11px] text-[var(--color-muted-ink)] line-through">
                 {formatFcfa(p.compare_at_price!)}
               </span>
             )}
           </div>
           {(p.min_order_quantity ?? 1) > 1 && (
-            <span className="self-start rounded-sm border border-[var(--color-line)] bg-[var(--color-surface)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--color-muted,#5B6B7F)]">
+            <span className="self-start rounded-sm border border-[var(--color-line)] bg-[var(--color-surface)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--color-muted-ink)]">
               {t("trust.moq", { count: p.min_order_quantity })}
             </span>
           )}
@@ -631,13 +631,13 @@ function HeroSearch({ popular }: { popular: { label: string; slug: string }[] })
           onSubmit={submit}
           className="mt-6 flex max-w-2xl items-center gap-2 rounded-[var(--radius-r-xl)] bg-white p-1.5 shadow-[0_10px_30px_rgba(0,0,0,.25)]"
         >
-          <Search className="ml-2 h-4 w-4 shrink-0 text-[var(--color-muted,#5B6B7F)]" />
+          <Search className="ml-2 h-4 w-4 shrink-0 text-[var(--color-muted-ink)]" />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder={t("home.searchPlaceholder")}
             aria-label={t("home.searchPlaceholder")}
-            className="min-w-0 flex-1 bg-transparent py-2 text-sm text-[var(--color-ink)] outline-none placeholder:text-[var(--color-muted,#5B6B7F)]"
+            className="min-w-0 flex-1 bg-transparent py-2 text-sm text-[var(--color-ink)] outline-none placeholder:text-[var(--color-muted-ink)]"
           />
           <button
             type="submit"
@@ -1321,7 +1321,7 @@ function PopularStoresShelf() {
                   <ShieldCheckIcon className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--color-green-brand)" }} />
                 )}
               </div>
-              <div className="mt-0.5 text-[11px] text-[var(--color-muted,#5B6B7F)]">
+              <div className="mt-0.5 text-[11px] text-[var(--color-muted-ink)]">
                 <span style={{ color: "var(--color-gold)" }}>★</span> {v.rating.toFixed(1)} ·{" "}
                 {t("home.productsCount", { count: v.product_count })}
               </div>

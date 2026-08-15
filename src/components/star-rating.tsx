@@ -35,7 +35,7 @@ export function StarRating({
 
   const starNode = (i: number, filled: boolean, half: boolean) => (
     <span className="relative inline-block shrink-0" style={{ width: s.px, height: s.px }}>
-      <Star className={cn(s.star, "text-muted-foreground/40")} />
+      <Star className={cn(s.star, "text-muted-foreground/55")} />
       {(filled || half) && (
         <span
           className="absolute inset-0 overflow-hidden text-accent"
