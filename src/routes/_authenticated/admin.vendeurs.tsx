@@ -174,17 +174,29 @@ function AdminVendors() {
                           if (val !== (v.city ?? "")) updateTrust.mutate({ id: v.id, patch: { city: val || null } });
                         }}
                       />
+                      <input
+                        defaultValue={v.verification_note ?? ""}
+                        placeholder={t("trust.verificationNotePlaceholder")}
+                        title={t("trust.verificationNote")}
+                        className="h-8 w-44 rounded-sm border border-border bg-background px-2 text-xs"
+                        onBlur={(e) => {
+                          const val = e.target.value.trim();
+                          if (val !== (v.verification_note ?? "")) updateTrust.mutate({ id: v.id, patch: { verification_note: val || null } });
+                        }}
+                      />
                       <Button
                         size="sm"
                         variant={v.verified ? "default" : "outline"}
                         className="h-7 px-2 text-[11px]"
                         onClick={() => updateTrust.mutate({ id: v.id, patch: { verified: !v.verified } })}
                       >
-                        {v.verified ? t("trust.verified") : "—"}
+                        {v.verified ? t("trust.removeVerification") : t("trust.markVerified")}
                       </Button>
+                      {v.verified && <SellerVerifiedBadge />}
                       <span className="text-[11px] text-muted-foreground">
                         {Number(v.sales_count ?? 0) > 0 ? t("trust.sales", { count: Number(v.sales_count) }) : t("trust.noSalesYet")}
                       </span>
+
                     </div>
                   </td>
                   <td className="p-3">
