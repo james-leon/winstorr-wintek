@@ -209,5 +209,28 @@
     "sellerStep3": "Receive orders",
     "sellerStep4": "Deliver or drop at a pickup point",
     "sellerStep5": "Withdraw your earnings"
+  },
+  "pdp": {
+    "home": "Home",
+    "catalog": "Catalog",
+    "description": "Description",
+    "questions": "Questions & answers",
+    "similar": "Similar products",
+    "sameShop": "From the same shop",
+    "vendorInfo": "Seller information",
+    "visitShop": "Visit shop",
+    "soldBy": "Sold by",
+    "newProduct": "New",
+    "tiersBadge": "Volume pricing — wholesale rates available",
+    "buyNow": "Buy now",
+    "contactVendor": "Contact the seller on WhatsApp",
+    "pickupTitle": "Pickup at a collection point",
+    "pickupText": "Collect your order at the pickup point of your choice. Home delivery available on request.",
+    "seePickupPoints": "See pickup points",
+    "askQuestion": "Ask a question about this product",
+    "questionPlaceholder": "Your question…",
+    "send": "Send",
+    "questionSent": "Question sent. The seller will reply soon.",
+    "noQuestions": "No questions yet. Be the first to ask one."
   }
 }

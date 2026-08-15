@@ -209,5 +209,28 @@
     "sellerStep3": "Recevez des commandes",
     "sellerStep4": "Livrez ou déposez en point relais",
     "sellerStep5": "Retirez vos revenus"
+  },
+  "pdp": {
+    "home": "Accueil",
+    "catalog": "Catalogue",
+    "description": "Description",
+    "questions": "Questions & réponses",
+    "similar": "Produits similaires",
+    "sameShop": "De la même boutique",
+    "vendorInfo": "Informations vendeur",
+    "visitShop": "Voir la boutique",
+    "soldBy": "Vendu par",
+    "newProduct": "Nouveau",
+    "tiersBadge": "Tarif dégressif — prix de gros disponible",
+    "buyNow": "Acheter maintenant",
+    "contactVendor": "Contacter le vendeur sur WhatsApp",
+    "pickupTitle": "Retrait en point de réception",
+    "pickupText": "Récupérez votre commande dans le point de retrait de votre choix. Livraison à domicile disponible sur demande.",
+    "seePickupPoints": "Voir les points de retrait",
+    "askQuestion": "Poser une question sur ce produit",
+    "questionPlaceholder": "Votre question…",
+    "send": "Envoyer",
+    "questionSent": "Question envoyée. Le vendeur vous répondra bientôt.",
+    "noQuestions": "Aucune question pour le moment. Soyez le premier à en poser une."
   }
 }
