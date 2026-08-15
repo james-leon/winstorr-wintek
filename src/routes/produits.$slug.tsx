@@ -948,15 +948,16 @@ function ReviewsSection({ productId, rating, count }: { productId: string; ratin
   });
 
   return (
-    <section className="mt-14 border-t border-border pt-10">
-      <div className="grid gap-10 lg:grid-cols-[280px_1fr]">
+    <section className="rounded-[var(--radius-r-lg)] border border-[var(--color-line)] bg-white p-5 shadow-[var(--shadow-soft)] md:p-6">
+      <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
         <div>
-          <h2 className="font-display text-2xl text-foreground">Avis clients</h2>
+          <h2 className="font-heading text-[17px] font-extrabold tracking-tight text-[var(--color-ink)] md:text-[20px]">Avis clients</h2>
           <div className="mt-3">
-            <div className="font-display text-4xl text-foreground">{rating.toFixed(1)}<span className="text-lg text-muted-foreground">/5</span></div>
+            <div className="font-heading text-4xl font-extrabold text-[var(--color-navy-900)]">{rating.toFixed(1)}<span className="text-lg font-normal text-muted-foreground">/5</span></div>
             <StarRating rating={rating} showCount={false} size="lg" className="mt-1" />
             <div className="mt-1 text-sm text-muted-foreground">{count} avis publié{count > 1 ? "s" : ""}</div>
           </div>
+
 
           <div className="mt-6 rounded-lg border border-border bg-card p-4">
             {user ? (
