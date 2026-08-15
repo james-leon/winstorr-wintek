@@ -228,7 +228,7 @@ const homeShelvesQuery = queryOptions({
 
     return {
       rootsWithProducts,
-      nouveautes: normalize(nouveautes.data ?? []),
+      nouveautes,
       topRated,
       verified,
       spotlight,
