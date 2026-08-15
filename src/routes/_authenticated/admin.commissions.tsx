@@ -121,7 +121,7 @@ function AdminCommissions() {
             {rules.map((r) => (
               <tr key={r.id}>
                 <td className="p-3 font-medium capitalize">{r.scope}</td>
-                <td className="p-3 text-xs text-muted-foreground">{r.scope_id ? r.scope_id.slice(0, 8) + "…" : "—"}</td>
+                <td className="p-3 text-xs">{targetName(r.scope, r.scope_id)}</td>
                 <td className="p-3 text-xs">{r.commission_type === "percentage" ? "Pourcentage" : "Fixe"}</td>
                 <td className="p-3 font-semibold">{r.commission_type === "percentage" ? `${r.commission_value}%` : `${r.commission_value} FCFA`}</td>
                 <td className="p-3 text-xs">{r.priority}</td>
