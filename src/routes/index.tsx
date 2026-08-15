@@ -66,6 +66,7 @@ type MiniProduct = {
   quality_verified: boolean | null;
   type: ProductType;
   category_id?: string | null;
+  vendor_id?: string | null;
   compare_at_price?: number | null;
   has_variants?: boolean | null;
   stock_quantity?: number | null;
@@ -87,13 +88,48 @@ type RootCategory = CategoryRow & {
 };
 
 const BASE_SELECT =
-  "id, slug, name, images, price, price_type, rating_average, rating_count, quality_verified, type, category_id, compare_at_price, has_variants, stock_quantity, min_order_quantity";
+  "id, slug, name, images, price, price_type, rating_average, rating_count, quality_verified, type, category_id, vendor_id, compare_at_price, has_variants, stock_quantity, min_order_quantity";
 
 function normalize(rows: unknown[]): MiniProduct[] {
   return (rows as MiniProduct[]).map((p) => ({
     ...p,
     images: Array.isArray(p.images) ? (p.images as string[]) : [],
   }));
+}
+
+/**
+ * Strict round-robin between vendors: best product of vendor A, then B, then C,
+ * then 2nd best of A, etc. Incoming order defines "best" within each vendor,
+ * and vendor turn order follows the quality of their top product.
+ */
+function interleaveByVendor(items: MiniProduct[], limit?: number): MiniProduct[] {
+  const groups = new Map<string, MiniProduct[]>();
+  const order: string[] = [];
+  for (const p of items) {
+    const key = p.vendor_id ?? `__none__${p.id}`;
+    const g = groups.get(key);
+    if (g) g.push(p);
+    else {
+      groups.set(key, [p]);
+      order.push(key);
+    }
+  }
+  const queues = order.map((k) => groups.get(k)!);
+  const out: MiniProduct[] = [];
+  let round = 0;
+  while (out.length < items.length) {
+    let pushed = false;
+    for (const q of queues) {
+      if (round < q.length) {
+        out.push(q[round]);
+        pushed = true;
+        if (limit && out.length >= limit) return out;
+      }
+    }
+    if (!pushed) break;
+    round += 1;
+  }
+  return limit ? out.slice(0, limit) : out;
 }
 
 const homeShelvesQuery = queryOptions({
