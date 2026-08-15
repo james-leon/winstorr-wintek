@@ -1204,11 +1204,7 @@ function VendorCard({ vendor }: { vendor: NonNullable<Product["vendor"]> }) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="font-heading text-base font-extrabold text-[var(--color-navy-900)]">{vendor.name}</span>
-            {vendor.verified && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-green-brand)]/10 px-2 py-0.5 text-[11px] font-semibold text-[var(--color-green-brand)]">
-                <BadgeCheck className="h-3.5 w-3.5" /> {t("trust.verified")}
-              </span>
-            )}
+            {vendor.verified && <SellerVerifiedBadge size="md" />}
           </div>
           {vendor.type === "internal" && (
             <div className="text-xs text-[var(--color-blue-brand)]">Vendeur officiel Winstorr</div>
