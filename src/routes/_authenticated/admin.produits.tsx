@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, ShieldCheck, ArrowUpDown, ImageOff, ChevronDown, ChevronRight } from "lucide-react";
+import { Plus, Pencil, Trash2, ShieldCheck, CheckCircle2, ArrowUpDown, ImageOff, ChevronDown, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -797,7 +797,7 @@ function ProductDialog({ row, vendors, categories, onClose, onSaved }: { row: Ro
             <TabsContent value="quality" className="space-y-3 mt-0">
               <div className="flex items-center gap-2">
                 <input id="qv" type="checkbox" checked={f.quality_verified} onChange={(e) => setF({ ...f, quality_verified: e.target.checked })} />
-                <Label htmlFor="qv" className="flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5 text-success" /> Qualité vérifiée</Label>
+                <Label htmlFor="qv" className="flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5 text-success" /> Qualité vérifiée</Label>
               </div>
               {f.type === "physical" && (
                 <div className="grid gap-3 sm:grid-cols-2">
