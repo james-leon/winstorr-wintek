@@ -52,7 +52,8 @@ type Product = {
   quality_verified: boolean;
   warranty_duration: string | null;
   source_type: "direct_import" | "authorized_wholesaler" | "other" | null;
-  vendor: { id: string; name: string; slug: string; type: "internal" | "external"; allow_financing: boolean } | null;
+  vendor: { id: string; name: string; slug: string; type: "internal" | "external"; allow_financing: boolean; logo_url: string | null; contact_phone: string | null } | null;
+  category: { name: string; slug: string } | null;
 };
 
 const productQuery = (slug: string) =>
@@ -61,13 +62,14 @@ const productQuery = (slug: string) =>
     queryFn: async (): Promise<Product> => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, slug, name, short_description, description, images, type, price, price_type, compare_at_price, stock_quantity, min_order_quantity, has_variants, delivery_type, delivery_instructions, service_area, estimated_duration, delivery_mode, rating_average, rating_count, quality_verified, warranty_duration, source_type, vendor:vendors(id, name, slug, type, allow_financing)")
+        .select("id, slug, name, short_description, description, images, type, price, price_type, compare_at_price, stock_quantity, min_order_quantity, has_variants, delivery_type, delivery_instructions, service_area, estimated_duration, delivery_mode, rating_average, rating_count, quality_verified, warranty_duration, source_type, category_id, vendor:vendors(id, name, slug, type, allow_financing, logo_url, contact_phone), category:categories(name, slug)")
         .eq("slug", slug)
         .eq("status", "active")
         .maybeSingle();
       if (error) throw error;
       if (!data) throw notFound();
       return { ...data, images: Array.isArray(data.images) ? (data.images as string[]) : [] } as Product;
+
     },
   });
 
