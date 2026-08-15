@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery, useQuery } from "@tanstack/react-query";
-import { ShieldCheck, Store as StoreIcon, Star, Users, Package, Heart, ExternalLink } from "lucide-react";
+import { ShieldCheck, Store as StoreIcon, Star, Users, Package, Heart, ExternalLink, MapPin } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductCard, type ProductCardData } from "@/components/product-card";
 import { EmptyState } from "@/components/empty-state";
