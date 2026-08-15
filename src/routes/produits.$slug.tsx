@@ -1029,3 +1029,172 @@ function ReviewsSection({ productId, rating, count }: { productId: string; ratin
     </section>
   );
 }
+
+/* -------------------- questions & answers -------------------- */
+type PublicQuestion = { id: string; question: string; answer: string | null; created_at: string; answered_at: string | null };
+
+function QuestionsSection({ productId }: { productId: string }) {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  const [text, setText] = useState("");
+
+  const { data: questions = [], isLoading } = useQuery({
+    queryKey: ["product-questions", productId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("product_questions")
+        .select("id, question, answer, created_at, answered_at")
+        .eq("product_id", productId)
+        .eq("status", "answered")
+        .order("answered_at", { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return data as PublicQuestion[];
+    },
+  });
+
+  const ask = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("product_questions").insert({
+        product_id: productId,
+        question: text.trim(),
+        customer_id: user?.id ?? null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(t("pdp.questionSent"));
+      setText("");
+      qc.invalidateQueries({ queryKey: ["product-questions", productId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Panel title={t("pdp.questions")}>
+      {isLoading ? (
+        <SkeletonListRows rows={2} />
+      ) : questions.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{t("pdp.noQuestions")}</p>
+      ) : (
+        <ul className="space-y-4">
+          {questions.map((q) => (
+            <li key={q.id} className="rounded-[var(--radius-r)] border border-[var(--color-line)] bg-[var(--color-surface)] p-4">
+              <div className="flex items-start gap-2 text-sm font-semibold text-[var(--color-ink)]">
+                <MessageCircleQuestion className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-blue-brand)]" />
+                {q.question}
+              </div>
+              {q.answer && (
+                <div className="mt-2 border-l-2 border-[var(--color-green-brand)] pl-3 text-sm text-foreground/80">
+                  {q.answer}
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <form
+        onSubmit={(e) => { e.preventDefault(); if (text.trim().length >= 5) ask.mutate(); }}
+        className="mt-5 border-t border-[var(--color-line)] pt-4"
+      >
+        <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("pdp.askQuestion")}</Label>
+        <div className="mt-2 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+          <Input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            maxLength={500}
+            placeholder={t("pdp.questionPlaceholder")}
+          />
+          <Button type="submit" disabled={ask.isPending || text.trim().length < 5}>
+            {ask.isPending ? "..." : t("pdp.send")}
+          </Button>
+        </div>
+      </form>
+    </Panel>
+  );
+}
+
+/* -------------------- related shelves -------------------- */
+const SHELF_SELECT = "id, slug, name, short_description, images, type, price, price_type, stock_quantity, compare_at_price, rating_average, rating_count, quality_verified";
+
+function Shelf({ items }: { items: ProductCardData[] }) {
+  return (
+    <div className="-mx-1 grid grid-flow-col auto-cols-[minmax(150px,180px)] gap-3 overflow-x-auto scrollbar-thin px-1 pb-2">
+      {items.map((p) => <ProductCard key={p.id} p={p} />)}
+    </div>
+  );
+}
+
+function SimilarProducts({ categoryId, excludeId }: { categoryId: string | null; excludeId: string }) {
+  const { t } = useTranslation();
+  const { data: items = [] } = useQuery({
+    queryKey: ["similar-products", categoryId, excludeId],
+    enabled: !!categoryId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select(SHELF_SELECT)
+        .eq("status", "active")
+        .eq("category_id", categoryId!)
+        .neq("id", excludeId)
+        .order("rating_count", { ascending: false })
+        .limit(12);
+      if (error) throw error;
+      return data as ProductCardData[];
+    },
+  });
+  if (!categoryId || items.length === 0) return null;
+  return <Panel title={t("pdp.similar")}><Shelf items={items} /></Panel>;
+}
+
+function SameShopProducts({ vendorId, vendorName, excludeId }: { vendorId: string; vendorName: string; excludeId: string }) {
+  const { t } = useTranslation();
+  const { data: items = [] } = useQuery({
+    queryKey: ["same-shop-products", vendorId, excludeId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select(SHELF_SELECT)
+        .eq("status", "active")
+        .eq("vendor_id", vendorId)
+        .neq("id", excludeId)
+        .order("created_at", { ascending: false })
+        .limit(12);
+      if (error) throw error;
+      return data as ProductCardData[];
+    },
+  });
+  if (items.length === 0) return null;
+  return <Panel title={`${t("pdp.sameShop")} — ${vendorName}`}><Shelf items={items} /></Panel>;
+}
+
+function VendorCard({ vendor }: { vendor: NonNullable<Product["vendor"]> }) {
+  const { t } = useTranslation();
+  return (
+    <Panel title={t("pdp.vendorInfo")}>
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-[var(--radius-r)] border border-[var(--color-line)] bg-white">
+          {vendor.logo_url ? (
+            <img src={vendor.logo_url} alt={vendor.name} className="h-full w-full object-contain" />
+          ) : (
+            <Store className="h-6 w-6 text-[var(--color-blue-brand)]" />
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5">
+            <span className="font-heading text-base font-extrabold text-[var(--color-navy-900)]">{vendor.name}</span>
+            <BadgeCheck className="h-4 w-4 text-[var(--color-green-brand)]" />
+          </div>
+          {vendor.type === "internal" && (
+            <div className="text-xs text-[var(--color-blue-brand)]">Vendeur officiel Winstorr</div>
+          )}
+        </div>
+        <Button asChild variant="outline" className="shrink-0">
+          <Link to="/boutiques/$vendorSlug" params={{ vendorSlug: vendor.slug }}>{t("pdp.visitShop")}</Link>
+        </Button>
+      </div>
+    </Panel>
+  );
+}
