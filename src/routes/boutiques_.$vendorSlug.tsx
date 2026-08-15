@@ -198,6 +198,7 @@ function Storefront() {
   const { data } = useSuspenseQuery(storefrontQuery(Route.useParams().vendorSlug));
   const { vendor, storefront, products, weighted_rating, total_reviews } = data;
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const { data: followers = 0 } = useFollowerCount(vendor.id);
   const { data: following = false } = useIsFollowing(vendor.id);
