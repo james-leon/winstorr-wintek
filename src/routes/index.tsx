@@ -66,6 +66,7 @@ type MiniProduct = {
   quality_verified: boolean | null;
   type: ProductType;
   category_id?: string | null;
+  vendor_id?: string | null;
   compare_at_price?: number | null;
   has_variants?: boolean | null;
   stock_quantity?: number | null;
@@ -87,13 +88,48 @@ type RootCategory = CategoryRow & {
 };
 
 const BASE_SELECT =
-  "id, slug, name, images, price, price_type, rating_average, rating_count, quality_verified, type, category_id, compare_at_price, has_variants, stock_quantity, min_order_quantity";
+  "id, slug, name, images, price, price_type, rating_average, rating_count, quality_verified, type, category_id, vendor_id, compare_at_price, has_variants, stock_quantity, min_order_quantity";
 
 function normalize(rows: unknown[]): MiniProduct[] {
   return (rows as MiniProduct[]).map((p) => ({
     ...p,
     images: Array.isArray(p.images) ? (p.images as string[]) : [],
   }));
+}
+
+/**
+ * Strict round-robin between vendors: best product of vendor A, then B, then C,
+ * then 2nd best of A, etc. Incoming order defines "best" within each vendor,
+ * and vendor turn order follows the quality of their top product.
+ */
+function interleaveByVendor(items: MiniProduct[], limit?: number): MiniProduct[] {
+  const groups = new Map<string, MiniProduct[]>();
+  const order: string[] = [];
+  for (const p of items) {
+    const key = p.vendor_id ?? `__none__${p.id}`;
+    const g = groups.get(key);
+    if (g) g.push(p);
+    else {
+      groups.set(key, [p]);
+      order.push(key);
+    }
+  }
+  const queues = order.map((k) => groups.get(k)!);
+  const out: MiniProduct[] = [];
+  let round = 0;
+  while (out.length < items.length) {
+    let pushed = false;
+    for (const q of queues) {
+      if (round < q.length) {
+        out.push(q[round]);
+        pushed = true;
+        if (limit && out.length >= limit) return out;
+      }
+    }
+    if (!pushed) break;
+    round += 1;
+  }
+  return limit ? out.slice(0, limit) : out;
 }
 
 const homeShelvesQuery = queryOptions({
@@ -151,28 +187,32 @@ const homeShelvesQuery = queryOptions({
       const descendantIds = collectDescendants(r.id);
       const set = new Set(descendantIds);
       const rootProducts = products.filter((p) => p.category_id && set.has(p.category_id));
-      return { ...r, descendantIds, products: rootProducts };
+      // Quality still decides WHICH product of each vendor shows first,
+      // but vendors alternate strictly (round-robin).
+      return { ...r, descendantIds, products: interleaveByVendor(rootProducts) };
     });
 
     const rootsWithProducts = rootCats.filter((c) => c.products.length > 0);
 
     // Generic shelves
-    const nouveautes = await supabase
+    const nouveautesRes = await supabase
       .from("products")
       .select(BASE_SELECT)
       .eq("status", "active")
       .order("created_at", { ascending: false })
-      .limit(12);
-    if (nouveautes.error) throw nouveautes.error;
+      .limit(60);
+    if (nouveautesRes.error) throw nouveautesRes.error;
+    const nouveautes = interleaveByVendor(normalize(nouveautesRes.data ?? []), 12);
 
-    const topRated = products
+    const topRatedPool = products
       .filter((p) => (p.rating_count ?? 0) > 0)
-      .sort((a, b) => (b.rating_average ?? 0) - (a.rating_average ?? 0))
-      .slice(0, 12);
+      .sort((a, b) => (b.rating_average ?? 0) - (a.rating_average ?? 0));
+    const topRated = interleaveByVendor(topRatedPool, 12);
 
-    const verified = products.filter((p) => p.quality_verified).slice(0, 12);
+    const verifiedPool = products.filter((p) => p.quality_verified);
+    const verified = interleaveByVendor(verifiedPool, 12);
 
-    const spotlight = verified[0] ?? topRated[0] ?? null;
+    const spotlight = verifiedPool[0] ?? topRatedPool[0] ?? null;
 
     const bannersRes = await supabase
       .from("homepage_banners")
@@ -188,7 +228,7 @@ const homeShelvesQuery = queryOptions({
 
     return {
       rootsWithProducts,
-      nouveautes: normalize(nouveautes.data ?? []),
+      nouveautes,
       topRated,
       verified,
       spotlight,
