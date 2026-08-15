@@ -115,7 +115,8 @@
   --secondary-foreground: oklch(1 0 0);
 
   --muted: oklch(0.955 0.008 85);          /* warm cream muted */
-  --muted-foreground: oklch(0.42 0.03 260); /* nudged darker to hit AA on cream */
+  --muted-foreground: oklch(0.47 0.035 262); /* darker secondary text — AA on cream and white */
+
 
 
   /* Orange reserved for price + purchase CTAs only */
