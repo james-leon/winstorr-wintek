@@ -232,5 +232,16 @@
     "send": "Envoyer",
     "questionSent": "Question envoyée. Le vendeur vous répondra bientôt.",
     "noQuestions": "Aucune question pour le moment. Soyez le premier à en poser une."
+  },
+  "trust": {
+    "verified": "Vérifié",
+    "moq": "MOQ : {{count}}",
+    "sellerSince": "Vendeur depuis {{year}}",
+    "sales_one": "{{count}} vente",
+    "sales_other": "{{count}} ventes",
+    "products": "{{count}} produits",
+    "followers": "{{count}} abonnés",
+    "noSalesYet": "Nouveau vendeur",
+    "trustProfile": "Profil vendeur"
   }
 }
