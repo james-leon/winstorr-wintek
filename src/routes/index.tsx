@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { RecentlyViewedShelf } from "@/components/recently-viewed-shelf";
 import { supabase as supabaseClient } from "@/integrations/supabase/client";
-import { Store as StoreIcon, ShieldCheck as ShieldCheckIcon, Search, Heart, MessageCircle, BadgeCheck, ShoppingCart } from "lucide-react";
+import { Store as StoreIcon, ShieldCheck as ShieldCheckIcon, Search, Heart, MessageCircle, ShoppingCart } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useCart } from "@/lib/cart-context";
 import { useWishlistIds, useToggleWishlist } from "@/lib/wishlist";
