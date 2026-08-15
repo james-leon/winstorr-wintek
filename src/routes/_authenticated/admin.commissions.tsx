@@ -256,7 +256,7 @@ function CreateRuleDialog({ onClose, onDone }: { onClose: () => void; onDone: ()
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Annuler</Button>
-          <Button disabled={mut.isPending} onClick={() => mut.mutate()}>{mut.isPending ? "…" : "Créer"}</Button>
+          <Button disabled={mut.isPending || (scope !== "global" && !scopeId)} onClick={() => mut.mutate()}>{mut.isPending ? "…" : "Créer"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
