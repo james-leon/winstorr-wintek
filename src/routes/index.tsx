@@ -592,7 +592,16 @@ const SLIDES: Slide[] = [
   },
 ];
 
-function HeroSearch({ popular }: { popular: { label: string; slug: string }[] }) {
+function HeroSearch({
+  popular,
+  sideImage = null,
+  sideAlt = "",
+}: {
+  popular: { label: string; slug: string }[];
+  /** Optional hero side image (managed in Admin → Bannières → "Image Hero"). Recommended 700×800px. */
+  sideImage?: string | null;
+  sideAlt?: string;
+}) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [q, setQ] = useState("");
