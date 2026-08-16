@@ -241,7 +241,7 @@ const homeShelvesQuery = queryOptions({
 
 type DbBanner = {
   id: string;
-  type: "hero_slide" | "promo_tile" | "category_tile";
+  type: "hero_slide" | "promo_tile" | "category_tile" | "hero_side";
   title: string;
   subtitle: string | null;
   image_url: string | null;
@@ -592,7 +592,16 @@ const SLIDES: Slide[] = [
   },
 ];
 
-function HeroSearch({ popular }: { popular: { label: string; slug: string }[] }) {
+function HeroSearch({
+  popular,
+  sideImage = null,
+  sideAlt = "",
+}: {
+  popular: { label: string; slug: string }[];
+  /** Optional hero side image (managed in Admin → Bannières → "Image Hero"). Recommended 700×800px. */
+  sideImage?: string | null;
+  sideAlt?: string;
+}) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [q, setQ] = useState("");
@@ -619,7 +628,13 @@ function HeroSearch({ popular }: { popular: { label: string; slug: string }[] })
           backgroundSize: "22px 22px",
         }}
       />
-      <div className="relative mx-auto max-w-7xl px-4 py-10 md:py-16">
+      <div
+        className={cn(
+          "relative mx-auto max-w-7xl px-4 py-10 md:py-16",
+          sideImage && "lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-10",
+        )}
+      >
+        <div className="min-w-0">
         <h1 className="font-heading max-w-3xl text-[26px] font-extrabold leading-tight text-white md:text-[42px]">
           {t("home.heroTitle")}{" "}
           <span style={{ color: "var(--color-accent-500)" }}>{t("home.heroAccent")}</span>{" "}
@@ -679,7 +694,35 @@ function HeroSearch({ popular }: { popular: { label: string; slug: string }[] })
           >
             {t("home.ctaSell")}
           </Link>
+          </div>
         </div>
+
+        {sideImage && (
+          <div aria-hidden={!sideAlt} className="hidden lg:block">
+            <div className="relative w-[340px] xl:w-[420px]">
+              <img
+                src={sideImage}
+                alt={sideAlt}
+                loading="lazy"
+                className="aspect-[7/8] w-full rounded-[var(--radius-r-xl)] object-cover shadow-[0_18px_50px_rgba(0,0,0,.35)]"
+                style={{
+                  WebkitMaskImage:
+                    "linear-gradient(to right, transparent 0%, black 22%, black 100%), linear-gradient(to bottom, black 82%, transparent 100%)",
+                  maskImage:
+                    "linear-gradient(to right, transparent 0%, black 22%, black 100%), linear-gradient(to bottom, black 82%, transparent 100%)",
+                  WebkitMaskComposite: "source-in",
+                  maskComposite: "intersect",
+                }}
+                onError={(e) => {
+                  (e.currentTarget.parentElement?.parentElement as HTMLElement | null)?.style.setProperty(
+                    "display",
+                    "none",
+                  );
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
@@ -1169,6 +1212,7 @@ function Home() {
 
   const banners = data.banners ?? [];
   const heroSlides = banners.filter((b) => b.type === "hero_slide");
+  const heroSide = banners.find((b) => b.type === "hero_side" && b.image_url) ?? null;
   const dbPromo = banners.filter((b) => b.type === "promo_tile");
   const dbCategoryTiles = banners.filter((b) => b.type === "category_tile");
 
@@ -1178,7 +1222,7 @@ function Home() {
 
   return (
     <div className="bg-background">
-      <HeroSearch popular={popular} />
+      <HeroSearch popular={popular} sideImage={heroSide?.image_url ?? null} sideAlt={heroSide?.title ?? ""} />
       <TrustStrip />
       <Hero dbSlides={heroSlides} />
 
