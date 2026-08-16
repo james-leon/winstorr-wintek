@@ -694,7 +694,35 @@ function HeroSearch({
           >
             {t("home.ctaSell")}
           </Link>
+          </div>
         </div>
+
+        {sideImage && (
+          <div aria-hidden={!sideAlt} className="hidden lg:block">
+            <div className="relative w-[340px] xl:w-[420px]">
+              <img
+                src={sideImage}
+                alt={sideAlt}
+                loading="lazy"
+                className="aspect-[7/8] w-full rounded-[var(--radius-r-xl)] object-cover shadow-[0_18px_50px_rgba(0,0,0,.35)]"
+                style={{
+                  WebkitMaskImage:
+                    "linear-gradient(to right, transparent 0%, black 22%, black 100%), linear-gradient(to bottom, black 82%, transparent 100%)",
+                  maskImage:
+                    "linear-gradient(to right, transparent 0%, black 22%, black 100%), linear-gradient(to bottom, black 82%, transparent 100%)",
+                  WebkitMaskComposite: "source-in",
+                  maskComposite: "intersect",
+                }}
+                onError={(e) => {
+                  (e.currentTarget.parentElement?.parentElement as HTMLElement | null)?.style.setProperty(
+                    "display",
+                    "none",
+                  );
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
