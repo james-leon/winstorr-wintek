@@ -241,7 +241,7 @@ const homeShelvesQuery = queryOptions({
 
 type DbBanner = {
   id: string;
-  type: "hero_slide" | "promo_tile" | "category_tile";
+  type: "hero_slide" | "promo_tile" | "category_tile" | "hero_side";
   title: string;
   subtitle: string | null;
   image_url: string | null;
@@ -1169,6 +1169,7 @@ function Home() {
 
   const banners = data.banners ?? [];
   const heroSlides = banners.filter((b) => b.type === "hero_slide");
+  const heroSide = banners.find((b) => b.type === "hero_side" && b.image_url) ?? null;
   const dbPromo = banners.filter((b) => b.type === "promo_tile");
   const dbCategoryTiles = banners.filter((b) => b.type === "category_tile");
 
@@ -1178,7 +1179,7 @@ function Home() {
 
   return (
     <div className="bg-background">
-      <HeroSearch popular={popular} />
+      <HeroSearch popular={popular} sideImage={heroSide?.image_url ?? null} sideAlt={heroSide?.title ?? ""} />
       <TrustStrip />
       <Hero dbSlides={heroSlides} />
 
