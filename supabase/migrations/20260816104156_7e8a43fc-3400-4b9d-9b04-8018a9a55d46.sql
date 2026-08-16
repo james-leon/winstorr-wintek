@@ -1,0 +1,1 @@
+ALTER TYPE public.homepage_banner_type ADD VALUE IF NOT EXISTS 'hero_side';

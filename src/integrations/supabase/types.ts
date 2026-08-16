@@ -2370,7 +2370,11 @@ export type Database = {
         | "approved"
         | "rejected"
         | "completed"
-      homepage_banner_type: "hero_slide" | "promo_tile" | "category_tile"
+      homepage_banner_type:
+        | "hero_slide"
+        | "promo_tile"
+        | "category_tile"
+        | "hero_side"
       order_status:
         | "pending_payment"
         | "paid"
@@ -2601,7 +2605,12 @@ export const Constants = {
         "rejected",
         "completed",
       ],
-      homepage_banner_type: ["hero_slide", "promo_tile", "category_tile"],
+      homepage_banner_type: [
+        "hero_slide",
+        "promo_tile",
+        "category_tile",
+        "hero_side",
+      ],
       order_status: [
         "pending_payment",
         "paid",
