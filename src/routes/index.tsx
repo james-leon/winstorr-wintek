@@ -628,7 +628,13 @@ function HeroSearch({
           backgroundSize: "22px 22px",
         }}
       />
-      <div className="relative mx-auto max-w-7xl px-4 py-10 md:py-16">
+      <div
+        className={cn(
+          "relative mx-auto max-w-7xl px-4 py-10 md:py-16",
+          sideImage && "lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-10",
+        )}
+      >
+        <div className="min-w-0">
         <h1 className="font-heading max-w-3xl text-[26px] font-extrabold leading-tight text-white md:text-[42px]">
           {t("home.heroTitle")}{" "}
           <span style={{ color: "var(--color-accent-500)" }}>{t("home.heroAccent")}</span>{" "}
