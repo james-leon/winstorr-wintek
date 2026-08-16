@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_authenticated/admin/banieres")({
   component: AdminBannersPage,
 });
 
-type BannerType = "hero_slide" | "promo_tile" | "category_tile";
+type BannerType = "hero_slide" | "promo_tile" | "category_tile" | "hero_side";
 
 type Banner = {
   id: string;
@@ -55,6 +55,12 @@ const TYPE_META: Record<BannerType, { label: string; width: number; height: numb
     width: 800,
     height: 450,
     help: 'Grille « Explorez Winstorr » (800×450px).',
+  },
+  hero_side: {
+    label: "Image Hero",
+    width: 700,
+    height: 800,
+    help: "Image affichée à droite du bloc de recherche en haut de l'accueil (700×800px, masquée sur mobile). La première image active est utilisée.",
   },
 };
 
