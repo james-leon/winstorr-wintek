@@ -315,6 +315,7 @@ function Gallery({ p }: { p: Product }) {
 /* -------------------- right column -------------------- */
 
 function InfoColumn({ p }: { p: Product }) {
+  const { t } = useTranslation();
   const supportWa = useSupportWhatsApp();
   const waMessage = `Bonjour, je suis intéressé(e) par « ${p.name} » sur Winstorr (https://winstorr.com/produits/${p.slug}).`;
 
