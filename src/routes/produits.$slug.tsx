@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { ChevronLeft, ChevronRight, MapPin, Calendar, Clock, Package, Download, ShieldCheck, Truck, BadgeCheck, Heart, Store, MessageCircleQuestion, CheckCircle2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { WhatsAppButton } from "@/components/whatsapp-button";
+import { useSupportWhatsApp } from "@/lib/use-support-whatsapp";
 import { ProductCard, type ProductCardData } from "@/components/product-card";
 import { useWishlistIds, useToggleWishlist } from "@/lib/wishlist";
 import { cn } from "@/lib/utils";
@@ -315,6 +316,7 @@ function Gallery({ p }: { p: Product }) {
 
 function InfoColumn({ p }: { p: Product }) {
   const { t } = useTranslation();
+  const supportWa = useSupportWhatsApp();
   const waMessage = `Bonjour, je suis intéressé(e) par « ${p.name} » sur Winstorr (https://winstorr.com/produits/${p.slug}).`;
 
   return (
@@ -378,15 +380,13 @@ function InfoColumn({ p }: { p: Product }) {
         </div>
       </div>
 
-      {p.vendor?.contact_phone && (
-        <WhatsAppButton
-          phone={p.vendor.contact_phone}
-          message={waMessage}
-          size="lg"
-          label={t("pdp.contactVendor")}
-          className="mt-3 w-full justify-center"
-        />
-      )}
+      <WhatsAppButton
+        phone={p.vendor?.contact_phone || supportWa}
+        message={waMessage}
+        size="lg"
+        label={t("pdp.contactVendor")}
+        className="mt-3 w-full justify-center"
+      />
     </div>
   );
 }

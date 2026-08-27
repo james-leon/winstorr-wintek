@@ -5,8 +5,8 @@ import { Store as StoreIcon, ShieldCheck as ShieldCheckIcon, Search, Heart, Mess
 import { useTranslation } from "react-i18next";
 import { useCart } from "@/lib/cart-context";
 import { useWishlistIds, useToggleWishlist } from "@/lib/wishlist";
-import { SUPPORT_WHATSAPP_RAW } from "@/lib/site-contact";
 import { buildWaLink } from "@/lib/whatsapp";
+import { useSupportWhatsApp } from "@/lib/use-support-whatsapp";
 import { toast } from "sonner";
 
 
@@ -1122,7 +1122,8 @@ function CategoryGrid({ cats }: { cats: RootCategory[] }) {
 
 function WhatsAppSection() {
   const { t } = useTranslation();
-  const href = buildWaLink(SUPPORT_WHATSAPP_RAW, t("home.whatsappMessage"));
+  const waNumber = useSupportWhatsApp();
+  const href = buildWaLink(waNumber, t("home.whatsappMessage"));
   return (
     <section className="mx-auto max-w-7xl px-4 pt-10">
       <div

@@ -11,6 +11,7 @@ import { SuccessCheckmark } from "@/components/success-checkmark";
 import { TrustStrip } from "@/components/trust-strip";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 import { waTemplates } from "@/lib/whatsapp";
+import { useSupportWhatsApp } from "@/lib/use-support-whatsapp";
 import { useAuth } from "@/lib/auth-context";
 import { useState } from "react";
 
@@ -39,15 +40,7 @@ function ConfirmationPage() {
     },
   });
 
-  const { data: supportPhone } = useQuery({
-    queryKey: ["whatsapp-support-number"],
-    queryFn: async () => {
-      const { data } = await supabase.from("app_settings").select("value").eq("key", "whatsapp_support_number").maybeSingle();
-      const v = data?.value as { number?: string } | string | null;
-      if (!v) return null;
-      return typeof v === "string" ? v : v.number ?? null;
-    },
-  });
+  const supportPhone = useSupportWhatsApp();
 
   const retryFn = useServerFn(initiatePayment);
   const retry = useMutation({
