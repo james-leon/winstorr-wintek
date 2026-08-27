@@ -314,7 +314,7 @@ function Gallery({ p }: { p: Product }) {
 /* -------------------- right column -------------------- */
 
 function InfoColumn({ p }: { p: Product }) {
-  const { t } = useTranslation();
+  const supportWa = useSupportWhatsApp();
   const waMessage = `Bonjour, je suis intéressé(e) par « ${p.name} » sur Winstorr (https://winstorr.com/produits/${p.slug}).`;
 
   return (
@@ -378,15 +378,13 @@ function InfoColumn({ p }: { p: Product }) {
         </div>
       </div>
 
-      {p.vendor?.contact_phone && (
-        <WhatsAppButton
-          phone={p.vendor.contact_phone}
-          message={waMessage}
-          size="lg"
-          label={t("pdp.contactVendor")}
-          className="mt-3 w-full justify-center"
-        />
-      )}
+      <WhatsAppButton
+        phone={p.vendor?.contact_phone || supportWa}
+        message={waMessage}
+        size="lg"
+        label={t("pdp.contactVendor")}
+        className="mt-3 w-full justify-center"
+      />
     </div>
   );
 }

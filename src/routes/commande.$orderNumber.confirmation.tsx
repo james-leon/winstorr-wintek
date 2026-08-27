@@ -11,6 +11,7 @@ import { SuccessCheckmark } from "@/components/success-checkmark";
 import { TrustStrip } from "@/components/trust-strip";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 import { waTemplates } from "@/lib/whatsapp";
+import { useSupportWhatsApp } from "@/lib/use-support-whatsapp";
 import { useAuth } from "@/lib/auth-context";
 import { useState } from "react";
 
