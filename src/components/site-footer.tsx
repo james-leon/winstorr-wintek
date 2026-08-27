@@ -7,9 +7,9 @@ import {
   SUPPORT_EMAIL,
   SUPPORT_PHONE_DISPLAY,
   SUPPORT_PHONE_RAW,
-  SUPPORT_WHATSAPP_RAW,
   SUPPORT_CITY,
 } from "@/lib/site-contact";
+import { useSupportWhatsApp } from "@/lib/use-support-whatsapp";
 
 type Item = { key: string; to?: string; href?: string };
 
@@ -74,11 +74,12 @@ const linkClass =
 
 function FooterLink({ item }: { item: Item }) {
   const { t } = useTranslation();
+  const waNumber = useSupportWhatsApp();
   const label = t(item.key);
   if (item.href === "whatsapp") {
     return (
       <a
-        href={`https://wa.me/${SUPPORT_WHATSAPP_RAW}?text=${encodeURIComponent(t("footer.whatsappMessage"))}`}
+        href={`https://wa.me/${waNumber}?text=${encodeURIComponent(t("footer.whatsappMessage"))}`}
         target="_blank"
         rel="noopener noreferrer"
         className={linkClass}
@@ -99,6 +100,7 @@ function FooterLink({ item }: { item: Item }) {
 
 export function SiteFooter() {
   const { t } = useTranslation();
+  const waNumber = useSupportWhatsApp();
   const scrollTop = () => {
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -178,7 +180,7 @@ export function SiteFooter() {
               <Mail className="h-3.5 w-3.5" /> {SUPPORT_EMAIL}
             </a>
             <a
-              href={`https://wa.me/${SUPPORT_WHATSAPP_RAW}`}
+              href={`https://wa.me/${waNumber}`}
               target="_blank"
               rel="noopener noreferrer"
               className={`${linkClass} inline-flex items-center gap-1.5`}
