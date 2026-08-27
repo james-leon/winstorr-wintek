@@ -294,7 +294,27 @@ export async function notifyVendorsOfNewShipments(orderId: string) {
       .select("name, contact_email")
       .eq("id", s.vendor_id)
       .maybeSingle();
-    if (!vendor?.contact_email) continue;
+
+    // Fallback: if no contact_email on the store, use the owner's account email.
+    let to = vendor?.contact_email ?? null;
+    if (!to) {
+      const { data: owner } = await supabaseAdmin
+        .from("vendor_members")
+        .select("user_id")
+        .eq("vendor_id", s.vendor_id)
+        .eq("role", "owner")
+        .limit(1)
+        .maybeSingle();
+      if (owner?.user_id) {
+        const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(owner.user_id);
+        to = authUser?.user?.email ?? null;
+      }
+    }
+    if (!to) {
+      console.log(`[notifications:vendor] no email for vendor ${s.vendor_id} — skipping ${s.shipment_number}`);
+      continue;
+    }
+
 
     const deadline = s.acceptance_deadline
       ? new Date(s.acceptance_deadline).toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" })
