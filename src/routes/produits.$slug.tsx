@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { ChevronLeft, ChevronRight, MapPin, Calendar, Clock, Package, Download, ShieldCheck, Truck, BadgeCheck, Heart, Store, MessageCircleQuestion, CheckCircle2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { WhatsAppButton } from "@/components/whatsapp-button";
+import { useSupportWhatsApp } from "@/lib/use-support-whatsapp";
 import { ProductCard, type ProductCardData } from "@/components/product-card";
 import { useWishlistIds, useToggleWishlist } from "@/lib/wishlist";
 import { cn } from "@/lib/utils";

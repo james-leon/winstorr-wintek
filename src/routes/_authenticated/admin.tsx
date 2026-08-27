@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import {
   LayoutDashboard, ShoppingCart, Undo2, Wrench, GraduationCap,
   Package, FolderTree, Star, Tag, Store, BarChart3, MapPin, Image, UserPlus,
-  Menu, ChevronDown, CreditCard,
+  Menu, ChevronDown, CreditCard, Settings,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useNavigate } from "@tanstack/react-router";
@@ -51,6 +51,9 @@ const NAV_GROUPS: NavGroup[] = [
   ]},
   { label: "Livraison", items: [
     { to: "/admin/points-retrait", label: "Points de retrait", icon: MapPin },
+  ]},
+  { label: "Paramètres", items: [
+    { to: "/admin/parametres", label: "Paramètres généraux", icon: Settings },
   ]},
 ];
 
