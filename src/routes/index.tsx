@@ -51,9 +51,6 @@ import { displayPrice, formatFcfa, type ProductType } from "@/lib/format";
 import { imageAtWidth, imageSrcSet } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import { SkeletonHomepage } from "@/components/skeletons";
-import { CategorySidebar, CategoryChipRow } from "@/components/category-sidebar";
-import { PromoBar } from "@/components/promo-bar";
-import { iconForCategory } from "@/lib/category-icons";
 
 /* -------------------- data -------------------- */
 
@@ -138,7 +135,7 @@ function interleaveByVendor(items: MiniProduct[], limit?: number): MiniProduct[]
 }
 
 const homeShelvesQuery = queryOptions({
-  queryKey: ["home-shelves-v4"],
+  queryKey: ["home-shelves-v3"],
   queryFn: async () => {
     const cats = await supabase
       .from("categories")
@@ -231,21 +228,7 @@ const homeShelvesQuery = queryOptions({
       return true;
     });
 
-    const sidebarCats = roots.map((r) => ({
-      id: r.id,
-      name: r.name,
-      slug: r.slug,
-      product_type: r.product_type as string | null,
-      children: (byParent.get(r.id) ?? []).map((k) => ({
-        id: k.id,
-        name: k.name,
-        slug: k.slug,
-        product_type: k.product_type as string | null,
-      })),
-    }));
-
     return {
-      sidebarCats,
       rootsWithProducts,
       nouveautes,
       topRated,
@@ -298,6 +281,26 @@ export const Route = createFileRoute("/")({
 
 /* -------------------- category styling -------------------- */
 
+const CATEGORY_ICON: Record<string, LucideIcon> = {
+  telephones: Smartphone,
+  ordinateurs: Laptop,
+  audio: Headphones,
+  securite: ShieldCheck,
+  "installation-securite": Wrench,
+  reparation: Wrench,
+  "formations-pro": GraduationCap,
+  "acces-saas": Download,
+  "e-books": Download,
+  logiciels: Cpu,
+  "mode-chaussures": Shirt,
+  "beaute-cheveux": Sparkles,
+  alimentaire: Apple,
+  "maison-entretien": HomeIcon,
+  "bebe-enfant": Baby,
+  "sport-loisirs": Dumbbell,
+  "bricolage-outillage": Hammer,
+};
+
 const CATEGORY_TINT: Record<string, { tile: string; icon: string }> = {
   telephones: { tile: "bg-gradient-to-br from-primary to-secondary text-primary-foreground", icon: "bg-primary/10 text-primary" },
   ordinateurs: { tile: "bg-gradient-to-br from-secondary to-primary text-primary-foreground", icon: "bg-secondary/15 text-secondary" },
@@ -319,7 +322,7 @@ const CATEGORY_TINT: Record<string, { tile: string; icon: string }> = {
 };
 
 function iconFor(slug: string): LucideIcon {
-  return iconForCategory(slug);
+  return CATEGORY_ICON[slug] ?? Package;
 }
 
 function tintFor(slug: string) {
@@ -1222,19 +1225,7 @@ function Home() {
     <div className="bg-background">
       <HeroSearch popular={popular} sideImage={heroSide?.image_url ?? null} sideAlt={heroSide?.title ?? ""} />
       <TrustStrip />
-
-      {/* Departments column + hero carousel */}
-      <section className="mx-auto max-w-7xl px-4 pt-6">
-        <CategoryChipRow categories={data.sidebarCats} />
-        <div className="lg:grid lg:grid-cols-[248px_minmax(0,1fr)] lg:gap-4">
-          <CategorySidebar categories={data.sidebarCats} />
-          <div className="min-w-0 [&>section]:mx-0 [&>section]:max-w-none [&>section]:px-0 [&>section]:pt-0">
-            <Hero dbSlides={heroSlides} />
-          </div>
-        </div>
-      </section>
-
-      <PromoBar />
+      <Hero dbSlides={heroSlides} />
 
       {/* Category grid — real categories */}
       <CategoryGrid cats={cats} />

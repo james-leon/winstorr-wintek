@@ -209,12 +209,7 @@
     "sellerStep2": "Add your products",
     "sellerStep3": "Receive orders",
     "sellerStep4": "Deliver or drop at a pickup point",
-    "sellerStep5": "Withdraw your earnings",
-    "allCategories": "All categories",
-    "seeMore": "See more",
-    "seeLess": "See less",
-    "copyCode": "Copy code",
-    "codeCopied": "Code copied"
+    "sellerStep5": "Withdraw your earnings"
   },
   "pdp": {
     "home": "Home",
