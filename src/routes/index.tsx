@@ -51,6 +51,9 @@ import { displayPrice, formatFcfa, type ProductType } from "@/lib/format";
 import { imageAtWidth, imageSrcSet } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import { SkeletonHomepage } from "@/components/skeletons";
+import { CategorySidebar, CategoryChipRow } from "@/components/category-sidebar";
+import { PromoBar } from "@/components/promo-bar";
+import { iconForCategory } from "@/lib/category-icons";
 
 /* -------------------- data -------------------- */
 
@@ -228,7 +231,21 @@ const homeShelvesQuery = queryOptions({
       return true;
     });
 
+    const sidebarCats = roots.map((r) => ({
+      id: r.id,
+      name: r.name,
+      slug: r.slug,
+      product_type: r.product_type as string | null,
+      children: (byParent.get(r.id) ?? []).map((k) => ({
+        id: k.id,
+        name: k.name,
+        slug: k.slug,
+        product_type: k.product_type as string | null,
+      })),
+    }));
+
     return {
+      sidebarCats,
       rootsWithProducts,
       nouveautes,
       topRated,
@@ -322,7 +339,7 @@ const CATEGORY_TINT: Record<string, { tile: string; icon: string }> = {
 };
 
 function iconFor(slug: string): LucideIcon {
-  return CATEGORY_ICON[slug] ?? Package;
+  return iconForCategory(slug);
 }
 
 function tintFor(slug: string) {
@@ -1225,7 +1242,19 @@ function Home() {
     <div className="bg-background">
       <HeroSearch popular={popular} sideImage={heroSide?.image_url ?? null} sideAlt={heroSide?.title ?? ""} />
       <TrustStrip />
-      <Hero dbSlides={heroSlides} />
+
+      {/* Departments column + hero carousel */}
+      <section className="mx-auto max-w-7xl px-4 pt-6">
+        <CategoryChipRow categories={data.sidebarCats} />
+        <div className="lg:grid lg:grid-cols-[248px_minmax(0,1fr)] lg:gap-4">
+          <CategorySidebar categories={data.sidebarCats} />
+          <div className="min-w-0">
+            <Hero dbSlides={heroSlides} />
+          </div>
+        </div>
+      </section>
+
+      <PromoBar />
 
       {/* Category grid — real categories */}
       <CategoryGrid cats={cats} />
