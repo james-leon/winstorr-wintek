@@ -209,7 +209,12 @@
     "sellerStep2": "Ajoutez vos produits",
     "sellerStep3": "Recevez des commandes",
     "sellerStep4": "Livrez ou déposez en point relais",
-    "sellerStep5": "Retirez vos revenus"
+    "sellerStep5": "Retirez vos revenus",
+    "allCategories": "Toutes les catégories",
+    "seeMore": "Voir plus",
+    "seeLess": "Voir moins",
+    "copyCode": "Copier le code",
+    "codeCopied": "Code copié"
   },
   "pdp": {
     "home": "Accueil",

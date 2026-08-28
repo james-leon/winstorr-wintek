@@ -138,7 +138,7 @@ function interleaveByVendor(items: MiniProduct[], limit?: number): MiniProduct[]
 }
 
 const homeShelvesQuery = queryOptions({
-  queryKey: ["home-shelves-v3"],
+  queryKey: ["home-shelves-v4"],
   queryFn: async () => {
     const cats = await supabase
       .from("categories")
@@ -297,26 +297,6 @@ export const Route = createFileRoute("/")({
 });
 
 /* -------------------- category styling -------------------- */
-
-const CATEGORY_ICON: Record<string, LucideIcon> = {
-  telephones: Smartphone,
-  ordinateurs: Laptop,
-  audio: Headphones,
-  securite: ShieldCheck,
-  "installation-securite": Wrench,
-  reparation: Wrench,
-  "formations-pro": GraduationCap,
-  "acces-saas": Download,
-  "e-books": Download,
-  logiciels: Cpu,
-  "mode-chaussures": Shirt,
-  "beaute-cheveux": Sparkles,
-  alimentaire: Apple,
-  "maison-entretien": HomeIcon,
-  "bebe-enfant": Baby,
-  "sport-loisirs": Dumbbell,
-  "bricolage-outillage": Hammer,
-};
 
 const CATEGORY_TINT: Record<string, { tile: string; icon: string }> = {
   telephones: { tile: "bg-gradient-to-br from-primary to-secondary text-primary-foreground", icon: "bg-primary/10 text-primary" },
@@ -1248,7 +1228,7 @@ function Home() {
         <CategoryChipRow categories={data.sidebarCats} />
         <div className="lg:grid lg:grid-cols-[248px_minmax(0,1fr)] lg:gap-4">
           <CategorySidebar categories={data.sidebarCats} />
-          <div className="min-w-0">
+          <div className="min-w-0 [&>section]:mx-0 [&>section]:max-w-none [&>section]:px-0 [&>section]:pt-0">
             <Hero dbSlides={heroSlides} />
           </div>
         </div>

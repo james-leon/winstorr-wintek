@@ -89,7 +89,7 @@ export function PromoBar() {
           )}
           {ctaLabel && data.cta_link && (
             <Link
-              to={data.cta_link}
+              to={data.cta_link as never}
               className="no-link-color inline-flex items-center rounded-[var(--radius-r)] px-4 py-2 text-[13px] font-bold text-white shadow-[var(--shadow-soft)]"
               style={{ background: "var(--color-accent-500)" }}
             >
