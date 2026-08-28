@@ -6,7 +6,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { normalizePhoneCM } from "@/lib/whatsapp";
+import { PROMO_BAR_KEY, type PromoBarSetting } from "@/components/promo-bar";
 
 export const Route = createFileRoute("/_authenticated/admin/parametres")({
   component: AdminSettings,
@@ -53,6 +56,39 @@ function AdminSettings() {
 
   const preview = normalizePhoneCM(waNumber);
 
+  // ---- Promo bar ----
+  const promoQ = useQuery({
+    queryKey: ["settings", PROMO_BAR_KEY],
+    queryFn: async (): Promise<PromoBarSetting> => {
+      const { data } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", PROMO_BAR_KEY)
+        .maybeSingle();
+      return (data?.value as PromoBarSetting | null) ?? {};
+    },
+  });
+  const [promo, setPromo] = useState<PromoBarSetting>({});
+  useEffect(() => {
+    if (promoQ.data) setPromo(promoQ.data);
+  }, [promoQ.data]);
+
+  const savePromo = useMutation({
+    mutationFn: async (v: PromoBarSetting) => {
+      const { error } = await supabase
+        .from("app_settings")
+        .upsert({ key: PROMO_BAR_KEY, value: v as never });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Bandeau promo enregistré.");
+      qc.invalidateQueries({ queryKey: ["settings", PROMO_BAR_KEY] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const setP = (patch: Partial<PromoBarSetting>) => setPromo((prev) => ({ ...prev, ...patch }));
+
   return (
     <div className="max-w-2xl space-y-6">
       <section className="rounded-sm border border-border bg-card p-4">
@@ -90,6 +126,85 @@ function AdminSettings() {
           Format international sans espaces ni symboles. La normalisation est automatique
           (ex. « +237 690 72 23 16 » → 237690722316).
         </p>
+      </section>
+
+      <section className="rounded-sm border border-border bg-card p-4">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="font-semibold">Bandeau promo / coupon (page d'accueil)</h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Affiché sous le hero. S'il est désactivé ou sans message, le bandeau est
+              entièrement masqué.
+            </p>
+          </div>
+          <Switch
+            checked={!!promo.active}
+            onCheckedChange={(v) => setP({ active: v })}
+            aria-label="Activer le bandeau promo"
+          />
+        </div>
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <Label className="text-sm font-medium">Message (FR)</Label>
+            <Textarea
+              rows={2}
+              value={promo.message ?? ""}
+              onChange={(e) => setP({ message: e.target.value })}
+              placeholder="🎁 Offre de lancement — Vendez sans commission jusqu'à fin 2026 !"
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <Label className="text-sm font-medium">Message (EN)</Label>
+            <Textarea
+              rows={2}
+              value={promo.message_en ?? ""}
+              onChange={(e) => setP({ message_en: e.target.value })}
+              placeholder="Launch offer — sell commission-free until end of 2026!"
+            />
+          </div>
+          <div>
+            <Label className="text-sm font-medium">Code promo (optionnel)</Label>
+            <Input
+              value={promo.code ?? ""}
+              onChange={(e) => setP({ code: e.target.value.toUpperCase() })}
+              placeholder="BIENVENUE2026"
+            />
+          </div>
+          <div>
+            <Label className="text-sm font-medium">Lien du bouton (optionnel)</Label>
+            <Input
+              value={promo.cta_link ?? ""}
+              onChange={(e) => setP({ cta_link: e.target.value })}
+              placeholder="/catalogue"
+            />
+          </div>
+          <div>
+            <Label className="text-sm font-medium">Libellé bouton (FR)</Label>
+            <Input
+              value={promo.cta_label ?? ""}
+              onChange={(e) => setP({ cta_label: e.target.value })}
+              placeholder="J'en profite"
+            />
+          </div>
+          <div>
+            <Label className="text-sm font-medium">Libellé bouton (EN)</Label>
+            <Input
+              value={promo.cta_label_en ?? ""}
+              onChange={(e) => setP({ cta_label_en: e.target.value })}
+              placeholder="Shop the offer"
+            />
+          </div>
+        </div>
+
+        <Button
+          size="sm"
+          className="mt-4"
+          onClick={() => savePromo.mutate(promo)}
+          disabled={savePromo.isPending}
+        >
+          Enregistrer le bandeau
+        </Button>
       </section>
     </div>
   );
