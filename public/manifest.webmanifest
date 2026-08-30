@@ -26,5 +26,9 @@
       "type": "image/png",
       "purpose": "maskable"
     }
-  ]
+  ],
+  "id": "/",
+  "lang": "fr",
+  "dir": "ltr",
+  "orientation": "portrait"
 }
