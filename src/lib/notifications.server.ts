@@ -320,7 +320,8 @@ export async function notifyVendorsOfNewShipments(orderId: string) {
       ? new Date(s.acceptance_deadline).toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" })
       : "24 heures";
     const dashboard = `${APP_URL()}/vendeur/commandes`;
-    const body = `Bonjour <strong>${vendor.name}</strong>,<br><br>
+    const vendorName = vendor?.name ?? "Vendeur";
+    const body = `Bonjour <strong>${vendorName}</strong>,<br><br>
       Vous avez une nouvelle expédition à préparer : <strong>${s.shipment_number}</strong><br>
       Commande : <strong>${s.orders?.order_number ?? ""}</strong> · Client : ${s.orders?.customer_name ?? ""}<br>
       Sous-total : <strong>${money(s.subtotal, s.currency)}</strong><br><br>
@@ -334,7 +335,7 @@ export async function notifyVendorsOfNewShipments(orderId: string) {
       ctaUrl: dashboard,
     });
     await sendEmailHtml(
-      vendor.contact_email,
+      to,
       `Nouvelle commande ${s.orders?.order_number ?? s.shipment_number} à préparer`,
       html,
       stripHtml(body),
