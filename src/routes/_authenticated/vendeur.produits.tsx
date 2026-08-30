@@ -160,7 +160,21 @@ type FormState = {
 };
 
 function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | null; vendorId: string; onClose: () => void; onSaved: () => void }) {
-  const isNew = !row;
+  const [createdId, setCreatedId] = useState<string | null>(null);
+  const productId = row?.id ?? createdId;
+  const isNew = !productId;
+  const { data: categories = [] } = useQuery({
+    queryKey: ["vendor-categories-lite"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("id, name, product_type, parent_id, status")
+        .eq("status", "active")
+        .order("product_type").order("display_order").order("name");
+      if (error) throw error;
+      return data as { id: string; name: string; product_type: ProductType; parent_id: string | null; status: string }[];
+    },
+  });
   const [f, setF] = useState<FormState>({
     name: row?.name ?? "", slug: row?.slug ?? "",
     type: row?.type ?? "physical", status: (row?.status as "draft" | "active" | "archived") ?? "draft",
@@ -168,10 +182,12 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
     price: row?.price?.toString() ?? "", price_type: row?.price_type ?? "fixed",
     stock_quantity: row?.stock_quantity?.toString() ?? "", featured: row?.featured ?? false, min_order_quantity: "1",
     images: [],
+    category_id: "",
     warranty_duration: "",
     source_type: "",
     delivery_type: "", service_area: "", estimated_duration: "", delivery_mode: "",
   });
+
 
   useEffect(() => {
     if (!row) return;
