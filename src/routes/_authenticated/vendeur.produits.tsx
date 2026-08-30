@@ -213,14 +213,17 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
     });
   }, [row]);
 
+  const qcInner = useQueryClient();
   const save = useMutation({
     mutationFn: async () => {
+      if (!f.category_id) throw new Error("Choisissez une catégorie.");
       const payload = {
         vendor_id: vendorId, // locked
         name: f.name.trim(),
         slug: (f.slug || slugify(f.name)).trim(),
         type: f.type,
         status: f.status,
+        category_id: f.category_id,
         short_description: f.short_description.trim() || null,
         description: f.description.trim() || null,
         price: f.price_type === "quote_only" ? null : (f.price ? Number(f.price) : null),
@@ -236,17 +239,28 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
         estimated_duration: f.type === "service" && f.estimated_duration ? f.estimated_duration : null,
         delivery_mode: f.type === "training" && f.delivery_mode ? (f.delivery_mode as "in_person" | "online" | "hybrid") : null,
       };
-      if (isNew) {
-        const { error } = await supabase.from("products").insert(payload);
+      if (!productId) {
+        const { data, error } = await supabase.from("products").insert(payload).select("id").single();
         if (error) throw error;
+        return { createdId: data.id as string };
+      }
+      const { error } = await supabase.from("products").update(payload).eq("id", productId);
+      if (error) throw error;
+      return { createdId: null };
+    },
+    onSuccess: (res) => {
+      qcInner.invalidateQueries({ queryKey: ["vendor-products"] });
+      if (res.createdId) {
+        setCreatedId(res.createdId);
+        toast.success("Produit créé — vous pouvez maintenant ajouter des variantes.");
       } else {
-        const { error } = await supabase.from("products").update(payload).eq("id", row!.id);
-        if (error) throw error;
+        toast.success("Produit mis à jour");
+        onSaved();
       }
     },
-    onSuccess: () => { toast.success(isNew ? "Produit créé" : "Produit mis à jour"); onSaved(); },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
