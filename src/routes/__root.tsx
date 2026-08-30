@@ -169,8 +169,9 @@ function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="fr">
       <head><HeadContent /></head>
-      <body>
+      <body style={{ backgroundColor: "#FBFAF6" }}>
         {children}
+        <AppSplash />
         <Scripts />
       </body>
     </html>
