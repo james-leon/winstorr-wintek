@@ -154,13 +154,29 @@ type FormState = {
   price: string; price_type: "fixed" | "starting_at" | "quote_only";
   stock_quantity: string; featured: boolean; min_order_quantity: string;
   images: string[];
+  category_id: string;
+
   warranty_duration: string;
   source_type: string;
   delivery_type: string; service_area: string; estimated_duration: string; delivery_mode: string;
 };
 
 function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | null; vendorId: string; onClose: () => void; onSaved: () => void }) {
-  const isNew = !row;
+  const [createdId, setCreatedId] = useState<string | null>(null);
+  const productId = row?.id ?? createdId;
+  const isNew = !productId;
+  const { data: categories = [] } = useQuery({
+    queryKey: ["vendor-categories-lite"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("id, name, product_type, parent_id, status")
+        .eq("status", "active")
+        .order("product_type").order("display_order").order("name");
+      if (error) throw error;
+      return data as { id: string; name: string; product_type: ProductType; parent_id: string | null; status: string }[];
+    },
+  });
   const [f, setF] = useState<FormState>({
     name: row?.name ?? "", slug: row?.slug ?? "",
     type: row?.type ?? "physical", status: (row?.status as "draft" | "active" | "archived") ?? "draft",
@@ -168,10 +184,12 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
     price: row?.price?.toString() ?? "", price_type: row?.price_type ?? "fixed",
     stock_quantity: row?.stock_quantity?.toString() ?? "", featured: row?.featured ?? false, min_order_quantity: "1",
     images: [],
+    category_id: "",
     warranty_duration: "",
     source_type: "",
     delivery_type: "", service_area: "", estimated_duration: "", delivery_mode: "",
   });
+
 
   useEffect(() => {
     if (!row) return;
@@ -182,6 +200,8 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
         short_description: data.short_description ?? "",
         description: data.description ?? "",
         images: Array.isArray(data.images) ? (data.images as string[]) : [],
+        category_id: data.category_id ?? "",
+
         warranty_duration: data.warranty_duration ?? "",
         source_type: data.source_type ?? "",
         delivery_type: data.delivery_type ?? "",
@@ -193,14 +213,17 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
     });
   }, [row]);
 
+  const qcInner = useQueryClient();
   const save = useMutation({
     mutationFn: async () => {
+      if (!f.category_id) throw new Error("Choisissez une catégorie.");
       const payload = {
         vendor_id: vendorId, // locked
         name: f.name.trim(),
         slug: (f.slug || slugify(f.name)).trim(),
         type: f.type,
         status: f.status,
+        category_id: f.category_id,
         short_description: f.short_description.trim() || null,
         description: f.description.trim() || null,
         price: f.price_type === "quote_only" ? null : (f.price ? Number(f.price) : null),
@@ -216,21 +239,32 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
         estimated_duration: f.type === "service" && f.estimated_duration ? f.estimated_duration : null,
         delivery_mode: f.type === "training" && f.delivery_mode ? (f.delivery_mode as "in_person" | "online" | "hybrid") : null,
       };
-      if (isNew) {
-        const { error } = await supabase.from("products").insert(payload);
+      if (!productId) {
+        const { data, error } = await supabase.from("products").insert(payload).select("id").single();
         if (error) throw error;
+        return { createdId: data.id as string };
+      }
+      const { error } = await supabase.from("products").update(payload).eq("id", productId);
+      if (error) throw error;
+      return { createdId: null };
+    },
+    onSuccess: (res) => {
+      qcInner.invalidateQueries({ queryKey: ["vendor-products"] });
+      if (res.createdId) {
+        setCreatedId(res.createdId);
+        toast.success("Produit créé — vous pouvez maintenant ajouter des variantes.");
       } else {
-        const { error } = await supabase.from("products").update(payload).eq("id", row!.id);
-        if (error) throw error;
+        toast.success("Produit mis à jour");
+        onSaved();
       }
     },
-    onSuccess: () => { toast.success(isNew ? "Produit créé" : "Produit mis à jour"); onSaved(); },
     onError: (e: Error) => toast.error(e.message),
   });
 
+
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{isNew ? "Nouveau produit" : `Modifier : ${row?.name}`}</DialogTitle></DialogHeader>
         <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
@@ -245,7 +279,7 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
           <div className="grid gap-3 sm:grid-cols-3">
             <div>
               <Label>Type *</Label>
-              <Select value={f.type} onValueChange={(v) => setF({ ...f, type: v as ProductType })}>
+              <Select value={f.type} onValueChange={(v) => setF({ ...f, type: v as ProductType, category_id: "" })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {(Object.keys(PRODUCT_TYPE_LABELS) as ProductType[]).map((t) => (
@@ -274,15 +308,42 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
             </div>
           </div>
 
+          <div>
+            <Label>Catégorie *</Label>
+            <Select value={f.category_id} onValueChange={(v) => setF({ ...f, category_id: v })}>
+              <SelectTrigger><SelectValue placeholder="Choisir une catégorie..." /></SelectTrigger>
+              <SelectContent>
+                {categories.filter((c) => c.product_type === f.type).map((c) => {
+                  const parent = c.parent_id ? categories.find((p) => p.id === c.parent_id) : null;
+                  return (
+                    <SelectItem key={c.id} value={c.id}>
+                      {parent ? `${parent.name} › ${c.name}` : c.name}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+            {!f.category_id && (
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Obligatoire — permet de classer et de rendre votre produit trouvable.
+              </p>
+            )}
+          </div>
+
           <div><Label>Description courte</Label><Input value={f.short_description} onChange={(e) => setF({ ...f, short_description: e.target.value })} /></div>
           <div><Label>Description complète</Label><Textarea rows={4} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></div>
           <ImageGalleryManager value={f.images} onChange={(next) => setF({ ...f, images: next })} />
 
-          {!isNew && row && (f.type === "physical" || f.type === "digital") && (
+          {productId && (f.type === "physical" || f.type === "digital") ? (
             <div className="rounded-sm border border-border bg-muted/20 p-3">
-              <VariantsManager productId={row.id} />
+              <VariantsManager productId={productId} />
             </div>
-          )}
+          ) : (f.type === "physical" || f.type === "digital") ? (
+            <div className="rounded-sm border border-dashed border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+              Enregistrez d'abord le produit pour ajouter des variantes (taille, couleur, capacité…).
+            </div>
+          ) : null}
+
 
           <div className="grid gap-3 sm:grid-cols-3">
             <div>
@@ -371,8 +432,8 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
           )}
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>Annuler</Button>
-            <Button type="submit" disabled={save.isPending}>{save.isPending ? "..." : "Enregistrer"}</Button>
+            <Button type="button" variant="outline" onClick={onClose}>{isNew ? "Annuler" : "Fermer"}</Button>
+            <Button type="submit" disabled={save.isPending}>{save.isPending ? "..." : isNew ? "Créer le produit" : "Enregistrer"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
