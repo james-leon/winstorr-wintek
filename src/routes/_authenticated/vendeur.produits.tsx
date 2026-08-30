@@ -264,7 +264,7 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{isNew ? "Nouveau produit" : `Modifier : ${row?.name}`}</DialogTitle></DialogHeader>
         <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
@@ -279,7 +279,7 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
           <div className="grid gap-3 sm:grid-cols-3">
             <div>
               <Label>Type *</Label>
-              <Select value={f.type} onValueChange={(v) => setF({ ...f, type: v as ProductType })}>
+              <Select value={f.type} onValueChange={(v) => setF({ ...f, type: v as ProductType, category_id: "" })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {(Object.keys(PRODUCT_TYPE_LABELS) as ProductType[]).map((t) => (
@@ -432,8 +432,8 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
           )}
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>Annuler</Button>
-            <Button type="submit" disabled={save.isPending}>{save.isPending ? "..." : "Enregistrer"}</Button>
+            <Button type="button" variant="outline" onClick={onClose}>{isNew ? "Annuler" : "Fermer"}</Button>
+            <Button type="submit" disabled={save.isPending}>{save.isPending ? "..." : isNew ? "Créer le produit" : "Enregistrer"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
