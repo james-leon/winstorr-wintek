@@ -308,15 +308,42 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
             </div>
           </div>
 
+          <div>
+            <Label>Catégorie *</Label>
+            <Select value={f.category_id} onValueChange={(v) => setF({ ...f, category_id: v })}>
+              <SelectTrigger><SelectValue placeholder="Choisir une catégorie..." /></SelectTrigger>
+              <SelectContent>
+                {categories.filter((c) => c.product_type === f.type).map((c) => {
+                  const parent = c.parent_id ? categories.find((p) => p.id === c.parent_id) : null;
+                  return (
+                    <SelectItem key={c.id} value={c.id}>
+                      {parent ? `${parent.name} › ${c.name}` : c.name}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+            {!f.category_id && (
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Obligatoire — permet de classer et de rendre votre produit trouvable.
+              </p>
+            )}
+          </div>
+
           <div><Label>Description courte</Label><Input value={f.short_description} onChange={(e) => setF({ ...f, short_description: e.target.value })} /></div>
           <div><Label>Description complète</Label><Textarea rows={4} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></div>
           <ImageGalleryManager value={f.images} onChange={(next) => setF({ ...f, images: next })} />
 
-          {!isNew && row && (f.type === "physical" || f.type === "digital") && (
+          {productId && (f.type === "physical" || f.type === "digital") ? (
             <div className="rounded-sm border border-border bg-muted/20 p-3">
-              <VariantsManager productId={row.id} />
+              <VariantsManager productId={productId} />
             </div>
-          )}
+          ) : (f.type === "physical" || f.type === "digital") ? (
+            <div className="rounded-sm border border-dashed border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+              Enregistrez d'abord le produit pour ajouter des variantes (taille, couleur, capacité…).
+            </div>
+          ) : null}
+
 
           <div className="grid gap-3 sm:grid-cols-3">
             <div>
