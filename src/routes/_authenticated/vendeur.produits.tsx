@@ -200,6 +200,8 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
         short_description: data.short_description ?? "",
         description: data.description ?? "",
         images: Array.isArray(data.images) ? (data.images as string[]) : [],
+        category_id: data.category_id ?? "",
+
         warranty_duration: data.warranty_duration ?? "",
         source_type: data.source_type ?? "",
         delivery_type: data.delivery_type ?? "",
