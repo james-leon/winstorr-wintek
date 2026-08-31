@@ -191,10 +191,15 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
   });
 
 
+  const loadedRef = useRef<string | null>(null);
   useEffect(() => {
     if (!row) return;
     supabase.from("products").select("*").eq("id", row.id).maybeSingle().then(({ data }) => {
       if (!data) return;
+      // Ne charger les valeurs distantes qu'une seule fois par produit,
+      // pour ne jamais écraser les modifications en cours (ex. images).
+      if (loadedRef.current === row.id) return;
+      loadedRef.current = row.id;
       setF((prev) => ({
         ...prev,
         short_description: data.short_description ?? "",
@@ -212,6 +217,7 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
       }));
     });
   }, [row]);
+
 
   const qcInner = useQueryClient();
   const save = useMutation({

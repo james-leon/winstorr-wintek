@@ -79,13 +79,14 @@ export function ImageGalleryManager({ value, onChange }: Props) {
   const makeCover = (i: number) => move(i, 0);
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between gap-2">
+    <div className="min-w-0 space-y-2">
+      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
         <Label>Images du produit</Label>
         <span className="text-xs text-muted-foreground">
           {value.length} image{value.length > 1 ? "s" : ""} · 1ʳᵉ = couverture
         </span>
       </div>
+
 
       <div
         onDragOver={(e) => {
