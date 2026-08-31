@@ -264,10 +264,11 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>{isNew ? "Nouveau produit" : `Modifier : ${row?.name}`}</DialogTitle></DialogHeader>
-        <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="space-y-3">
-          <div className="grid gap-3 sm:grid-cols-2">
+      <DialogContent className="w-[calc(100vw-1rem)] max-w-2xl max-h-[92vh] overflow-y-auto overflow-x-hidden p-4 sm:p-6">
+        <DialogHeader><DialogTitle className="pr-8 text-base sm:text-lg">{isNew ? "Nouveau produit" : `Modifier : ${row?.name}`}</DialogTitle></DialogHeader>
+        <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="min-w-0 space-y-3">
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+
             <div><Label>Nom *</Label><Input required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value, slug: isNew && !f.slug ? slugify(e.target.value) : f.slug })} /></div>
             <div><Label>Slug *</Label><Input required value={f.slug} onChange={(e) => setF({ ...f, slug: slugify(e.target.value) })} /></div>
           </div>
@@ -276,7 +277,8 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
             Le badge « Qualité vérifiée » est attribué par l'équipe Wintek — non modifiable depuis l'espace vendeur.
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
+
             <div>
               <Label>Type *</Label>
               <Select value={f.type} onValueChange={(v) => setF({ ...f, type: v as ProductType, category_id: "" })}>
@@ -335,7 +337,7 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
           <ImageGalleryManager value={f.images} onChange={(next) => setF({ ...f, images: next })} />
 
           {productId && (f.type === "physical" || f.type === "digital") ? (
-            <div className="rounded-sm border border-border bg-muted/20 p-3">
+            <div className="min-w-0 overflow-x-hidden rounded-sm border border-border bg-muted/20 p-2 sm:p-3">
               <VariantsManager productId={productId} />
             </div>
           ) : (f.type === "physical" || f.type === "digital") ? (
@@ -345,7 +347,8 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
           ) : null}
 
 
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
+
             <div>
               <Label>Type de prix</Label>
               <Select value={f.price_type} onValueChange={(v) => setF({ ...f, price_type: v as "fixed" | "starting_at" | "quote_only" })}>
@@ -370,7 +373,8 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
           </div>
 
           {f.type === "physical" && (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+
               <div><Label>Garantie</Label><Input value={f.warranty_duration} onChange={(e) => setF({ ...f, warranty_duration: e.target.value })} placeholder="ex : 12 mois" /></div>
               <div>
                 <Label>Origine</Label>
@@ -401,7 +405,7 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
             </div>
           )}
           {f.type === "service" && (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <Label>Zone de service</Label>
                 <Select value={f.service_area} onValueChange={(v) => setF({ ...f, service_area: v })}>
@@ -431,10 +435,11 @@ function VendorProductDialog({ row, vendorId, onClose, onSaved }: { row: Row | n
             </div>
           )}
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>{isNew ? "Annuler" : "Fermer"}</Button>
-            <Button type="submit" disabled={save.isPending}>{save.isPending ? "..." : isNew ? "Créer le produit" : "Enregistrer"}</Button>
+          <DialogFooter className="gap-2 pt-2">
+            <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={onClose}>{isNew ? "Annuler" : "Fermer"}</Button>
+            <Button type="submit" className="w-full sm:w-auto" disabled={save.isPending}>{save.isPending ? "..." : isNew ? "Créer le produit" : "Enregistrer"}</Button>
           </DialogFooter>
+
         </form>
       </DialogContent>
     </Dialog>
