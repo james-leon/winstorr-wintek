@@ -157,18 +157,19 @@ export function VariantsManager({ productId }: { productId: string }) {
   const current = drafts[0];
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div>
+    <div className="min-w-0 space-y-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <Label className="text-sm font-semibold">Variantes</Label>
           <p className="text-xs text-muted-foreground">
             Ex : Contenance 1L / 0.5L, Taille 42/43/44, Couleur… Chaque variante a son prix, stock et image.
           </p>
         </div>
-        <Button type="button" size="sm" variant="outline" onClick={startNew} disabled={openId !== null}>
+        <Button type="button" size="sm" variant="outline" className="w-full shrink-0 sm:w-auto" onClick={startNew} disabled={openId !== null}>
           <Plus className="mr-1 h-3.5 w-3.5" /> Ajouter une variante
         </Button>
       </div>
+
 
       {isLoading ? (
         <SkeletonListRows rows={3} />
