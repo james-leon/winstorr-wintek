@@ -138,7 +138,7 @@ export function ImageGalleryManager({ value, onChange }: Props) {
       )}
 
       {value.length > 0 && (
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-5">
           {value.map((src, i) => (
             <div
               key={`${i}-${src}`}
@@ -150,7 +150,7 @@ export function ImageGalleryManager({ value, onChange }: Props) {
                 dragIdx.current = null;
               }}
               className={cn(
-                "group relative overflow-hidden rounded-sm border bg-muted",
+                "group relative min-w-0 overflow-hidden rounded-sm border bg-muted",
                 i === 0 ? "border-secondary ring-1 ring-secondary/40" : "border-border",
               )}
             >
@@ -169,53 +169,54 @@ export function ImageGalleryManager({ value, onChange }: Props) {
                   Couverture
                 </span>
               )}
-              <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-0.5 bg-background/85 p-1 opacity-0 backdrop-blur transition group-hover:opacity-100">
+              <button
+                type="button"
+                aria-label={`Supprimer l'image ${i + 1}`}
+                onClick={() => remove(i)}
+                className="absolute right-1 top-1 grid h-8 w-8 place-items-center rounded-full bg-background/90 text-destructive shadow ring-1 ring-border transition hover:bg-destructive/10"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+              <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-0.5 bg-background/90 p-1 backdrop-blur transition">
                 <div className="flex gap-0.5">
                   <button
                     type="button"
                     aria-label="Déplacer vers la gauche"
                     onClick={() => move(i, i - 1)}
                     disabled={i === 0}
-                    className="rounded p-1 hover:bg-muted disabled:opacity-30"
+                    className="grid h-8 w-8 place-items-center rounded hover:bg-muted disabled:opacity-30"
                   >
-                    <ArrowLeft className="h-3.5 w-3.5" />
+                    <ArrowLeft className="h-4 w-4" />
                   </button>
                   <button
                     type="button"
                     aria-label="Déplacer vers la droite"
                     onClick={() => move(i, i + 1)}
                     disabled={i === value.length - 1}
-                    className="rounded p-1 hover:bg-muted disabled:opacity-30"
+                    className="grid h-8 w-8 place-items-center rounded hover:bg-muted disabled:opacity-30"
                   >
-                    <ArrowRight className="h-3.5 w-3.5" />
+                    <ArrowRight className="h-4 w-4" />
                   </button>
-                  {i !== 0 && (
-                    <button
-                      type="button"
-                      aria-label="Définir comme couverture"
-                      onClick={() => makeCover(i)}
-                      className="rounded p-1 hover:bg-muted"
-                    >
-                      <Star className="h-3.5 w-3.5" />
-                    </button>
-                  )}
                 </div>
-                <button
-                  type="button"
-                  aria-label="Supprimer"
-                  onClick={() => remove(i)}
-                  className="rounded p-1 text-destructive hover:bg-destructive/10"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
+                {i !== 0 && (
+                  <button
+                    type="button"
+                    aria-label="Définir comme couverture"
+                    onClick={() => makeCover(i)}
+                    className="grid h-8 w-8 place-items-center rounded hover:bg-muted"
+                  >
+                    <Star className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             </div>
           ))}
         </div>
       )}
 
-      <div className="flex items-end gap-2 pt-1">
-        <div className="flex-1">
+
+      <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:items-end">
+        <div className="min-w-0 flex-1">
           <Label className="text-xs text-muted-foreground">Ou coller une URL externe (une par ligne)</Label>
           <div className="relative">
             <LinkIcon className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -228,15 +229,16 @@ export function ImageGalleryManager({ value, onChange }: Props) {
                   add();
                 }
               }}
-              placeholder="https://... https://..."
-              className="pl-7"
+              placeholder="https://..."
+              className="w-full pl-7"
             />
           </div>
         </div>
-        <Button type="button" onClick={add} disabled={!urlInput.trim()}>
+        <Button type="button" className="w-full sm:w-auto" onClick={add} disabled={!urlInput.trim()}>
           <Plus className="mr-1 h-4 w-4" /> Ajouter
         </Button>
       </div>
+
 
       {value.length > 0 && value.length < 3 && (
         <p className="text-xs text-muted-foreground">
