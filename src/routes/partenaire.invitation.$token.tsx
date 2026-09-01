@@ -26,6 +26,11 @@ function PartnerInvitationPage() {
   const { token } = Route.useParams();
   const { user, loading: authLoading } = useAuth();
   const nav = useNavigate();
+  const autoTried = useRef(false);
+
+  useEffect(() => {
+    rememberPendingInvitation("partner", token);
+  }, [token]);
 
   const { data: inv, isLoading } = useQuery({
     queryKey: ["financing-partner-invitation", token],
@@ -45,11 +50,21 @@ function PartnerInvitationPage() {
       return result;
     },
     onSuccess: () => {
+      clearPendingInvitation();
       toast.success("Invitation acceptée");
       void nav({ to: "/partenaire/tableau-de-bord" });
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const acceptMutate = accept.mutate;
+  const canAutoAccept = !!user && !!inv && inv.status === "pending";
+  useEffect(() => {
+    if (!canAutoAccept || autoTried.current) return;
+    autoTried.current = true;
+    acceptMutate();
+  }, [canAutoAccept, acceptMutate]);
+
 
   if (isLoading || authLoading) {
     return <div className="mx-auto max-w-lg p-8 text-center text-muted-foreground">Chargement…</div>;
