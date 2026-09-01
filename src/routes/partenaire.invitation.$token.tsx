@@ -1,9 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
+import { rememberPendingInvitation, clearPendingInvitation } from "@/lib/pending-invitation";
+
 
 export const Route = createFileRoute("/partenaire/invitation/$token")({
   component: PartnerInvitationPage,
