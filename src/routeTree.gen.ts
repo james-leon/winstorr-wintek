@@ -66,6 +66,7 @@ import { Route as AuthenticatedMonCompteCommandesRouteImport } from './routes/_a
 import { Route as AuthenticatedMonCompteAdressesRouteImport } from './routes/_authenticated/mon-compte.adresses'
 import { Route as AuthenticatedAdminVendeursRouteImport } from './routes/_authenticated/admin.vendeurs'
 import { Route as AuthenticatedAdminSessionsRouteImport } from './routes/_authenticated/admin.sessions'
+import { Route as AuthenticatedAdminReversementsRouteImport } from './routes/_authenticated/admin.reversements'
 import { Route as AuthenticatedAdminRetraitsRouteImport } from './routes/_authenticated/admin.retraits'
 import { Route as AuthenticatedAdminRetoursRouteImport } from './routes/_authenticated/admin.retours'
 import { Route as AuthenticatedAdminQuestionsRouteImport } from './routes/_authenticated/admin.questions'
@@ -390,6 +391,12 @@ const AuthenticatedAdminSessionsRoute =
     path: '/sessions',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminReversementsRoute =
+  AuthenticatedAdminReversementsRouteImport.update({
+    id: '/reversements',
+    path: '/reversements',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminRetraitsRoute =
   AuthenticatedAdminRetraitsRouteImport.update({
     id: '/retraits',
@@ -557,6 +564,7 @@ export interface FileRoutesByFullPath {
   '/admin/questions': typeof AuthenticatedAdminQuestionsRoute
   '/admin/retours': typeof AuthenticatedAdminRetoursRoute
   '/admin/retraits': typeof AuthenticatedAdminRetraitsRoute
+  '/admin/reversements': typeof AuthenticatedAdminReversementsRoute
   '/admin/sessions': typeof AuthenticatedAdminSessionsRoute
   '/admin/vendeurs': typeof AuthenticatedAdminVendeursRoute
   '/mon-compte/adresses': typeof AuthenticatedMonCompteAdressesRoute
@@ -632,6 +640,7 @@ export interface FileRoutesByTo {
   '/admin/questions': typeof AuthenticatedAdminQuestionsRoute
   '/admin/retours': typeof AuthenticatedAdminRetoursRoute
   '/admin/retraits': typeof AuthenticatedAdminRetraitsRoute
+  '/admin/reversements': typeof AuthenticatedAdminReversementsRoute
   '/admin/sessions': typeof AuthenticatedAdminSessionsRoute
   '/admin/vendeurs': typeof AuthenticatedAdminVendeursRoute
   '/mon-compte/adresses': typeof AuthenticatedMonCompteAdressesRoute
@@ -711,6 +720,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/questions': typeof AuthenticatedAdminQuestionsRoute
   '/_authenticated/admin/retours': typeof AuthenticatedAdminRetoursRoute
   '/_authenticated/admin/retraits': typeof AuthenticatedAdminRetraitsRoute
+  '/_authenticated/admin/reversements': typeof AuthenticatedAdminReversementsRoute
   '/_authenticated/admin/sessions': typeof AuthenticatedAdminSessionsRoute
   '/_authenticated/admin/vendeurs': typeof AuthenticatedAdminVendeursRoute
   '/_authenticated/mon-compte/adresses': typeof AuthenticatedMonCompteAdressesRoute
@@ -790,6 +800,7 @@ export interface FileRouteTypes {
     | '/admin/questions'
     | '/admin/retours'
     | '/admin/retraits'
+    | '/admin/reversements'
     | '/admin/sessions'
     | '/admin/vendeurs'
     | '/mon-compte/adresses'
@@ -865,6 +876,7 @@ export interface FileRouteTypes {
     | '/admin/questions'
     | '/admin/retours'
     | '/admin/retraits'
+    | '/admin/reversements'
     | '/admin/sessions'
     | '/admin/vendeurs'
     | '/mon-compte/adresses'
@@ -943,6 +955,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/questions'
     | '/_authenticated/admin/retours'
     | '/_authenticated/admin/retraits'
+    | '/_authenticated/admin/reversements'
     | '/_authenticated/admin/sessions'
     | '/_authenticated/admin/vendeurs'
     | '/_authenticated/mon-compte/adresses'
@@ -1406,6 +1419,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminSessionsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/reversements': {
+      id: '/_authenticated/admin/reversements'
+      path: '/reversements'
+      fullPath: '/admin/reversements'
+      preLoaderRoute: typeof AuthenticatedAdminReversementsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/retraits': {
       id: '/_authenticated/admin/retraits'
       path: '/retraits'
@@ -1561,6 +1581,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminQuestionsRoute: typeof AuthenticatedAdminQuestionsRoute
   AuthenticatedAdminRetoursRoute: typeof AuthenticatedAdminRetoursRoute
   AuthenticatedAdminRetraitsRoute: typeof AuthenticatedAdminRetraitsRoute
+  AuthenticatedAdminReversementsRoute: typeof AuthenticatedAdminReversementsRoute
   AuthenticatedAdminSessionsRoute: typeof AuthenticatedAdminSessionsRoute
   AuthenticatedAdminVendeursRoute: typeof AuthenticatedAdminVendeursRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
@@ -1588,6 +1609,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminQuestionsRoute: AuthenticatedAdminQuestionsRoute,
   AuthenticatedAdminRetoursRoute: AuthenticatedAdminRetoursRoute,
   AuthenticatedAdminRetraitsRoute: AuthenticatedAdminRetraitsRoute,
+  AuthenticatedAdminReversementsRoute: AuthenticatedAdminReversementsRoute,
   AuthenticatedAdminSessionsRoute: AuthenticatedAdminSessionsRoute,
   AuthenticatedAdminVendeursRoute: AuthenticatedAdminVendeursRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
