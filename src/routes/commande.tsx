@@ -399,7 +399,7 @@ function CheckoutPage() {
                       <Input value={shipPhone} onChange={(e) => setShipPhone(e.target.value)} placeholder={t("delivery.phoneHint")} />
                     </div>
                     <div className="sm:col-span-2 min-w-0">
-                      <Label>{t("delivery.landmark")} *</Label>
+                      <Label>{t("delivery.landmark")}</Label>
                       <Textarea value={landmark} onChange={(e) => setLandmark(e.target.value)} rows={2} placeholder={t("delivery.landmarkPlaceholder")} />
                     </div>
                     <div className="sm:col-span-2 min-w-0">
