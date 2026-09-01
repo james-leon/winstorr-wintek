@@ -364,37 +364,26 @@ function CheckoutPage() {
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="min-w-0">
                       <Label>{t("delivery.city")}</Label>
-                      <Input value={zone?.city ?? "Douala"} readOnly className="mt-1 bg-muted" />
-                    </div>
-                    <div className="min-w-0">
-                      <Label>{t("delivery.zone")} *</Label>
-                      <select
-                        className="mt-1 h-9 w-full rounded-sm border border-input bg-background px-3 text-sm"
-                        value={zoneId}
-                        onChange={(e) => { setZoneId(e.target.value); setQuartier(""); }}
-                      >
-                        {zones.map((z) => (
-                          <option key={z.id} value={z.id}>{z.name} — {formatFcfa(z.fee)}</option>
-                        ))}
-                      </select>
+                      <Input value={zones[0]?.city ?? "Douala"} readOnly className="mt-1 bg-muted" />
                     </div>
                     <div className="min-w-0">
                       <Label>{t("delivery.quartier")} *</Label>
                       <select
                         className="mt-1 h-9 w-full rounded-sm border border-input bg-background px-3 text-sm"
-                        value={zone && zone.quartiers.includes(quartier) ? quartier : "__other__"}
-                        onChange={(e) => setQuartier(e.target.value === "__other__" ? "" : e.target.value)}
+                        value={quartier}
+                        onChange={(e) => setQuartier(e.target.value)}
                       >
-                        <option value="__other__">{t("delivery.otherQuartier")}</option>
-                        {(zone?.quartiers ?? []).map((q) => <option key={q} value={q}>{q}</option>)}
+                        <option value="" disabled>{t("delivery.quartierPlaceholder")}</option>
+                        {quartierOptions.map((o) => (
+                          <option key={o.quartier} value={o.quartier}>
+                            {o.quartier} — {formatFcfa(o.zone.fee)}
+                          </option>
+                        ))}
                       </select>
-                      {!(zone && zone.quartiers.includes(quartier)) && (
-                        <Input
-                          className="mt-2"
-                          value={quartier}
-                          onChange={(e) => setQuartier(e.target.value)}
-                          placeholder={t("delivery.quartierPlaceholder")}
-                        />
+                      {zone && (
+                        <p className="mt-1.5 text-xs font-medium text-secondary">
+                          {t("delivery.feeAtQuartier", { quartier, fee: formatFcfa(resolveDeliveryFee(zone, subtotal, homeDelivery)) })}
+                        </p>
                       )}
                     </div>
                     <div className="min-w-0">
