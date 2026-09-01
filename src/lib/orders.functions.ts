@@ -15,6 +15,8 @@ const addressSchema = z.object({
   ville: z.enum(["douala", "yaounde", "autre"]),
   quartier: z.string().min(2).max(120),
   landmark: z.string().max(300).optional().nullable(),
+  instructions: z.string().max(500).optional().nullable(),
+  zone_name: z.string().max(120).optional().nullable(),
 });
 
 const checkoutSchema = z.object({
@@ -28,6 +30,7 @@ const checkoutSchema = z.object({
   couponCode: z.string().trim().min(1).max(60).optional().nullable(),
   delivery_mode: z.enum(["home_delivery", "pickup", "none"]).default("home_delivery"),
   pickup_point_id: z.string().uuid().nullable().optional(),
+  delivery_zone_id: z.string().uuid().nullable().optional(),
   payment_method: z.enum(["cinetpay", "cash_on_pickup"]).default("cinetpay"),
 });
 
@@ -180,15 +183,31 @@ export const createOrder = createServerFn({ method: "POST" })
     }
 
     let shipping = 0;
+    let zoneId: string | null = null;
+    let courier: string | null = null;
     if (hasPhysical && deliveryMode === "home_delivery") {
-      const { data: setting } = await supabaseAdmin
+      const { data: hdSetting } = await supabaseAdmin
         .from("app_settings")
         .select("value")
-        .eq("key", "shipping_fees")
+        .eq("key", "home_delivery")
         .maybeSingle();
-      const fees = (setting?.value ?? {}) as Record<string, number>;
-      const city = data.shipping_address?.ville ?? "autre";
-      shipping = Number(fees[city] ?? fees.autre ?? 0);
+      const hd = (hdSetting?.value ?? {}) as {
+        enabled?: boolean;
+        free_shipping_threshold?: number | null;
+      };
+      if (hd.enabled === false) throw new Error("La livraison à domicile est momentanément indisponible.");
+
+      if (!data.delivery_zone_id) throw new Error("Zone de livraison requise.");
+      const { data: zone } = await supabaseAdmin
+        .from("delivery_zones")
+        .select("id, name, fee, is_active")
+        .eq("id", data.delivery_zone_id)
+        .maybeSingle();
+      if (!zone || !zone.is_active) throw new Error("Zone de livraison invalide.");
+      zoneId = zone.id;
+      const threshold = hd.free_shipping_threshold;
+      shipping = threshold != null && threshold > 0 && subtotal >= threshold ? 0 : Number(zone.fee);
+      courier = "intello";
     }
     const total_before_discount = subtotal + shipping;
 
@@ -240,6 +259,8 @@ export const createOrder = createServerFn({ method: "POST" })
         shipping_address: deliveryMode === "home_delivery" ? (data.shipping_address ?? null) : null,
         delivery_mode: deliveryMode,
         pickup_point_id: deliveryMode === "pickup" ? (data.pickup_point_id ?? null) : null,
+        delivery_zone_id: zoneId,
+        courier,
         payment_method: isCash ? "cash_on_pickup" : null,
       })
       .select("id, order_number")

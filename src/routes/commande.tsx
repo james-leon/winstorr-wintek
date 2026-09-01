@@ -3,7 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ShieldCheck, MapPin, Home, Store, CreditCard, Wallet } from "lucide-react";
+import { ShieldCheck, MapPin, Truck, Store, CreditCard, Wallet, Clock } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { useDeliveryZones, useHomeDeliverySettings, resolveDeliveryFee } from "@/lib/delivery";
 import { useCart } from "@/lib/cart-context";
 import { useAuth } from "@/lib/auth-context";
 import { formatFcfa } from "@/lib/format";
@@ -13,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createOrder, initiatePayment } from "@/lib/orders.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { CITIES, SHIPPING_TABLE, type CityValue } from "@/lib/address";
+import { type CityValue } from "@/lib/address";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/commande")({
@@ -62,9 +64,30 @@ function CheckoutPage() {
   const [shipPhone, setShipPhone] = useState("");
   const [selectedAddrId, setSelectedAddrId] = useState<string>("new");
 
+  const [instructions, setInstructions] = useState("");
+
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>("home_delivery");
   const [pickupPointId, setPickupPointId] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash_on_pickup");
+
+  const { t } = useTranslation();
+  const { data: homeDelivery } = useHomeDeliverySettings();
+  const { data: zones = [] } = useDeliveryZones();
+  const homeDeliveryEnabled = (homeDelivery?.enabled ?? false) && zones.length > 0;
+  const [zoneId, setZoneId] = useState<string>("");
+  const zone = zones.find((z) => z.id === zoneId) ?? null;
+  const minZoneFee = zones.length ? Math.min(...zones.map((z) => z.fee)) : 0;
+
+  useEffect(() => {
+    if (!zoneId && zones.length > 0) setZoneId(zones[0].id);
+  }, [zones, zoneId]);
+
+  // Fall back to pickup when the courier service is off.
+  useEffect(() => {
+    if (!homeDeliveryEnabled && deliveryMode === "home_delivery" && homeDelivery) {
+      setDeliveryMode("pickup");
+    }
+  }, [homeDeliveryEnabled, deliveryMode, homeDelivery]);
 
   // Feature flags
   const { data: pmFlags } = useQuery({
@@ -143,7 +166,8 @@ function CheckoutPage() {
     if (a) applyAddress(a);
   }
 
-  const shipping = hasPhysical && deliveryMode === "home_delivery" ? SHIPPING_TABLE[ville] : 0;
+  const shipping =
+    hasPhysical && deliveryMode === "home_delivery" ? resolveDeliveryFee(zone, subtotal, homeDelivery) : 0;
   const total = Math.max(0, subtotal + shipping - discount);
 
   const mut = useMutation({
@@ -158,11 +182,20 @@ function CheckoutPage() {
           contact: { name, phone, email: email || null },
           shipping_address:
             hasPhysical && deliveryMode === "home_delivery"
-              ? { full_name: name, phone: shipPhone || phone, ville, quartier, landmark: landmark || null }
+              ? {
+                  full_name: name,
+                  phone: shipPhone || phone,
+                  ville,
+                  quartier,
+                  landmark: landmark || null,
+                  instructions: instructions || null,
+                  zone_name: zone?.name ?? null,
+                }
               : null,
           couponCode: coupon?.code ?? null,
           delivery_mode: hasPhysical ? deliveryMode : "none",
           pickup_point_id: deliveryMode === "pickup" ? pickupPointId : null,
+          delivery_zone_id: deliveryMode === "home_delivery" ? zoneId || null : null,
           payment_method: paymentMethod,
         },
       });
@@ -196,8 +229,8 @@ function CheckoutPage() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !phone.trim()) { toast.error("Nom et téléphone requis."); return; }
-    if (hasPhysical && deliveryMode === "home_delivery" && !quartier.trim()) {
-      toast.error("Adresse de livraison requise."); return;
+    if (hasPhysical && deliveryMode === "home_delivery" && (!quartier.trim() || !zoneId)) {
+      toast.error(t("delivery.addressRequired")); return;
     }
     if (hasPhysical && deliveryMode === "pickup" && !pickupPointId) {
       toast.error("Sélectionnez un point de retrait."); return;
@@ -242,15 +275,18 @@ function CheckoutPage() {
                 <button
                   type="button"
                   onClick={() => setDeliveryMode("home_delivery")}
+                  disabled={!homeDeliveryEnabled}
                   className={cn(
-                    "flex items-start gap-3 rounded-sm border p-3 text-left transition",
+                    "flex items-start gap-3 rounded-sm border p-3 text-left transition disabled:opacity-50",
                     deliveryMode === "home_delivery" ? "border-secondary bg-secondary/5 ring-1 ring-secondary" : "border-border hover:bg-muted",
                   )}
                 >
-                  <Home className="mt-0.5 h-5 w-5 text-secondary" />
-                  <div>
-                    <div className="font-medium text-sm">Livraison à domicile</div>
-                    <div className="text-xs text-muted-foreground">2 000 – 3 500 FCFA selon la ville</div>
+                  <Truck className="mt-0.5 h-5 w-5 shrink-0 text-secondary" />
+                  <div className="min-w-0">
+                    <div className="font-medium text-sm">{t("delivery.homeDelivery")}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {homeDelivery?.courier_name ?? "Intello Express"} · {t("delivery.feeFrom", { fee: formatFcfa(minZoneFee) })}
+                    </div>
                   </div>
                 </button>
                 <button
@@ -323,28 +359,67 @@ function CheckoutPage() {
                     </div>
                   )}
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <div>
-                      <Label>Ville *</Label>
+                    <div className="min-w-0">
+                      <Label>{t("delivery.city")}</Label>
+                      <Input value={zone?.city ?? "Douala"} readOnly className="mt-1 bg-muted" />
+                    </div>
+                    <div className="min-w-0">
+                      <Label>{t("delivery.zone")} *</Label>
                       <select
                         className="mt-1 h-9 w-full rounded-sm border border-input bg-background px-3 text-sm"
-                        value={ville}
-                        onChange={(e) => setVille(e.target.value as CityValue)}
+                        value={zoneId}
+                        onChange={(e) => { setZoneId(e.target.value); setQuartier(""); }}
                       >
-                        {CITIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                        {zones.map((z) => (
+                          <option key={z.id} value={z.id}>{z.name} — {formatFcfa(z.fee)}</option>
+                        ))}
                       </select>
                     </div>
-                    <div>
-                      <Label>Quartier *</Label>
-                      <Input value={quartier} onChange={(e) => setQuartier(e.target.value)} required={deliveryMode === "home_delivery"} />
+                    <div className="min-w-0">
+                      <Label>{t("delivery.quartier")} *</Label>
+                      <select
+                        className="mt-1 h-9 w-full rounded-sm border border-input bg-background px-3 text-sm"
+                        value={zone && zone.quartiers.includes(quartier) ? quartier : "__other__"}
+                        onChange={(e) => setQuartier(e.target.value === "__other__" ? "" : e.target.value)}
+                      >
+                        <option value="__other__">{t("delivery.otherQuartier")}</option>
+                        {(zone?.quartiers ?? []).map((q) => <option key={q} value={q}>{q}</option>)}
+                      </select>
+                      {!(zone && zone.quartiers.includes(quartier)) && (
+                        <Input
+                          className="mt-2"
+                          value={quartier}
+                          onChange={(e) => setQuartier(e.target.value)}
+                          placeholder={t("delivery.quartierPlaceholder")}
+                        />
+                      )}
                     </div>
-                    <div className="sm:col-span-2">
-                      <Label>Point de repère</Label>
-                      <Textarea value={landmark} onChange={(e) => setLandmark(e.target.value)} rows={2} placeholder="Ex : en face de la pharmacie du carrefour" />
+                    <div className="min-w-0">
+                      <Label>{t("delivery.phone")}</Label>
+                      <Input value={shipPhone} onChange={(e) => setShipPhone(e.target.value)} placeholder={t("delivery.phoneHint")} />
                     </div>
-                    <div className="sm:col-span-2">
-                      <Label>Téléphone pour la livraison</Label>
-                      <Input value={shipPhone} onChange={(e) => setShipPhone(e.target.value)} placeholder="Laisser vide pour utiliser le contact ci-dessus" />
+                    <div className="sm:col-span-2 min-w-0">
+                      <Label>{t("delivery.landmark")} *</Label>
+                      <Textarea value={landmark} onChange={(e) => setLandmark(e.target.value)} rows={2} placeholder={t("delivery.landmarkPlaceholder")} />
                     </div>
+                    <div className="sm:col-span-2 min-w-0">
+                      <Label>{t("delivery.instructions")}</Label>
+                      <Textarea value={instructions} onChange={(e) => setInstructions(e.target.value)} rows={2} placeholder={t("delivery.instructionsPlaceholder")} />
+                    </div>
+                  </div>
+
+                  <div className="rounded-sm border border-border bg-muted/50 p-3 text-xs space-y-1">
+                    <div className="flex items-center gap-1.5 font-medium text-foreground">
+                      <Clock className="h-3.5 w-3.5 text-secondary" />
+                      {t("delivery.eta", { delay: homeDelivery?.delay_text ?? "sous 24-48h" })}
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-muted-foreground">{t("delivery.feeLabel")}</span>
+                      <span className="font-semibold">
+                        {shipping === 0 ? t("delivery.free") : formatFcfa(shipping)}
+                      </span>
+                    </div>
+                    <p className="text-muted-foreground">{t("delivery.codNotice")}</p>
                   </div>
                 </div>
               )}
@@ -421,7 +496,7 @@ function CheckoutPage() {
               </div>
             )}
             {hasPhysical && deliveryMode === "home_delivery" && (
-              <div className="flex justify-between"><span className="text-muted-foreground">Livraison ({ville})</span><span>{formatFcfa(shipping)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">{t("delivery.feeLabel")}{zone ? ` (${zone.name})` : ""}</span><span>{shipping === 0 ? t("delivery.free") : formatFcfa(shipping)}</span></div>
             )}
             {hasPhysical && deliveryMode === "pickup" && (
               <div className="flex justify-between"><span className="text-muted-foreground">Retrait</span><span className="text-success">Gratuit</span></div>

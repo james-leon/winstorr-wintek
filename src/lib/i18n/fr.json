@@ -250,5 +250,27 @@
     "verificationNote": "Note de vérification",
     "verificationNotePlaceholder": "ex : CNI + registre de commerce",
     "approveAndVerify": "Approuver + Qualité vérifiée"
+  },
+  "delivery": {
+    "homeDelivery": "Livraison à domicile",
+    "pickup": "Retrait en point de retrait",
+    "feeFrom": "à partir de {{fee}}",
+    "city": "Ville",
+    "zone": "Zone de livraison",
+    "quartier": "Quartier",
+    "otherQuartier": "Autre quartier (préciser)",
+    "quartierPlaceholder": "Nom de votre quartier",
+    "landmark": "Point de repère",
+    "landmarkPlaceholder": "Ex : en face de la pharmacie du carrefour",
+    "instructions": "Instructions pour le livreur",
+    "instructionsPlaceholder": "Ex : appeler en arrivant, portail bleu",
+    "phone": "Téléphone pour la livraison",
+    "phoneHint": "Laisser vide pour utiliser le contact ci-dessus",
+    "feeLabel": "Frais de livraison",
+    "free": "Offerte",
+    "eta": "Livraison {{delay}} — 7j/7, 8h à 17h",
+    "codNotice": "Vous payez le livreur à la réception (produit + livraison).",
+    "addressRequired": "Zone et quartier de livraison requis.",
+    "unavailable": "La livraison à domicile est momentanément indisponible."
   }
 }
