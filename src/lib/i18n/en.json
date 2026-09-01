@@ -250,5 +250,27 @@
     "verificationNote": "Verification note",
     "verificationNotePlaceholder": "e.g. ID + business registration",
     "approveAndVerify": "Approve + Quality verified"
+  },
+  "delivery": {
+    "homeDelivery": "Home delivery",
+    "pickup": "Pickup point",
+    "feeFrom": "from {{fee}}",
+    "city": "City",
+    "zone": "Delivery zone",
+    "quartier": "Neighbourhood",
+    "otherQuartier": "Other neighbourhood (specify)",
+    "quartierPlaceholder": "Your neighbourhood",
+    "landmark": "Landmark",
+    "landmarkPlaceholder": "E.g. opposite the pharmacy at the junction",
+    "instructions": "Instructions for the courier",
+    "instructionsPlaceholder": "E.g. call on arrival, blue gate",
+    "phone": "Delivery phone number",
+    "phoneHint": "Leave empty to use the contact above",
+    "feeLabel": "Delivery fee",
+    "free": "Free",
+    "eta": "Delivery {{delay}} — 7 days a week, 8am to 5pm",
+    "codNotice": "You pay the courier on delivery (product + delivery fee).",
+    "addressRequired": "Delivery zone and neighbourhood are required.",
+    "unavailable": "Home delivery is temporarily unavailable."
   }
 }

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import {
   LayoutDashboard, ShoppingCart, Undo2, Wrench, GraduationCap,
   Package, FolderTree, Star, Tag, Store, BarChart3, MapPin, Image, UserPlus,
-  Menu, ChevronDown, CreditCard, Settings,
+  Menu, ChevronDown, CreditCard, Settings, Truck, HandCoins,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useNavigate } from "@tanstack/react-router";
@@ -51,6 +51,8 @@ const NAV_GROUPS: NavGroup[] = [
   ]},
   { label: "Livraison", items: [
     { to: "/admin/points-retrait", label: "Points de retrait", icon: MapPin },
+    { to: "/admin/livraison-domicile", label: "Livraison à domicile", icon: Truck },
+    { to: "/admin/reversements", label: "Reversements coursier", icon: HandCoins },
   ]},
   { label: "Paramètres", items: [
     { to: "/admin/parametres", label: "Paramètres généraux", icon: Settings },

@@ -369,6 +369,42 @@ export type Database = {
           },
         ]
       }
+      delivery_zones: {
+        Row: {
+          city: string
+          created_at: string
+          fee: number
+          id: string
+          is_active: boolean
+          name: string
+          quartiers: string[]
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          city?: string
+          created_at?: string
+          fee?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          quartiers?: string[]
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          city?: string
+          created_at?: string
+          fee?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          quartiers?: string[]
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       financing_partner_invitations: {
         Row: {
           accepted_at: string | null
@@ -847,6 +883,10 @@ export type Database = {
         Row: {
           cinetpay_transaction_id: string | null
           coupon_code: string | null
+          courier: string | null
+          courier_collected_amount: number | null
+          courier_collected_at: string | null
+          courier_remitted_at: string | null
           created_at: string
           currency: string
           customer_email: string | null
@@ -854,6 +894,7 @@ export type Database = {
           customer_name: string
           customer_phone: string
           delivery_mode: string
+          delivery_zone_id: string | null
           discount_amount: number
           has_physical_items: boolean
           id: string
@@ -872,6 +913,10 @@ export type Database = {
         Insert: {
           cinetpay_transaction_id?: string | null
           coupon_code?: string | null
+          courier?: string | null
+          courier_collected_amount?: number | null
+          courier_collected_at?: string | null
+          courier_remitted_at?: string | null
           created_at?: string
           currency?: string
           customer_email?: string | null
@@ -879,6 +924,7 @@ export type Database = {
           customer_name: string
           customer_phone: string
           delivery_mode?: string
+          delivery_zone_id?: string | null
           discount_amount?: number
           has_physical_items?: boolean
           id?: string
@@ -897,6 +943,10 @@ export type Database = {
         Update: {
           cinetpay_transaction_id?: string | null
           coupon_code?: string | null
+          courier?: string | null
+          courier_collected_amount?: number | null
+          courier_collected_at?: string | null
+          courier_remitted_at?: string | null
           created_at?: string
           currency?: string
           customer_email?: string | null
@@ -904,6 +954,7 @@ export type Database = {
           customer_name?: string
           customer_phone?: string
           delivery_mode?: string
+          delivery_zone_id?: string | null
           discount_amount?: number
           has_physical_items?: boolean
           id?: string
@@ -925,6 +976,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_delivery_zone_id_fkey"
+            columns: ["delivery_zone_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_zones"
             referencedColumns: ["id"]
           },
           {
@@ -2116,6 +2174,10 @@ export type Database = {
         Args: { _notes?: string; _order_id: string }
         Returns: Json
       }
+      confirm_courier_delivery: {
+        Args: { _notes?: string; _order_id: string }
+        Returns: Json
+      }
       confirm_order_payment: {
         Args: {
           _method: Database["public"]["Enums"]["payment_method"]
@@ -2261,6 +2323,10 @@ export type Database = {
       is_vendor_member: {
         Args: { _user_id: string; _vendor_id: string }
         Returns: boolean
+      }
+      mark_courier_remitted: {
+        Args: { _order_id: string; _remitted?: boolean }
+        Returns: Json
       }
       order_counts_as_sale: {
         Args: {
