@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -26,7 +26,6 @@ function PartnerInvitationPage() {
   const { token } = Route.useParams();
   const { user, loading: authLoading } = useAuth();
   const nav = useNavigate();
-  const autoTried = useRef(false);
 
   useEffect(() => {
     rememberPendingInvitation("partner", token);
@@ -57,13 +56,8 @@ function PartnerInvitationPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const acceptMutate = accept.mutate;
-  const canAutoAccept = !!user && !!inv && inv.status === "pending";
-  useEffect(() => {
-    if (!canAutoAccept || autoTried.current) return;
-    autoTried.current = true;
-    acceptMutate();
-  }, [canAutoAccept, acceptMutate]);
+  // Auto-acceptance once signed in is handled by <PendingInvitationApplier />.
+
 
 
   if (isLoading || authLoading) {

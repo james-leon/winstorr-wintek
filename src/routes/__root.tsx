@@ -17,6 +17,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Toaster } from "@/components/ui/sonner";
 import { AppSplash } from "@/components/app-splash";
+import { PendingInvitationApplier } from "@/components/pending-invitation-applier";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureFreshSessionOnBoot, friendlyErrorMessage, isSessionExpiredError, recoverSession } from "@/lib/session-recovery";
 
@@ -198,6 +199,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <PendingInvitationApplier />
         <LanguageProvider>
           <CartProvider>
             <div className="flex min-h-screen flex-col">
