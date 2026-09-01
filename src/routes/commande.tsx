@@ -74,13 +74,16 @@ function CheckoutPage() {
   const { data: homeDelivery } = useHomeDeliverySettings();
   const { data: zones = [] } = useDeliveryZones();
   const homeDeliveryEnabled = (homeDelivery?.enabled ?? false) && zones.length > 0;
-  const [zoneId, setZoneId] = useState<string>("");
-  const zone = zones.find((z) => z.id === zoneId) ?? null;
+  // Zones are an internal admin grouping — the client only sees a flat list of quartiers.
+  const quartierOptions = useMemo(
+    () =>
+      zones
+        .flatMap((z) => z.quartiers.map((q) => ({ quartier: q, zone: z })))
+        .sort((a, b) => a.quartier.localeCompare(b.quartier, "fr")),
+    [zones],
+  );
+  const zone = quartierOptions.find((o) => o.quartier === quartier)?.zone ?? null;
   const minZoneFee = zones.length ? Math.min(...zones.map((z) => z.fee)) : 0;
-
-  useEffect(() => {
-    if (!zoneId && zones.length > 0) setZoneId(zones[0].id);
-  }, [zones, zoneId]);
 
   // Fall back to pickup when the courier service is off.
   useEffect(() => {
@@ -195,7 +198,7 @@ function CheckoutPage() {
           couponCode: coupon?.code ?? null,
           delivery_mode: hasPhysical ? deliveryMode : "none",
           pickup_point_id: deliveryMode === "pickup" ? pickupPointId : null,
-          delivery_zone_id: deliveryMode === "home_delivery" ? zoneId || null : null,
+          delivery_zone_id: deliveryMode === "home_delivery" ? zone?.id ?? null : null,
           payment_method: paymentMethod,
         },
       });
@@ -229,7 +232,7 @@ function CheckoutPage() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !phone.trim()) { toast.error("Nom et téléphone requis."); return; }
-    if (hasPhysical && deliveryMode === "home_delivery" && (!quartier.trim() || !zoneId)) {
+    if (hasPhysical && deliveryMode === "home_delivery" && (!quartier.trim() || !zone)) {
       toast.error(t("delivery.addressRequired")); return;
     }
     if (hasPhysical && deliveryMode === "pickup" && !pickupPointId) {
@@ -361,37 +364,26 @@ function CheckoutPage() {
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="min-w-0">
                       <Label>{t("delivery.city")}</Label>
-                      <Input value={zone?.city ?? "Douala"} readOnly className="mt-1 bg-muted" />
-                    </div>
-                    <div className="min-w-0">
-                      <Label>{t("delivery.zone")} *</Label>
-                      <select
-                        className="mt-1 h-9 w-full rounded-sm border border-input bg-background px-3 text-sm"
-                        value={zoneId}
-                        onChange={(e) => { setZoneId(e.target.value); setQuartier(""); }}
-                      >
-                        {zones.map((z) => (
-                          <option key={z.id} value={z.id}>{z.name} — {formatFcfa(z.fee)}</option>
-                        ))}
-                      </select>
+                      <Input value={zones[0]?.city ?? "Douala"} readOnly className="mt-1 bg-muted" />
                     </div>
                     <div className="min-w-0">
                       <Label>{t("delivery.quartier")} *</Label>
                       <select
                         className="mt-1 h-9 w-full rounded-sm border border-input bg-background px-3 text-sm"
-                        value={zone && zone.quartiers.includes(quartier) ? quartier : "__other__"}
-                        onChange={(e) => setQuartier(e.target.value === "__other__" ? "" : e.target.value)}
+                        value={quartier}
+                        onChange={(e) => setQuartier(e.target.value)}
                       >
-                        <option value="__other__">{t("delivery.otherQuartier")}</option>
-                        {(zone?.quartiers ?? []).map((q) => <option key={q} value={q}>{q}</option>)}
+                        <option value="" disabled>{t("delivery.quartierPlaceholder")}</option>
+                        {quartierOptions.map((o) => (
+                          <option key={o.quartier} value={o.quartier}>
+                            {o.quartier} — {formatFcfa(o.zone.fee)}
+                          </option>
+                        ))}
                       </select>
-                      {!(zone && zone.quartiers.includes(quartier)) && (
-                        <Input
-                          className="mt-2"
-                          value={quartier}
-                          onChange={(e) => setQuartier(e.target.value)}
-                          placeholder={t("delivery.quartierPlaceholder")}
-                        />
+                      {zone && (
+                        <p className="mt-1.5 text-xs font-medium text-secondary">
+                          {t("delivery.feeAtQuartier", { quartier, fee: formatFcfa(resolveDeliveryFee(zone, subtotal, homeDelivery)) })}
+                        </p>
                       )}
                     </div>
                     <div className="min-w-0">
@@ -416,7 +408,7 @@ function CheckoutPage() {
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-muted-foreground">{t("delivery.feeLabel")}</span>
                       <span className="font-semibold">
-                        {shipping === 0 ? t("delivery.free") : formatFcfa(shipping)}
+                        {!zone ? "—" : shipping === 0 ? t("delivery.free") : formatFcfa(shipping)}
                       </span>
                     </div>
                     <p className="text-muted-foreground">{t("delivery.codNotice")}</p>
@@ -496,7 +488,7 @@ function CheckoutPage() {
               </div>
             )}
             {hasPhysical && deliveryMode === "home_delivery" && (
-              <div className="flex justify-between"><span className="text-muted-foreground">{t("delivery.feeLabel")}{zone ? ` (${zone.name})` : ""}</span><span>{shipping === 0 ? t("delivery.free") : formatFcfa(shipping)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">{t("delivery.feeLabel")}{quartier ? ` (${quartier})` : ""}</span><span>{shipping === 0 && zone ? t("delivery.free") : formatFcfa(shipping)}</span></div>
             )}
             {hasPhysical && deliveryMode === "pickup" && (
               <div className="flex justify-between"><span className="text-muted-foreground">Retrait</span><span className="text-success">Gratuit</span></div>
