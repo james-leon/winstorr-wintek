@@ -408,7 +408,7 @@ function CheckoutPage() {
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-muted-foreground">{t("delivery.feeLabel")}</span>
                       <span className="font-semibold">
-                        {shipping === 0 ? t("delivery.free") : formatFcfa(shipping)}
+                        {!zone ? "—" : shipping === 0 ? t("delivery.free") : formatFcfa(shipping)}
                       </span>
                     </div>
                     <p className="text-muted-foreground">{t("delivery.codNotice")}</p>
