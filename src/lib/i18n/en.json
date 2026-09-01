@@ -256,10 +256,9 @@
     "pickup": "Pickup point",
     "feeFrom": "from {{fee}}",
     "city": "City",
-    "zone": "Delivery zone",
-    "quartier": "Neighbourhood",
-    "otherQuartier": "Other neighbourhood (specify)",
-    "quartierPlaceholder": "Your neighbourhood",
+    "quartier": "Your neighbourhood",
+    "quartierPlaceholder": "Select your neighbourhood",
+    "feeAtQuartier": "Delivery to {{quartier}}: {{fee}}",
     "landmark": "Landmark",
     "landmarkPlaceholder": "E.g. opposite the pharmacy at the junction",
     "instructions": "Instructions for the courier",
@@ -270,7 +269,7 @@
     "free": "Free",
     "eta": "Delivery {{delay}} — 7 days a week, 8am to 5pm",
     "codNotice": "You pay the courier on delivery (product + delivery fee).",
-    "addressRequired": "Delivery zone and neighbourhood are required.",
+    "addressRequired": "Please select your delivery neighbourhood.",
     "unavailable": "Home delivery is temporarily unavailable."
   }
 }

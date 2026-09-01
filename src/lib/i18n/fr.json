@@ -256,10 +256,9 @@
     "pickup": "Retrait en point de retrait",
     "feeFrom": "à partir de {{fee}}",
     "city": "Ville",
-    "zone": "Zone de livraison",
-    "quartier": "Quartier",
-    "otherQuartier": "Autre quartier (préciser)",
-    "quartierPlaceholder": "Nom de votre quartier",
+    "quartier": "Votre quartier",
+    "quartierPlaceholder": "Sélectionnez votre quartier",
+    "feeAtQuartier": "Livraison à {{quartier}} : {{fee}}",
     "landmark": "Point de repère",
     "landmarkPlaceholder": "Ex : en face de la pharmacie du carrefour",
     "instructions": "Instructions pour le livreur",
@@ -270,7 +269,7 @@
     "free": "Offerte",
     "eta": "Livraison {{delay}} — 7j/7, 8h à 17h",
     "codNotice": "Vous payez le livreur à la réception (produit + livraison).",
-    "addressRequired": "Zone et quartier de livraison requis.",
+    "addressRequired": "Veuillez sélectionner votre quartier de livraison.",
     "unavailable": "La livraison à domicile est momentanément indisponible."
   }
 }
