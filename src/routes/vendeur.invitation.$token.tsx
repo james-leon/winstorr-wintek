@@ -97,9 +97,14 @@ function InvitationPage() {
 
         {isPending && !user && (
           <div className="space-y-3">
-            <p className="text-sm">Connectez-vous ou créez un compte avec l'adresse <strong>{inv.email}</strong> pour accepter.</p>
+            <p className="text-sm">
+              Créez votre compte avec l'adresse <strong>{inv.email}</strong> (ou connectez-vous) :
+              votre boutique sera activée automatiquement juste après.
+            </p>
             <Button asChild className="w-full">
-              <Link to="/auth">Se connecter / S'inscrire</Link>
+              <Link to="/connexion" search={{ next: `/vendeur/invitation/${token}` }}>
+                Créer mon compte / Se connecter
+              </Link>
             </Button>
           </div>
         )}
@@ -112,10 +117,11 @@ function InvitationPage() {
               </p>
             )}
             <Button className="w-full" onClick={() => accept.mutate()} disabled={accept.isPending}>
-              {accept.isPending ? "..." : "Accepter l'invitation"}
+              {accept.isPending ? "Activation de votre boutique…" : "Accepter l'invitation"}
             </Button>
           </div>
         )}
+
       </div>
     </div>
   );
