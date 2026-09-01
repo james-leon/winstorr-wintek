@@ -130,8 +130,9 @@ function ConnexionStep2() {
   }
 
   function goBack() {
-    void nav({ to: "/connexion" });
+    void nav({ to: "/connexion", search: destination ? { next: destination } : {} });
   }
+
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-background px-4 py-8 sm:py-14">
