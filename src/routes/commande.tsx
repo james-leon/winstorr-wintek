@@ -74,13 +74,16 @@ function CheckoutPage() {
   const { data: homeDelivery } = useHomeDeliverySettings();
   const { data: zones = [] } = useDeliveryZones();
   const homeDeliveryEnabled = (homeDelivery?.enabled ?? false) && zones.length > 0;
-  const [zoneId, setZoneId] = useState<string>("");
-  const zone = zones.find((z) => z.id === zoneId) ?? null;
+  // Zones are an internal admin grouping — the client only sees a flat list of quartiers.
+  const quartierOptions = useMemo(
+    () =>
+      zones
+        .flatMap((z) => z.quartiers.map((q) => ({ quartier: q, zone: z })))
+        .sort((a, b) => a.quartier.localeCompare(b.quartier, "fr")),
+    [zones],
+  );
+  const zone = quartierOptions.find((o) => o.quartier === quartier)?.zone ?? null;
   const minZoneFee = zones.length ? Math.min(...zones.map((z) => z.fee)) : 0;
-
-  useEffect(() => {
-    if (!zoneId && zones.length > 0) setZoneId(zones[0].id);
-  }, [zones, zoneId]);
 
   // Fall back to pickup when the courier service is off.
   useEffect(() => {
