@@ -47,13 +47,10 @@ function InvitationPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const acceptMutate = accept.mutate;
-  const canAutoAccept = !!user && !!inv && inv.status === "pending" && new Date(inv.expires_at) > new Date();
-  useEffect(() => {
-    if (!canAutoAccept || autoTried.current) return;
-    autoTried.current = true;
-    acceptMutate();
-  }, [canAutoAccept, acceptMutate]);
+  // Auto-acceptance for a signed-in user is handled globally by
+  // <PendingInvitationApplier /> so it also works when the user lands
+  // elsewhere (e.g. "/" after email confirmation).
+
 
 
   if (isLoading || authLoading) {
