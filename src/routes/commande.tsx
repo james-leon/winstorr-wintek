@@ -488,7 +488,7 @@ function CheckoutPage() {
               </div>
             )}
             {hasPhysical && deliveryMode === "home_delivery" && (
-              <div className="flex justify-between"><span className="text-muted-foreground">{t("delivery.feeLabel")}{zone ? ` (${zone.name})` : ""}</span><span>{shipping === 0 ? t("delivery.free") : formatFcfa(shipping)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">{t("delivery.feeLabel")}{quartier ? ` (${quartier})` : ""}</span><span>{shipping === 0 && zone ? t("delivery.free") : formatFcfa(shipping)}</span></div>
             )}
             {hasPhysical && deliveryMode === "pickup" && (
               <div className="flex justify-between"><span className="text-muted-foreground">Retrait</span><span className="text-success">Gratuit</span></div>
