@@ -57,13 +57,8 @@ function PartnerInvitationPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const acceptMutate = accept.mutate;
-  const canAutoAccept = !!user && !!inv && inv.status === "pending";
-  useEffect(() => {
-    if (!canAutoAccept || autoTried.current) return;
-    autoTried.current = true;
-    acceptMutate();
-  }, [canAutoAccept, acceptMutate]);
+  // Auto-acceptance once signed in is handled by <PendingInvitationApplier />.
+
 
 
   if (isLoading || authLoading) {
