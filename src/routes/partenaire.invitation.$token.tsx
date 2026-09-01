@@ -93,11 +93,14 @@ function PartnerInvitationPage() {
         <p className="mt-6 text-sm text-destructive">Cette invitation n'est plus valide ({inv.status}).</p>
       ) : !user ? (
         <div className="mt-6 space-y-3">
-          <p className="text-sm text-muted-foreground">Connectez-vous ou créez un compte avec {inv.email} pour accepter.</p>
-          <Link to="/connexion" className="no-link-color">
-            <Button className="w-full">Se connecter</Button>
+          <p className="text-sm text-muted-foreground">
+            Créez votre compte avec {inv.email} (ou connectez-vous) : votre accès partenaire sera activé automatiquement.
+          </p>
+          <Link to="/connexion" search={{ next: `/partenaire/invitation/${token}` }} className="no-link-color">
+            <Button className="w-full">Créer mon compte / Se connecter</Button>
           </Link>
         </div>
+
       ) : (
         <Button className="mt-6 w-full" disabled={accept.isPending} onClick={() => accept.mutate()}>
           {accept.isPending ? "Validation…" : "Accepter l'invitation"}
