@@ -1,9 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
+import { rememberPendingInvitation, clearPendingInvitation } from "@/lib/pending-invitation";
 
 export const Route = createFileRoute("/vendeur/invitation/$token")({
   component: InvitationPage,
@@ -14,6 +16,11 @@ function InvitationPage() {
   const { token } = Route.useParams();
   const { user, loading: authLoading } = useAuth();
   const nav = useNavigate();
+  const autoTried = useRef(false);
+
+  useEffect(() => {
+    rememberPendingInvitation("vendor", token);
+  }, [token]);
 
   const { data: inv, isLoading } = useQuery({
     queryKey: ["vendor-invitation", token],
@@ -33,11 +40,21 @@ function InvitationPage() {
       return result;
     },
     onSuccess: () => {
-      toast.success("Invitation acceptée");
+      clearPendingInvitation();
+      toast.success("Boutique activée");
       void nav({ to: "/vendeur/tableau-de-bord" });
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const acceptMutate = accept.mutate;
+  const canAutoAccept = !!user && !!inv && inv.status === "pending" && new Date(inv.expires_at) > new Date();
+  useEffect(() => {
+    if (!canAutoAccept || autoTried.current) return;
+    autoTried.current = true;
+    acceptMutate();
+  }, [canAutoAccept, acceptMutate]);
+
 
   if (isLoading || authLoading) {
     return <div className="mx-auto max-w-lg p-8 text-center text-muted-foreground">Chargement...</div>;
