@@ -87,7 +87,9 @@ function ConnexionStep2() {
           password,
           options: {
             data: { full_name: fullName, phone: "" },
-            emailRedirectTo: `${window.location.origin}/`,
+            // Keeps the invitation context alive when the account must be
+            // confirmed by email before the session exists.
+            emailRedirectTo: `${window.location.origin}${destination ?? "/"}`,
           },
         });
         if (error) throw error;
