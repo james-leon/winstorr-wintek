@@ -198,7 +198,7 @@ function CheckoutPage() {
           couponCode: coupon?.code ?? null,
           delivery_mode: hasPhysical ? deliveryMode : "none",
           pickup_point_id: deliveryMode === "pickup" ? pickupPointId : null,
-          delivery_zone_id: deliveryMode === "home_delivery" ? zoneId || null : null,
+          delivery_zone_id: deliveryMode === "home_delivery" ? zone?.id ?? null : null,
           payment_method: paymentMethod,
         },
       });
@@ -232,7 +232,7 @@ function CheckoutPage() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !phone.trim()) { toast.error("Nom et téléphone requis."); return; }
-    if (hasPhysical && deliveryMode === "home_delivery" && (!quartier.trim() || !zoneId)) {
+    if (hasPhysical && deliveryMode === "home_delivery" && (!quartier.trim() || !zone)) {
       toast.error(t("delivery.addressRequired")); return;
     }
     if (hasPhysical && deliveryMode === "pickup" && !pickupPointId) {
