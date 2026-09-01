@@ -7,8 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Store, ArrowRight } from "lucide-react";
+import { readPendingInvitation, safeNextPath } from "@/lib/pending-invitation";
 
 export const Route = createFileRoute("/connexion")({
+  validateSearch: (search: Record<string, unknown>): { next?: string } => {
+    const n = safeNextPath(search["next"]);
+    return n ? { next: n } : {};
+  },
   head: () => ({
     meta: [
       { title: "Se connecter ou créer un compte — Winstorr" },
@@ -23,14 +28,20 @@ const IDENTIFIER_KEY = "winstorr:auth:identifier";
 
 function ConnexionStep1() {
   const nav = useNavigate();
+  const { next } = Route.useSearch();
   const { user, loading } = useAuth();
   const [identifier, setIdentifier] = useState("");
   const [busy, setBusy] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // An invitation link opened before signing in keeps priority over /mon-compte.
+  const destination = next ?? readPendingInvitation()?.path;
+
   useEffect(() => {
-    if (!loading && user) void nav({ to: "/mon-compte" });
-  }, [user, loading, nav]);
+    if (loading || !user) return;
+    if (destination) void nav({ to: destination });
+    else void nav({ to: "/mon-compte" });
+  }, [user, loading, nav, destination]);
 
   const looksLikeEmail = (v: string) => /.+@.+\..+/.test(v.trim());
   const looksLikePhone = (v: string) => /^\+?[\d\s().-]{6,}$/.test(v.trim());
@@ -55,7 +66,7 @@ function ConnexionStep1() {
         IDENTIFIER_KEY,
         JSON.stringify({ identifier: value, exists, isEmail: looksLikeEmail(value), ts: Date.now() }),
       );
-      await nav({ to: "/connexion/mot-de-passe" });
+      await nav({ to: "/connexion/mot-de-passe", search: { next: destination } });
     } catch (err) {
       console.error("[connexion] identifier check failed", err);
       const msg = err instanceof Error ? err.message : "Une erreur est survenue. Veuillez réessayer.";
@@ -64,6 +75,7 @@ function ConnexionStep1() {
       setBusy(false);
     }
   }
+
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-background px-4 py-8 sm:py-14">

@@ -7,8 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowRight, Pencil } from "lucide-react";
+import { readPendingInvitation, safeNextPath } from "@/lib/pending-invitation";
 
 export const Route = createFileRoute("/connexion_/mot-de-passe")({
+  validateSearch: (search: Record<string, unknown>): { next?: string } => {
+    const n = safeNextPath(search["next"]);
+    return n ? { next: n } : {};
+  },
   head: () => ({
     meta: [
       { title: "Mot de passe — Winstorr" },
@@ -24,6 +29,7 @@ type StoredIdentifier = { identifier: string; exists: boolean; isEmail: boolean;
 
 function ConnexionStep2() {
   const nav = useNavigate();
+  const { next } = Route.useSearch();
   const { user, loading } = useAuth();
   const [stored, setStored] = useState<StoredIdentifier | null>(null);
   const [password, setPassword] = useState("");
@@ -31,9 +37,16 @@ function ConnexionStep2() {
   const [busy, setBusy] = useState(false);
   const [sendingReset, setSendingReset] = useState(false);
 
+  // Survives sign-up: the invitation path is resolved from the URL or storage,
+  // never from state that the auth redirect would wipe.
+  const destination = next ?? readPendingInvitation()?.path;
+
   useEffect(() => {
-    if (!loading && user) void nav({ to: "/mon-compte" });
-  }, [user, loading, nav]);
+    if (loading || !user) return;
+    if (destination) void nav({ to: destination });
+    else void nav({ to: "/mon-compte" });
+  }, [user, loading, nav, destination]);
+
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -120,8 +133,9 @@ function ConnexionStep2() {
   }
 
   function goBack() {
-    void nav({ to: "/connexion" });
+    void nav({ to: "/connexion", search: { next: destination } });
   }
+
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-background px-4 py-8 sm:py-14">

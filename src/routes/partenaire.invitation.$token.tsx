@@ -1,9 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
+import { rememberPendingInvitation, clearPendingInvitation } from "@/lib/pending-invitation";
+
 
 export const Route = createFileRoute("/partenaire/invitation/$token")({
   component: PartnerInvitationPage,
@@ -23,6 +26,11 @@ function PartnerInvitationPage() {
   const { token } = Route.useParams();
   const { user, loading: authLoading } = useAuth();
   const nav = useNavigate();
+  const autoTried = useRef(false);
+
+  useEffect(() => {
+    rememberPendingInvitation("partner", token);
+  }, [token]);
 
   const { data: inv, isLoading } = useQuery({
     queryKey: ["financing-partner-invitation", token],
@@ -42,11 +50,21 @@ function PartnerInvitationPage() {
       return result;
     },
     onSuccess: () => {
+      clearPendingInvitation();
       toast.success("Invitation acceptée");
       void nav({ to: "/partenaire/tableau-de-bord" });
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const acceptMutate = accept.mutate;
+  const canAutoAccept = !!user && !!inv && inv.status === "pending";
+  useEffect(() => {
+    if (!canAutoAccept || autoTried.current) return;
+    autoTried.current = true;
+    acceptMutate();
+  }, [canAutoAccept, acceptMutate]);
+
 
   if (isLoading || authLoading) {
     return <div className="mx-auto max-w-lg p-8 text-center text-muted-foreground">Chargement…</div>;
@@ -75,11 +93,14 @@ function PartnerInvitationPage() {
         <p className="mt-6 text-sm text-destructive">Cette invitation n'est plus valide ({inv.status}).</p>
       ) : !user ? (
         <div className="mt-6 space-y-3">
-          <p className="text-sm text-muted-foreground">Connectez-vous ou créez un compte avec {inv.email} pour accepter.</p>
-          <Link to="/connexion" className="no-link-color">
-            <Button className="w-full">Se connecter</Button>
+          <p className="text-sm text-muted-foreground">
+            Créez votre compte avec {inv.email} (ou connectez-vous) : votre accès partenaire sera activé automatiquement.
+          </p>
+          <Link to="/connexion" search={{ next: `/partenaire/invitation/${token}` }} className="no-link-color">
+            <Button className="w-full">Créer mon compte / Se connecter</Button>
           </Link>
         </div>
+
       ) : (
         <Button className="mt-6 w-full" disabled={accept.isPending} onClick={() => accept.mutate()}>
           {accept.isPending ? "Validation…" : "Accepter l'invitation"}
