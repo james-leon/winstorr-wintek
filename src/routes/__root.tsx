@@ -198,6 +198,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <PendingInvitationApplier />
         <LanguageProvider>
           <CartProvider>
             <div className="flex min-h-screen flex-col">
