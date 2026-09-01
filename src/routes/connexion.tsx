@@ -10,7 +10,10 @@ import { Store, ArrowRight } from "lucide-react";
 import { readPendingInvitation, safeNextPath } from "@/lib/pending-invitation";
 
 export const Route = createFileRoute("/connexion")({
-  validateSearch: (search: Record<string, unknown>) => ({ next: safeNextPath(search["next"]) }),
+  validateSearch: (search: Record<string, unknown>): { next?: string } => {
+    const n = safeNextPath(search["next"]);
+    return n ? { next: n } : {};
+  },
   head: () => ({
     meta: [
       { title: "Se connecter ou créer un compte — Winstorr" },
@@ -63,7 +66,7 @@ function ConnexionStep1() {
         IDENTIFIER_KEY,
         JSON.stringify({ identifier: value, exists, isEmail: looksLikeEmail(value), ts: Date.now() }),
       );
-      await nav({ to: "/connexion/mot-de-passe", search: destination ? { next: destination } : {} });
+      await nav({ to: "/connexion/mot-de-passe", search: { next: destination } });
     } catch (err) {
       console.error("[connexion] identifier check failed", err);
       const msg = err instanceof Error ? err.message : "Une erreur est survenue. Veuillez réessayer.";

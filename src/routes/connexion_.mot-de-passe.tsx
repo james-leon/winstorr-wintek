@@ -10,7 +10,10 @@ import { ArrowRight, Pencil } from "lucide-react";
 import { readPendingInvitation, safeNextPath } from "@/lib/pending-invitation";
 
 export const Route = createFileRoute("/connexion_/mot-de-passe")({
-  validateSearch: (search: Record<string, unknown>) => ({ next: safeNextPath(search["next"]) }),
+  validateSearch: (search: Record<string, unknown>): { next?: string } => {
+    const n = safeNextPath(search["next"]);
+    return n ? { next: n } : {};
+  },
   head: () => ({
     meta: [
       { title: "Mot de passe — Winstorr" },
@@ -130,7 +133,7 @@ function ConnexionStep2() {
   }
 
   function goBack() {
-    void nav({ to: "/connexion", search: destination ? { next: destination } : {} });
+    void nav({ to: "/connexion", search: { next: destination } });
   }
 
 
