@@ -10,6 +10,8 @@ export type CartItem = {
   price: number;
   image: string | null;
   quantity: number;
+  /** Legacy carts have no type — treat those as physical. */
+  productType?: "physical" | "digital";
 };
 
 export type AppliedCoupon = {
