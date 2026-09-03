@@ -203,23 +203,33 @@ function CheckoutPage() {
           delivery_mode: hasPhysical ? deliveryMode : "none",
           pickup_point_id: deliveryMode === "pickup" ? pickupPointId : null,
           delivery_zone_id: deliveryMode === "home_delivery" ? zone?.id ?? null : null,
-          payment_method: paymentMethod,
+          payment_method: paymentMethod === "cash_on_pickup" ? "cash_on_pickup" : "campay",
         },
       });
       if (order.isCash) {
-        return { orderNumber: order.orderNumber, paymentUrl: null as string | null, cash: true };
+        return { orderNumber: order.orderNumber, redirectUrl: null as string | null, cash: true };
       }
-      const pay = await initFn({ data: { orderNumber: order.orderNumber } });
-      return { orderNumber: order.orderNumber, paymentUrl: pay.paymentUrl, mocked: pay.mocked, cash: false };
+      // The browser only *starts* the payment. Confirmation is server-side only.
+      const pay = await startPayFn({
+        data: {
+          orderNumber: order.orderNumber,
+          mode: paymentMethod === "campay_card" ? "card" : "momo",
+          phone: paymentMethod === "campay_momo" ? momoPhone || phone : null,
+        },
+      });
+      return { orderNumber: order.orderNumber, redirectUrl: pay.link, cash: false };
     },
     onSuccess: (r) => {
       clear();
       if (r.cash) {
         toast.success("Commande enregistrée. Paiement à la réception.");
-        nav({ to: "/commande/$orderNumber/confirmation", params: { orderNumber: r.orderNumber } });
-      } else if (r.paymentUrl) {
-        window.location.href = r.paymentUrl;
+      } else if (r.redirectUrl) {
+        window.location.href = r.redirectUrl;
+        return;
+      } else {
+        toast.success(t("checkout.momoPrompt"));
       }
+      nav({ to: "/commande/$orderNumber/confirmation", params: { orderNumber: r.orderNumber } });
     },
     onError: (e: Error) => toast.error(e.message),
   });
