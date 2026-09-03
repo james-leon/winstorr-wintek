@@ -81,6 +81,7 @@ export function campayConfigured(): boolean {
 let cachedToken: { value: string; expiresAt: number } | null = null;
 
 async function campayToken(): Promise<string> {
+  await loadCampayEnvironment();
   const permanent = process.env["CAMPAY_PERMANENT_TOKEN"];
   if (permanent) return permanent;
 
@@ -102,6 +103,7 @@ async function campayToken(): Promise<string> {
 }
 
 async function campayFetch(path: string, init?: RequestInit) {
+  await loadCampayEnvironment();
   const token = await campayToken();
   return fetch(`${campayBaseUrl()}${path}`, {
     ...init,
