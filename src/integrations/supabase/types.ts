@@ -1032,6 +1032,51 @@ export type Database = {
           },
         ]
       }
+      payment_methods: {
+        Row: {
+          applies_to_product_types: Json
+          config_note: string | null
+          created_at: string
+          display_name: string
+          display_name_en: string | null
+          display_order: number
+          environment: Database["public"]["Enums"]["payment_environment"]
+          id: string
+          is_enabled: boolean
+          provider_key: string
+          supports_environment: boolean
+          updated_at: string
+        }
+        Insert: {
+          applies_to_product_types?: Json
+          config_note?: string | null
+          created_at?: string
+          display_name: string
+          display_name_en?: string | null
+          display_order?: number
+          environment?: Database["public"]["Enums"]["payment_environment"]
+          id?: string
+          is_enabled?: boolean
+          provider_key: string
+          supports_environment?: boolean
+          updated_at?: string
+        }
+        Update: {
+          applies_to_product_types?: Json
+          config_note?: string | null
+          created_at?: string
+          display_name?: string
+          display_name_en?: string | null
+          display_order?: number
+          environment?: Database["public"]["Enums"]["payment_environment"]
+          id?: string
+          is_enabled?: boolean
+          provider_key?: string
+          supports_environment?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payment_transactions: {
         Row: {
           amount: number
@@ -2506,6 +2551,7 @@ export type Database = {
         | "completed"
         | "cancelled"
         | "payment_failed"
+      payment_environment: "test" | "production"
       payment_method: "mtn_momo" | "orange_money" | "card" | "cash_on_pickup"
       payment_status: "pending" | "paid" | "failed" | "refunded"
       price_type: "fixed" | "starting_at" | "quote_only"
@@ -2743,6 +2789,7 @@ export const Constants = {
         "cancelled",
         "payment_failed",
       ],
+      payment_environment: ["test", "production"],
       payment_method: ["mtn_momo", "orange_money", "card", "cash_on_pickup"],
       payment_status: ["pending", "paid", "failed", "refunded"],
       price_type: ["fixed", "starting_at", "quote_only"],
