@@ -433,8 +433,40 @@ function CheckoutPage() {
           )}
 
           <section className="rounded-sm border border-border bg-card p-4">
-            <h2 className="font-semibold mb-3">Mode de paiement</h2>
+            <h2 className="font-semibold mb-3">{t("checkout.paymentTitle")}</h2>
             <div className="grid gap-2 sm:grid-cols-2">
+              {campayEnabled && (
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("campay_momo")}
+                  className={cn(
+                    "flex items-start gap-3 rounded-sm border p-3 text-left transition",
+                    paymentMethod === "campay_momo" ? "border-secondary bg-secondary/5 ring-1 ring-secondary" : "border-border hover:bg-muted",
+                  )}
+                >
+                  <Smartphone className="mt-0.5 h-5 w-5 text-secondary" />
+                  <div>
+                    <div className="font-medium text-sm">{t("checkout.payMomo")}</div>
+                    <div className="text-xs text-muted-foreground">{t("checkout.payMomoSub")}</div>
+                  </div>
+                </button>
+              )}
+              {campayEnabled && (
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("campay_card")}
+                  className={cn(
+                    "flex items-start gap-3 rounded-sm border p-3 text-left transition",
+                    paymentMethod === "campay_card" ? "border-secondary bg-secondary/5 ring-1 ring-secondary" : "border-border hover:bg-muted",
+                  )}
+                >
+                  <CreditCard className="mt-0.5 h-5 w-5 text-secondary" />
+                  <div>
+                    <div className="font-medium text-sm">{t("checkout.payCard")}</div>
+                    <div className="text-xs text-muted-foreground">{t("checkout.payCardSub")}</div>
+                  </div>
+                </button>
+              )}
               {cashEnabled && (
                 <button
                   type="button"
@@ -446,32 +478,34 @@ function CheckoutPage() {
                 >
                   <Wallet className="mt-0.5 h-5 w-5 text-secondary" />
                   <div>
-                    <div className="font-medium text-sm">Paiement à la réception (espèces)</div>
+                    <div className="font-medium text-sm">{t("checkout.payOnDelivery")}</div>
                     <div className="text-xs text-muted-foreground">
-                      {deliveryMode === "pickup" ? "Payez au point de retrait" : "Payez au livreur à la livraison"}
+                      {deliveryMode === "pickup" ? t("checkout.payAtPickup") : t("checkout.payToCourier")}
                     </div>
                   </div>
                 </button>
               )}
-              {cinetpayEnabled && (
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("cinetpay")}
-                  className={cn(
-                    "flex items-start gap-3 rounded-sm border p-3 text-left transition",
-                    paymentMethod === "cinetpay" ? "border-secondary bg-secondary/5 ring-1 ring-secondary" : "border-border hover:bg-muted",
-                  )}
-                >
-                  <CreditCard className="mt-0.5 h-5 w-5 text-secondary" />
-                  <div>
-                    <div className="font-medium text-sm">Paiement en ligne</div>
-                    <div className="text-xs text-muted-foreground">MTN MoMo, Orange Money, carte</div>
-                  </div>
-                </button>
-              )}
             </div>
-            {!cashEnabled && !cinetpayEnabled && (
-              <p className="mt-2 text-xs text-destructive">Aucun mode de paiement n'est actuellement activé.</p>
+
+            {paymentMethod === "campay_momo" && campayEnabled && (
+              <div className="mt-3 max-w-sm">
+                <Label>{t("checkout.momoPhone")}</Label>
+                <Input
+                  value={momoPhone}
+                  onChange={(e) => setMomoPhone(e.target.value)}
+                  placeholder={phone || "6XX XX XX XX"}
+                  inputMode="tel"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">{t("checkout.momoPhoneHint")}</p>
+              </div>
+            )}
+
+            {hasDigital && (
+              <p className="mt-3 text-xs text-muted-foreground">{t("checkout.digitalNotice")}</p>
+            )}
+
+            {!cashEnabled && !campayEnabled && (
+              <p className="mt-2 text-xs text-destructive">{t("checkout.noPaymentMethod")}</p>
             )}
           </section>
         </div>
