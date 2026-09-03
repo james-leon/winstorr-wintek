@@ -7,7 +7,25 @@
 //   "Winstorr <notifications@winstorr.com>"
 // and everything below will pick it up automatically — no code change needed.
 
+import {
+  SUPPORT_CITY,
+  SUPPORT_EMAIL,
+  SUPPORT_PHONE_DISPLAY,
+  SUPPORT_WHATSAPP_RAW,
+} from "./site-contact";
+
+export type Lang = "fr" | "en";
+
+export type OrderItem = {
+  product_name: string;
+  product_type: string;
+  quantity: number;
+  subtotal: number | string;
+  delivery_instructions?: string | null;
+};
+
 type OrderEvent =
+
   | "payment_confirmed"
   | "payment_failed"
   | "order_placed_cop" // cash-on-pickup order placed
