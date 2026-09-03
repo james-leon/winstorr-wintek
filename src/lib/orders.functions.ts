@@ -173,6 +173,12 @@ export const createOrder = createServerFn({ method: "POST" })
       };
     });
 
+    const hasDigital = itemsRows.some((r) => r.product_type === "digital");
+    // Digital goods cannot be paid on delivery — they require a server-confirmed online payment.
+    if (hasDigital && data.payment_method === "cash_on_pickup") {
+      throw new Error("Les produits numériques doivent être réglés en ligne (Mobile Money ou carte).");
+    }
+
     const deliveryMode = hasPhysical ? data.delivery_mode : "none";
 
     if (hasPhysical && deliveryMode === "home_delivery" && !data.shipping_address) {
