@@ -30,8 +30,43 @@ export type CampayTransaction = {
   raw: unknown;
 };
 
+/**
+ * Environment mode. The admin panel (payment_methods.environment) is the source
+ * of truth when a row exists; CAMPAY_ENV is the fallback. Secret keys are never
+ * stored in the database — only the mode is.
+ */
+let envCache: { value: "test" | "production"; at: number } | null = null;
+let envOverride: "test" | "production" | null = null;
+
+export function setCampayEnvironment(env: "test" | "production") {
+  envOverride = env;
+}
+
+export async function loadCampayEnvironment(): Promise<"test" | "production"> {
+  if (envCache && Date.now() - envCache.at < 60_000) {
+    envOverride = envCache.value;
+    return envCache.value;
+  }
+  let value: "test" | "production" =
+    (process.env["CAMPAY_ENV"] || "").toLowerCase() === "production" ? "production" : "test";
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("payment_methods")
+      .select("environment")
+      .eq("provider_key", "campay")
+      .maybeSingle();
+    if (data?.environment === "production" || data?.environment === "test") value = data.environment;
+  } catch {
+    /* fall back to env var */
+  }
+  envCache = { value, at: Date.now() };
+  envOverride = value;
+  return value;
+}
+
 export function campayBaseUrl(): string {
-  const env = (process.env["CAMPAY_ENV"] || "demo").toLowerCase();
+  const env = envOverride ?? ((process.env["CAMPAY_ENV"] || "demo").toLowerCase() === "production" ? "production" : "test");
   return env === "production" ? "https://www.campay.net" : "https://demo.campay.net";
 }
 
@@ -41,6 +76,7 @@ export function campayConfigured(): boolean {
       (process.env["CAMPAY_APP_USERNAME"] && process.env["CAMPAY_APP_PASSWORD"]),
   );
 }
+
 
 let cachedToken: { value: string; expiresAt: number } | null = null;
 
