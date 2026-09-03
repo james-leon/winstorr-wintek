@@ -201,8 +201,8 @@ function CheckoutPage() {
               : null,
           couponCode: coupon?.code ?? null,
           delivery_mode: hasPhysical ? deliveryMode : "none",
-          pickup_point_id: deliveryMode === "pickup" ? pickupPointId : null,
-          delivery_zone_id: deliveryMode === "home_delivery" ? zone?.id ?? null : null,
+          pickup_point_id: hasPhysical && deliveryMode === "pickup" ? pickupPointId || null : null,
+          delivery_zone_id: hasPhysical && deliveryMode === "home_delivery" ? zone?.id ?? null : null,
           payment_method: paymentMethod === "cash_on_pickup" ? "cash_on_pickup" : "campay",
         },
       });
