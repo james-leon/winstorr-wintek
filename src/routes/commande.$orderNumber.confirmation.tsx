@@ -5,7 +5,7 @@ import { XCircle, Loader2, Package, Download, UserPlus, Wallet, Store, MapPin } 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { formatFcfa } from "@/lib/format";
-import { initiatePayment } from "@/lib/orders.functions";
+import { reconcileOrderPayment } from "@/lib/payments.functions";
 import { toast } from "sonner";
 import { SuccessCheckmark } from "@/components/success-checkmark";
 import { TrustStrip } from "@/components/trust-strip";
@@ -13,7 +13,7 @@ import { WhatsAppButton } from "@/components/whatsapp-button";
 import { waTemplates } from "@/lib/whatsapp";
 import { useSupportWhatsApp } from "@/lib/use-support-whatsapp";
 import { useAuth } from "@/lib/auth-context";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 
 export const Route = createFileRoute("/commande/$orderNumber/confirmation")({
