@@ -34,7 +34,8 @@ const checkoutSchema = z.object({
   payment_method: z.enum(["campay", "cinetpay", "cash_on_pickup"]).default("campay"),
 });
 
-/** Minimum amount accepted by Campay for a Mobile Money / card collect (XAF). */
+/** Minimum amount accepted in PRODUCTION for a Mobile Money / card collect (XAF).
+ *  In test/demo mode the effective minimum is 1 FCFA (see campay.server.ts). */
 export const MIN_ONLINE_PAYMENT_XAF = 100;
 
 const FIELD_LABELS: Record<string, string> = {
@@ -294,10 +295,14 @@ export const createOrder = createServerFn({ method: "POST" })
     const total = Math.max(0, total_before_discount - discountAmount);
 
     const isCash = data.payment_method === "cash_on_pickup";
-    if (!isCash && total > 0 && total < MIN_ONLINE_PAYMENT_XAF) {
-      throw new Error(
-        `Montant minimum pour un paiement en ligne : ${MIN_ONLINE_PAYMENT_XAF} FCFA (total actuel : ${Math.round(total)} FCFA). Ajoutez un article ou augmentez la quantité.`,
-      );
+    if (!isCash && total > 0) {
+      const { minOnlinePaymentXaf } = await import("./campay.server");
+      const minOnline = await minOnlinePaymentXaf();
+      if (total < minOnline) {
+        throw new Error(
+          `Montant minimum pour un paiement en ligne : ${minOnline} FCFA (total actuel : ${Math.round(total)} FCFA). Ajoutez un article ou augmentez la quantité.`,
+        );
+      }
     }
 
     const { data: order, error: oErr } = await supabaseAdmin

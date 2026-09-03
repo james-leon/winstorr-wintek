@@ -35,7 +35,8 @@ export const getCheckoutPaymentMethods = createServerFn({ method: "GET" })
       .eq("is_enabled", true)
       .order("display_order");
 
-    const { campayConfigured } = await import("./campay.server");
+    const { campayConfigured, minOnlinePaymentXaf } = await import("./campay.server");
+    const minOnlineAmount = await minOnlinePaymentXaf();
     const cartTypes = data.productTypes.length ? data.productTypes : (["physical"] as ProductTypeKey[]);
 
     const methods: CheckoutMethod[] = (rows ?? [])
@@ -54,7 +55,7 @@ export const getCheckoutPaymentMethods = createServerFn({ method: "GET" })
         display_order: r.display_order,
       }));
 
-    return { methods };
+    return { methods, minOnlineAmount };
   });
 
 /** Non-secret provider status for the admin panel: keys configured yes/no. */

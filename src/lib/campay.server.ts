@@ -70,6 +70,19 @@ export function campayBaseUrl(): string {
   return env === "production" ? "https://www.campay.net" : "https://demo.campay.net";
 }
 
+/**
+ * Minimum order amount accepted for an online (Campay) payment.
+ * Campay's demo/test environment only accepts very small amounts (max ~25 XAF),
+ * so the guard is effectively disabled in test mode and only enforced in production.
+ */
+export const MIN_ONLINE_PAYMENT_TEST_XAF = 1;
+export const MIN_ONLINE_PAYMENT_PROD_XAF = 100;
+
+export async function minOnlinePaymentXaf(): Promise<number> {
+  const env = await loadCampayEnvironment();
+  return env === "production" ? MIN_ONLINE_PAYMENT_PROD_XAF : MIN_ONLINE_PAYMENT_TEST_XAF;
+}
+
 export function campayConfigured(): boolean {
   return Boolean(
     process.env["CAMPAY_PERMANENT_TOKEN"] ||
