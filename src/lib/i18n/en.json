@@ -288,5 +288,31 @@
     "digitalNotice": "Digital products must be paid online and are delivered after payment confirmation.",
     "noPaymentMethod": "No payment method is currently enabled.",
     "invalidPhone": "Invalid Mobile Money number."
+  },
+  "payment": {
+    "processingTitle": "Payment in progress…",
+    "processingHint": "Approve the request on your phone (MoMo / Orange Money).",
+    "doNotClose": "Please don't close this page. Confirmation can take a few seconds.",
+    "orderRef": "Order no.",
+    "checkNow": "Check now",
+    "timeoutTitle": "No confirmation yet",
+    "timeoutBody": "We haven't received the confirmation yet. Check the status in \"My orders\" or contact us. Your order is still valid.",
+    "successTitle": "Payment successful — order confirmed",
+    "failTitle": "The payment did not go through",
+    "failBody": "No confirmed charge was made. Your order is still saved: you can try again.",
+    "retry": "Retry payment",
+    "retryMomo": "Retry with Mobile Money",
+    "retryCard": "Pay by card",
+    "viewOrder": "View my order",
+    "continueShopping": "Continue shopping",
+    "paidWith": "Payment method",
+    "methodCampay": "Mobile Money / Card",
+    "methodCash": "Pay on collection",
+    "digitalDelivery": "Digital access: instructions sent by email.",
+    "nextPickup": "To collect at the pickup point",
+    "nextDelivery": "Home delivery in progress — within 24–72h",
+    "statusPending": "Awaiting payment",
+    "statusPaid": "Paid",
+    "statusFailed": "Payment failed"
   }
 }

@@ -124,7 +124,30 @@ function OrderDetail() {
       <div>
         <Link to="/mon-compte/commandes" className="text-sm text-secondary hover:underline">← Mes commandes</Link>
         <h1 className="mt-2 font-display text-2xl text-foreground">Commande <span className="font-mono text-base">{order.order_number}</span></h1>
-        <div className="mt-1 text-sm text-muted-foreground">{new Date(order.created_at).toLocaleString("fr-FR")}</div>
+        <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          <span>{new Date(order.created_at).toLocaleString("fr-FR")}</span>
+          <span
+            className={cn(
+              "rounded-full px-2 py-0.5 text-xs font-medium",
+              order.payment_status === "paid" && "bg-success/10 text-success",
+              order.payment_status === "failed" && "bg-destructive/10 text-destructive",
+              order.payment_status === "pending" && "bg-accent/10 text-accent",
+            )}
+          >
+            {order.payment_status === "paid"
+              ? "Payé"
+              : order.payment_status === "failed"
+                ? "Paiement échoué"
+                : "En attente de paiement"}
+          </span>
+        </div>
+        {order.payment_status !== "paid" && (
+          <Button asChild size="sm" variant="outline" className="mt-3">
+            <Link to="/commande/$orderNumber/confirmation" params={{ orderNumber: order.order_number }}>
+              Voir le statut du paiement
+            </Link>
+          </Button>
+        )}
       </div>
 
       <section className="rounded-sm border border-border bg-card p-4">

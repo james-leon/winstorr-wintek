@@ -288,5 +288,31 @@
     "digitalNotice": "Les produits numériques doivent être réglés en ligne et sont livrés après confirmation du paiement.",
     "noPaymentMethod": "Aucun mode de paiement n'est actuellement activé.",
     "invalidPhone": "Numéro Mobile Money invalide."
+  },
+  "payment": {
+    "processingTitle": "Paiement en cours…",
+    "processingHint": "Validez la demande sur votre téléphone (MoMo / Orange Money).",
+    "doNotClose": "Ne fermez pas cette page. La confirmation peut prendre quelques secondes.",
+    "orderRef": "Commande n°",
+    "checkNow": "Vérifier maintenant",
+    "timeoutTitle": "Confirmation non reçue pour l'instant",
+    "timeoutBody": "Nous n'avons pas encore reçu la confirmation. Vérifiez le statut dans « Mes commandes » ou contactez-nous. Votre commande reste valable.",
+    "successTitle": "Paiement réussi — commande confirmée",
+    "failTitle": "Le paiement n'a pas abouti",
+    "failBody": "Aucun montant n'a été débité de façon confirmée. Votre commande reste enregistrée : vous pouvez réessayer.",
+    "retry": "Réessayer le paiement",
+    "retryMomo": "Réessayer avec Mobile Money",
+    "retryCard": "Payer par carte",
+    "viewOrder": "Voir ma commande",
+    "continueShopping": "Continuer mes achats",
+    "paidWith": "Moyen de paiement",
+    "methodCampay": "Mobile Money / Carte",
+    "methodCash": "Paiement à la réception",
+    "digitalDelivery": "Accès numérique : instructions envoyées par email.",
+    "nextPickup": "À récupérer au point de retrait",
+    "nextDelivery": "Livraison à domicile en cours — sous 24–72h",
+    "statusPending": "En attente de paiement",
+    "statusPaid": "Payé",
+    "statusFailed": "Paiement échoué"
   }
 }
