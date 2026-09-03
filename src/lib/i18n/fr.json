@@ -314,5 +314,17 @@
     "statusPending": "En attente de paiement",
     "statusPaid": "Payé",
     "statusFailed": "Paiement échoué"
+  },
+  "adminPayments": {
+    "title": "Moyens de paiement",
+    "secretsNotice": "Les clés secrètes restent dans les secrets du serveur — elles ne sont jamais affichées ni stockées ici.",
+    "enabled": "Activé",
+    "disabled": "Désactivé",
+    "test": "Test",
+    "production": "Production",
+    "keysConfigured": "Clés configurées ✓",
+    "keysMissing": "Clés manquantes ✗ — configurez-les dans les secrets du serveur",
+    "appliesTo": "S'applique aux types de produits",
+    "saved": "Moyen de paiement mis à jour"
   }
 }

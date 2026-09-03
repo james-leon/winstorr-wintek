@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createOrder } from "@/lib/orders.functions";
 import { startCampayPayment } from "@/lib/payments.functions";
+import { getCheckoutPaymentMethods } from "@/lib/payment-methods.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { type CityValue } from "@/lib/address";
 import { cn } from "@/lib/utils";

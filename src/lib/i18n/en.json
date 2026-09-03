@@ -314,5 +314,17 @@
     "statusPending": "Awaiting payment",
     "statusPaid": "Paid",
     "statusFailed": "Payment failed"
+  },
+  "adminPayments": {
+    "title": "Payment methods",
+    "secretsNotice": "Secret keys stay in server-side secrets — they are never shown or stored here.",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "test": "Test",
+    "production": "Production",
+    "keysConfigured": "Keys configured ✓",
+    "keysMissing": "Keys missing ✗ — set them in the server secrets",
+    "appliesTo": "Applies to product types",
+    "saved": "Payment method updated"
   }
 }
