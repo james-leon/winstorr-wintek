@@ -49,6 +49,16 @@ type DeliveryMode = "home_delivery" | "pickup";
 type PaymentMethod = "campay_momo" | "campay_card" | "cash_on_pickup";
 
 function CheckoutPage() {
+  // /commande/$orderNumber/confirmation is nested under /commande: when a child
+  // route matches, render it (the payment tracking screen) instead of the checkout.
+  const matches = useMatches();
+  if (matches.some((m) => m.routeId !== "/commande" && m.routeId.startsWith("/commande/"))) {
+    return <Outlet />;
+  }
+  return <CheckoutForm />;
+}
+
+function CheckoutForm() {
   const { items, subtotal, coupon, discount, clear, effectiveUnit } = useCart();
   const { user } = useAuth();
   const nav = useNavigate();
