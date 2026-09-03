@@ -743,6 +743,21 @@ function DigitalActions({ p }: { p: Product }) {
     license_key: "Clé de licence envoyée par email",
     access_link: "Lien d'accès envoyé par email",
   };
+  const { add } = useCart();
+  const nav = useNavigate();
+  const addToCart = () => {
+    if (p.price == null) return;
+    add({
+      productId: p.id,
+      variantId: null,
+      variantAttributes: null,
+      slug: p.slug,
+      name: p.name,
+      price: Number(p.price),
+      image: p.images[0] ?? null,
+      productType: "digital",
+    }, 1);
+  };
   return (
     <div className="space-y-4">
       {p.delivery_type && (
