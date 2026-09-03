@@ -99,16 +99,17 @@ function CheckoutPage() {
     queryKey: ["settings", "payment_methods"],
     queryFn: async () => {
       const { data } = await supabase.from("app_settings").select("value").eq("key", "payment_methods").maybeSingle();
-      return (data?.value ?? { cinetpay: false, cash_on_pickup: true }) as { cinetpay: boolean; cash_on_pickup: boolean };
+      return (data?.value ?? { campay: true, cash_on_pickup: true }) as { campay?: boolean; cash_on_pickup?: boolean };
     },
   });
-  const cinetpayEnabled = pmFlags?.cinetpay ?? false;
-  const cashEnabled = pmFlags?.cash_on_pickup ?? true;
+  const campayEnabled = pmFlags?.campay ?? true;
+  // Digital goods can never be paid on delivery.
+  const cashEnabled = (pmFlags?.cash_on_pickup ?? true) && !hasDigital;
 
   useEffect(() => {
-    if (paymentMethod === "cinetpay" && !cinetpayEnabled) setPaymentMethod("cash_on_pickup");
-    if (paymentMethod === "cash_on_pickup" && !cashEnabled && cinetpayEnabled) setPaymentMethod("cinetpay");
-  }, [cinetpayEnabled, cashEnabled, paymentMethod]);
+    if (paymentMethod.startsWith("campay") && !campayEnabled) setPaymentMethod("cash_on_pickup");
+    if (paymentMethod === "cash_on_pickup" && !cashEnabled && campayEnabled) setPaymentMethod("campay_momo");
+  }, [campayEnabled, cashEnabled, paymentMethod]);
 
   const { data: pickupPoints = [] } = useQuery({
     queryKey: ["pickup-points"],
