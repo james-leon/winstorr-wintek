@@ -58,27 +58,40 @@ function htmlShell({
   body,
   ctaLabel,
   ctaUrl,
+  lang = "fr",
 }: {
   preheader: string;
   heading: string;
   body: string;
   ctaLabel?: string;
   ctaUrl?: string;
+  lang?: Lang;
 }) {
   const cta = ctaLabel && ctaUrl
     ? `<tr><td align="center" style="padding: 8px 24px 24px 24px;">
         <a href="${ctaUrl}" style="display:inline-block; background:${BRAND.accent}; color:#ffffff; text-decoration:none; font-weight:600; padding:12px 22px; border-radius:4px; font-size:15px;">${ctaLabel}</a>
       </td></tr>` : "";
+  const footerNote = lang === "en"
+    ? "You are receiving this email because you placed an order on Winstorr. Simply reply to this message if you need help."
+    : "Vous recevez cet email car vous avez passé une commande sur Winstorr. Pour toute question, répondez simplement à ce message.";
+  const tagline = lang === "en" ? "Trusted marketplace" : "Marketplace de confiance";
   return `<!doctype html>
-<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Winstorr</title></head>
+<html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Winstorr</title></head>
 <body style="margin:0; padding:0; background:${BRAND.cream}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Arial, sans-serif; color:${BRAND.text};">
   <div style="display:none; max-height:0; overflow:hidden; opacity:0;">${preheader}</div>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${BRAND.cream}; padding:24px 12px;">
     <tr><td align="center">
       <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%; background:#ffffff; border:1px solid ${BRAND.border}; border-radius:6px; overflow:hidden;">
         <tr><td style="background:${BRAND.navy}; padding:18px 24px;">
-          <div style="font-family: 'Russo One', Impact, sans-serif; color:#ffffff; font-size:22px; letter-spacing:0.5px;">WINSTORR</div>
-          <div style="color:#ffffff; opacity:0.7; font-size:11px; text-transform:uppercase; letter-spacing:1px;">Marketplace de confiance</div>
+          <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+            <td style="padding-right:12px;" valign="middle">
+              <img src="${APP_URL()}/icon-192.png" width="40" height="40" alt="Winstorr" style="display:block; border-radius:8px;">
+            </td>
+            <td valign="middle">
+              <div style="font-family: 'Russo One', Impact, sans-serif; color:#ffffff; font-size:22px; letter-spacing:0.5px;">WINSTORR</div>
+              <div style="color:#ffffff; opacity:0.7; font-size:11px; text-transform:uppercase; letter-spacing:1px;">${tagline}</div>
+            </td>
+          </tr></table>
         </td></tr>
         <tr><td style="padding:24px;">
           <h1 style="margin:0 0 12px 0; font-size:20px; color:${BRAND.navy};">${heading}</h1>
@@ -86,9 +99,12 @@ function htmlShell({
         </td></tr>
         ${cta}
         <tr><td style="padding:16px 24px; background:${BRAND.cream}; border-top:1px solid ${BRAND.border}; font-size:12px; color:${BRAND.muted};">
-          Vous recevez cet email car vous avez passé une commande sur Winstorr. Pour toute question, répondez à ce message.
+          ${footerNote}
           <br><br>
-          <a href="${APP_URL()}" style="color:${BRAND.muted}; text-decoration:underline;">winstorr.com</a> · Cameroun
+          WhatsApp / Tel : <a href="https://wa.me/${SUPPORT_WHATSAPP_RAW}" style="color:${BRAND.muted};">${SUPPORT_PHONE_DISPLAY}</a>
+          · <a href="mailto:${SUPPORT_EMAIL}" style="color:${BRAND.muted};">${SUPPORT_EMAIL}</a>
+          <br>
+          <a href="${APP_URL()}" style="color:${BRAND.muted}; text-decoration:underline;">winstorr.com</a> · ${SUPPORT_CITY}
         </td></tr>
       </table>
     </td></tr>
@@ -105,15 +121,65 @@ function orderUrl(orderNumber: string) {
   return `${APP_URL()}/commande/${orderNumber}/confirmation`;
 }
 
-function pickupBlock(pp: PickupPoint | null) {
+function pickupBlock(pp: PickupPoint | null, lang: Lang = "fr") {
   if (!pp) return "";
   return `<div style="margin-top:16px; padding:12px; background:${BRAND.cream}; border:1px solid ${BRAND.border}; border-radius:4px;">
     <div style="font-weight:600; color:${BRAND.navy};">${pp.name}</div>
     <div style="color:${BRAND.text}; font-size:14px;">${pp.address}, ${pp.city}</div>
     ${pp.opening_hours ? `<div style="color:${BRAND.muted}; font-size:13px; margin-top:4px;">${pp.opening_hours}</div>` : ""}
-    ${pp.contact_phone ? `<div style="color:${BRAND.muted}; font-size:13px;">Tel : ${pp.contact_phone}</div>` : ""}
+    ${pp.contact_phone ? `<div style="color:${BRAND.muted}; font-size:13px;">${lang === "en" ? "Phone" : "Tel"} : ${pp.contact_phone}</div>` : ""}
   </div>`;
 }
+
+// Recap table of purchased items.
+function itemsBlock(items: OrderItem[], currency: string, lang: Lang) {
+  if (!items.length) return "";
+  const rows = items
+    .map(
+      (it) => `<tr>
+        <td style="padding:8px 0; border-bottom:1px solid ${BRAND.border}; font-size:14px; color:${BRAND.text};">
+          ${escapeHtml(it.product_name)}${it.quantity > 1 ? ` <span style="color:${BRAND.muted};">× ${it.quantity}</span>` : ""}
+        </td>
+        <td align="right" style="padding:8px 0; border-bottom:1px solid ${BRAND.border}; font-size:14px; white-space:nowrap; color:${BRAND.text};">
+          ${money(it.subtotal, currency)}
+        </td>
+      </tr>`,
+    )
+    .join("");
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0;">
+    <tr><td colspan="2" style="font-size:12px; text-transform:uppercase; letter-spacing:1px; color:${BRAND.muted}; padding-bottom:6px;">
+      ${lang === "en" ? "Your order" : "Votre commande"}
+    </td></tr>
+    ${rows}
+  </table>`;
+}
+
+function escapeHtml(s: string) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function digitalBlock(items: OrderItem[], lang: Lang) {
+  const digital = items.filter((i) => i.product_type === "digital");
+  if (!digital.length) return "";
+  const lines = digital
+    .map((d) => {
+      const instr = d.delivery_instructions?.trim();
+      return `<div style="margin-top:8px;"><strong>${escapeHtml(d.product_name)}</strong>${
+        instr ? `<br><span style="font-size:14px;">${escapeHtml(instr).replace(/\n/g, "<br>")}</span>` : ""
+      }</div>`;
+    })
+    .join("");
+  return `<div style="margin-top:16px; padding:12px; background:${BRAND.cream}; border:1px solid ${BRAND.border}; border-radius:4px;">
+    <div style="font-weight:600; color:${BRAND.navy};">${lang === "en" ? "Access to your digital product" : "Accès à votre produit numérique"}</div>
+    ${lines}
+    <div style="font-size:13px; color:${BRAND.muted}; margin-top:8px;">${
+      lang === "en"
+        ? "Your access is also available on your order page. If anything is missing, just reply to this email."
+        : "Votre accès est également disponible sur la page de votre commande. S'il manque quoi que ce soit, répondez simplement à cet email."
+    }</div>
+  </div>`;
+}
+
 
 // ------- Message builders -------
 
