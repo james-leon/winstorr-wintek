@@ -105,9 +105,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const value = useMemo<CartCtx>(
     () => ({
       items,
-      add: (item, qty = 1) =>
+      add: (item, qty = 1) => {
+        const k = cartItemKey(item);
+        const existing = items.find((p) => cartItemKey(p) === k);
+        // Digital and physical goods have incompatible payment rules — never mix them.
+        if (!existing && items.length > 0) {
+          const incoming = item.productType === "digital" ? "digital" : "physical";
+          const current = items.some((p) => p.productType === "digital") ? "digital" : "physical";
+          if (incoming !== current) {
+            toast.error(t("cart.mixedTypesTitle"), { description: t("cart.mixedTypes") });
+            return false;
+          }
+        }
         setItems((prev) => {
-          const k = cartItemKey(item);
           const found = prev.find((p) => cartItemKey(p) === k);
           if (found) {
             return prev.map((p) =>
@@ -115,7 +125,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
             );
           }
           return [...prev, { ...item, quantity: qty }];
-        }),
+        });
+        return true;
+      },
       remove: (k) => {
         setItems((prev) => prev.filter((p) => cartItemKey(p) !== k));
         setCouponState(null);
