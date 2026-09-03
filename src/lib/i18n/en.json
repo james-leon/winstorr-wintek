@@ -271,5 +271,22 @@
     "codNotice": "You pay the courier on delivery (product + delivery fee).",
     "addressRequired": "Please select your delivery neighbourhood.",
     "unavailable": "Home delivery is temporarily unavailable."
+  },
+  "checkout": {
+    "paymentTitle": "Payment method",
+    "payMomo": "Pay with Mobile Money",
+    "payMomoSub": "MTN MoMo, Orange Money",
+    "payCard": "Pay by card",
+    "payCardSub": "Visa / Mastercard — secure page",
+    "payOnDelivery": "Pay on collection (cash)",
+    "payAtPickup": "Pay at the pickup point",
+    "payToCourier": "Pay the courier on delivery",
+    "momoPhone": "Mobile Money number",
+    "momoPhoneHint": "Leave empty to use the contact number above.",
+    "momoPrompt": "Approve the payment on your phone. We then verify it.",
+    "verifying": "Payment being verified…",
+    "digitalNotice": "Digital products must be paid online and are delivered after payment confirmation.",
+    "noPaymentMethod": "No payment method is currently enabled.",
+    "invalidPhone": "Invalid Mobile Money number."
   }
 }
