@@ -1032,6 +1032,62 @@ export type Database = {
           },
         ]
       }
+      payment_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          external_reference: string
+          id: string
+          operator: string | null
+          order_id: string
+          phone: string | null
+          provider: string
+          raw: Json
+          reference: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          external_reference: string
+          id?: string
+          operator?: string | null
+          order_id: string
+          phone?: string | null
+          provider?: string
+          raw?: Json
+          reference?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          external_reference?: string
+          id?: string
+          operator?: string | null
+          order_id?: string
+          phone?: string | null
+          provider?: string
+          raw?: Json
+          reference?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_transactions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pickup_points: {
         Row: {
           address: string

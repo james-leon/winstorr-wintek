@@ -5,7 +5,7 @@ import { XCircle, Loader2, Package, Download, UserPlus, Wallet, Store, MapPin } 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { formatFcfa } from "@/lib/format";
-import { initiatePayment } from "@/lib/orders.functions";
+import { reconcileOrderPayment } from "@/lib/payments.functions";
 import { toast } from "sonner";
 import { SuccessCheckmark } from "@/components/success-checkmark";
 import { TrustStrip } from "@/components/trust-strip";
@@ -13,7 +13,7 @@ import { WhatsAppButton } from "@/components/whatsapp-button";
 import { waTemplates } from "@/lib/whatsapp";
 import { useSupportWhatsApp } from "@/lib/use-support-whatsapp";
 import { useAuth } from "@/lib/auth-context";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 
 export const Route = createFileRoute("/commande/$orderNumber/confirmation")({
@@ -42,12 +42,22 @@ function ConfirmationPage() {
 
   const supportPhone = useSupportWhatsApp();
 
-  const retryFn = useServerFn(initiatePayment);
-  const retry = useMutation({
-    mutationFn: () => retryFn({ data: { orderNumber } }),
-    onSuccess: (r) => { window.location.href = r.paymentUrl; },
+  // Server-side reconciliation (webhook fallback): the browser never decides payment status.
+  const reconcileFn = useServerFn(reconcileOrderPayment);
+  const reconcile = useMutation({
+    mutationFn: () => reconcileFn({ data: { orderNumber } }),
+    onSuccess: () => { void refetch(); },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const pendingStatus = data?.order?.payment_status === "pending";
+  useEffect(() => {
+    if (!pendingStatus) return;
+    reconcile.mutate();
+    const id = setInterval(() => reconcile.mutate(), 8000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingStatus, orderNumber]);
 
   if (!data) {
     return <div className="mx-auto max-w-2xl px-4 py-16 text-center text-muted-foreground">Chargement…</div>;
@@ -145,8 +155,8 @@ function ConfirmationPage() {
 
         {isFailed && (
           <div className="mt-4 flex gap-2">
-            <Button onClick={() => retry.mutate()} disabled={retry.isPending} className="bg-accent hover:bg-accent/90 text-accent-foreground">
-              Réessayer le paiement
+            <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
+              <Link to="/commande">Réessayer le paiement</Link>
             </Button>
             <Button asChild variant="outline"><Link to="/panier">Retour au panier</Link></Button>
           </div>
@@ -155,6 +165,9 @@ function ConfirmationPage() {
         {isPending && !isCash && (
           <div className="mt-4 space-y-2">
             <p className="text-sm text-muted-foreground">Nous vérifions votre paiement automatiquement. Cette page se met à jour toute seule.</p>
+            <Button variant="outline" size="sm" onClick={() => reconcile.mutate()} disabled={reconcile.isPending}>
+              Vérifier maintenant
+            </Button>
           </div>
         )}
 

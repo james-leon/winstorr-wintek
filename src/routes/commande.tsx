@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ShieldCheck, MapPin, Truck, Store, CreditCard, Wallet, Clock } from "lucide-react";
+import { ShieldCheck, MapPin, Truck, Store, CreditCard, Wallet, Clock, Smartphone } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useDeliveryZones, useHomeDeliverySettings, resolveDeliveryFee } from "@/lib/delivery";
 import { useCart } from "@/lib/cart-context";
@@ -13,7 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createOrder, initiatePayment } from "@/lib/orders.functions";
+import { createOrder } from "@/lib/orders.functions";
+import { startCampayPayment } from "@/lib/payments.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { type CityValue } from "@/lib/address";
 import { cn } from "@/lib/utils";
@@ -44,16 +45,18 @@ type PickupPoint = {
 };
 
 type DeliveryMode = "home_delivery" | "pickup";
-type PaymentMethod = "cinetpay" | "cash_on_pickup";
+type PaymentMethod = "campay_momo" | "campay_card" | "cash_on_pickup";
 
 function CheckoutPage() {
   const { items, subtotal, coupon, discount, clear, effectiveUnit } = useCart();
   const { user } = useAuth();
   const nav = useNavigate();
   const createFn = useServerFn(createOrder);
-  const initFn = useServerFn(initiatePayment);
+  const startPayFn = useServerFn(startCampayPayment);
 
-  const hasPhysical = useMemo(() => items.some((i) => !i.slug.includes("digital")), [items]);
+  const hasPhysical = useMemo(() => items.some((i) => (i.productType ?? "physical") === "physical"), [items]);
+  const hasDigital = useMemo(() => items.some((i) => i.productType === "digital"), [items]);
+  const [momoPhone, setMomoPhone] = useState("");
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -97,16 +100,17 @@ function CheckoutPage() {
     queryKey: ["settings", "payment_methods"],
     queryFn: async () => {
       const { data } = await supabase.from("app_settings").select("value").eq("key", "payment_methods").maybeSingle();
-      return (data?.value ?? { cinetpay: false, cash_on_pickup: true }) as { cinetpay: boolean; cash_on_pickup: boolean };
+      return (data?.value ?? { campay: true, cash_on_pickup: true }) as { campay?: boolean; cash_on_pickup?: boolean };
     },
   });
-  const cinetpayEnabled = pmFlags?.cinetpay ?? false;
-  const cashEnabled = pmFlags?.cash_on_pickup ?? true;
+  const campayEnabled = pmFlags?.campay ?? true;
+  // Digital goods can never be paid on delivery.
+  const cashEnabled = (pmFlags?.cash_on_pickup ?? true) && !hasDigital;
 
   useEffect(() => {
-    if (paymentMethod === "cinetpay" && !cinetpayEnabled) setPaymentMethod("cash_on_pickup");
-    if (paymentMethod === "cash_on_pickup" && !cashEnabled && cinetpayEnabled) setPaymentMethod("cinetpay");
-  }, [cinetpayEnabled, cashEnabled, paymentMethod]);
+    if (paymentMethod.startsWith("campay") && !campayEnabled) setPaymentMethod("cash_on_pickup");
+    if (paymentMethod === "cash_on_pickup" && !cashEnabled && campayEnabled) setPaymentMethod("campay_momo");
+  }, [campayEnabled, cashEnabled, paymentMethod]);
 
   const { data: pickupPoints = [] } = useQuery({
     queryKey: ["pickup-points"],
@@ -199,23 +203,33 @@ function CheckoutPage() {
           delivery_mode: hasPhysical ? deliveryMode : "none",
           pickup_point_id: deliveryMode === "pickup" ? pickupPointId : null,
           delivery_zone_id: deliveryMode === "home_delivery" ? zone?.id ?? null : null,
-          payment_method: paymentMethod,
+          payment_method: paymentMethod === "cash_on_pickup" ? "cash_on_pickup" : "campay",
         },
       });
       if (order.isCash) {
-        return { orderNumber: order.orderNumber, paymentUrl: null as string | null, cash: true };
+        return { orderNumber: order.orderNumber, redirectUrl: null as string | null, cash: true };
       }
-      const pay = await initFn({ data: { orderNumber: order.orderNumber } });
-      return { orderNumber: order.orderNumber, paymentUrl: pay.paymentUrl, mocked: pay.mocked, cash: false };
+      // The browser only *starts* the payment. Confirmation is server-side only.
+      const pay = await startPayFn({
+        data: {
+          orderNumber: order.orderNumber,
+          mode: paymentMethod === "campay_card" ? "card" : "momo",
+          phone: paymentMethod === "campay_momo" ? momoPhone || phone : null,
+        },
+      });
+      return { orderNumber: order.orderNumber, redirectUrl: pay.link, cash: false };
     },
     onSuccess: (r) => {
       clear();
       if (r.cash) {
         toast.success("Commande enregistrée. Paiement à la réception.");
-        nav({ to: "/commande/$orderNumber/confirmation", params: { orderNumber: r.orderNumber } });
-      } else if (r.paymentUrl) {
-        window.location.href = r.paymentUrl;
+      } else if (r.redirectUrl) {
+        window.location.href = r.redirectUrl;
+        return;
+      } else {
+        toast.success(t("checkout.momoPrompt"));
       }
+      nav({ to: "/commande/$orderNumber/confirmation", params: { orderNumber: r.orderNumber } });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -419,8 +433,40 @@ function CheckoutPage() {
           )}
 
           <section className="rounded-sm border border-border bg-card p-4">
-            <h2 className="font-semibold mb-3">Mode de paiement</h2>
+            <h2 className="font-semibold mb-3">{t("checkout.paymentTitle")}</h2>
             <div className="grid gap-2 sm:grid-cols-2">
+              {campayEnabled && (
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("campay_momo")}
+                  className={cn(
+                    "flex items-start gap-3 rounded-sm border p-3 text-left transition",
+                    paymentMethod === "campay_momo" ? "border-secondary bg-secondary/5 ring-1 ring-secondary" : "border-border hover:bg-muted",
+                  )}
+                >
+                  <Smartphone className="mt-0.5 h-5 w-5 text-secondary" />
+                  <div>
+                    <div className="font-medium text-sm">{t("checkout.payMomo")}</div>
+                    <div className="text-xs text-muted-foreground">{t("checkout.payMomoSub")}</div>
+                  </div>
+                </button>
+              )}
+              {campayEnabled && (
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("campay_card")}
+                  className={cn(
+                    "flex items-start gap-3 rounded-sm border p-3 text-left transition",
+                    paymentMethod === "campay_card" ? "border-secondary bg-secondary/5 ring-1 ring-secondary" : "border-border hover:bg-muted",
+                  )}
+                >
+                  <CreditCard className="mt-0.5 h-5 w-5 text-secondary" />
+                  <div>
+                    <div className="font-medium text-sm">{t("checkout.payCard")}</div>
+                    <div className="text-xs text-muted-foreground">{t("checkout.payCardSub")}</div>
+                  </div>
+                </button>
+              )}
               {cashEnabled && (
                 <button
                   type="button"
@@ -432,32 +478,34 @@ function CheckoutPage() {
                 >
                   <Wallet className="mt-0.5 h-5 w-5 text-secondary" />
                   <div>
-                    <div className="font-medium text-sm">Paiement à la réception (espèces)</div>
+                    <div className="font-medium text-sm">{t("checkout.payOnDelivery")}</div>
                     <div className="text-xs text-muted-foreground">
-                      {deliveryMode === "pickup" ? "Payez au point de retrait" : "Payez au livreur à la livraison"}
+                      {deliveryMode === "pickup" ? t("checkout.payAtPickup") : t("checkout.payToCourier")}
                     </div>
                   </div>
                 </button>
               )}
-              {cinetpayEnabled && (
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("cinetpay")}
-                  className={cn(
-                    "flex items-start gap-3 rounded-sm border p-3 text-left transition",
-                    paymentMethod === "cinetpay" ? "border-secondary bg-secondary/5 ring-1 ring-secondary" : "border-border hover:bg-muted",
-                  )}
-                >
-                  <CreditCard className="mt-0.5 h-5 w-5 text-secondary" />
-                  <div>
-                    <div className="font-medium text-sm">Paiement en ligne</div>
-                    <div className="text-xs text-muted-foreground">MTN MoMo, Orange Money, carte</div>
-                  </div>
-                </button>
-              )}
             </div>
-            {!cashEnabled && !cinetpayEnabled && (
-              <p className="mt-2 text-xs text-destructive">Aucun mode de paiement n'est actuellement activé.</p>
+
+            {paymentMethod === "campay_momo" && campayEnabled && (
+              <div className="mt-3 max-w-sm">
+                <Label>{t("checkout.momoPhone")}</Label>
+                <Input
+                  value={momoPhone}
+                  onChange={(e) => setMomoPhone(e.target.value)}
+                  placeholder={phone || "6XX XX XX XX"}
+                  inputMode="tel"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">{t("checkout.momoPhoneHint")}</p>
+              </div>
+            )}
+
+            {hasDigital && (
+              <p className="mt-3 text-xs text-muted-foreground">{t("checkout.digitalNotice")}</p>
+            )}
+
+            {!cashEnabled && !campayEnabled && (
+              <p className="mt-2 text-xs text-destructive">{t("checkout.noPaymentMethod")}</p>
             )}
           </section>
         </div>
@@ -506,7 +554,7 @@ function CheckoutPage() {
             </div>
           )}
 
-          <Button type="submit" disabled={mut.isPending || (!cashEnabled && !cinetpayEnabled)} className="mt-4 w-full bg-accent hover:bg-accent/90 text-accent-foreground">
+          <Button type="submit" disabled={mut.isPending || (!cashEnabled && !campayEnabled)} className="mt-4 w-full bg-accent hover:bg-accent/90 text-accent-foreground">
             {mut.isPending
               ? "Traitement..."
               : paymentMethod === "cash_on_pickup"

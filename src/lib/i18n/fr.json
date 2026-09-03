@@ -271,5 +271,22 @@
     "codNotice": "Vous payez le livreur à la réception (produit + livraison).",
     "addressRequired": "Veuillez sélectionner votre quartier de livraison.",
     "unavailable": "La livraison à domicile est momentanément indisponible."
+  },
+  "checkout": {
+    "paymentTitle": "Mode de paiement",
+    "payMomo": "Payer avec Mobile Money",
+    "payMomoSub": "MTN MoMo, Orange Money",
+    "payCard": "Payer par carte",
+    "payCardSub": "Visa / Mastercard — page sécurisée",
+    "payOnDelivery": "Paiement à la réception (espèces)",
+    "payAtPickup": "Payez au point de retrait",
+    "payToCourier": "Payez au livreur à la livraison",
+    "momoPhone": "Numéro Mobile Money",
+    "momoPhoneHint": "Laissez vide pour utiliser le numéro de contact ci-dessus.",
+    "momoPrompt": "Validez le paiement sur votre téléphone. Nous vérifions ensuite le paiement.",
+    "verifying": "Paiement en cours de vérification…",
+    "digitalNotice": "Les produits numériques doivent être réglés en ligne et sont livrés après confirmation du paiement.",
+    "noPaymentMethod": "Aucun mode de paiement n'est actuellement activé.",
+    "invalidPhone": "Numéro Mobile Money invalide."
   }
 }

@@ -681,6 +681,7 @@ function PhysicalActions({
         name: p.name,
         price: Number(pricePoint),
         image: variant?.image_url ?? p.images[0] ?? null,
+        productType: "physical",
       },
       qty,
     );
@@ -743,6 +744,21 @@ function DigitalActions({ p }: { p: Product }) {
     license_key: "Clé de licence envoyée par email",
     access_link: "Lien d'accès envoyé par email",
   };
+  const { add } = useCart();
+  const nav = useNavigate();
+  const addToCart = () => {
+    if (p.price == null) return;
+    add({
+      productId: p.id,
+      variantId: null,
+      variantAttributes: null,
+      slug: p.slug,
+      name: p.name,
+      price: Number(p.price),
+      image: p.images[0] ?? null,
+      productType: "digital",
+    }, 1);
+  };
   return (
     <div className="space-y-4">
       {p.delivery_type && (
@@ -754,12 +770,25 @@ function DigitalActions({ p }: { p: Product }) {
           </div>
         </div>
       )}
+      <p className="text-xs text-muted-foreground">
+        Paiement en ligne requis (Mobile Money ou carte). Livraison après confirmation du paiement.
+      </p>
       <Button
         size="lg"
         className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
-        onClick={() => toast.info("Le paiement en ligne sera disponible prochainement.")}
+        disabled={p.price == null}
+        onClick={() => { addToCart(); nav({ to: "/commande" }); }}
       >
         Acheter maintenant
+      </Button>
+      <Button
+        size="lg"
+        variant="outline"
+        className="w-full"
+        disabled={p.price == null}
+        onClick={() => { addToCart(); toast.success(`${p.name} ajouté au panier`); }}
+      >
+        Ajouter au panier
       </Button>
     </div>
   );

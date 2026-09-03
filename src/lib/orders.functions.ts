@@ -31,7 +31,7 @@ const checkoutSchema = z.object({
   delivery_mode: z.enum(["home_delivery", "pickup", "none"]).default("home_delivery"),
   pickup_point_id: z.string().uuid().nullable().optional(),
   delivery_zone_id: z.string().uuid().nullable().optional(),
-  payment_method: z.enum(["cinetpay", "cash_on_pickup"]).default("cinetpay"),
+  payment_method: z.enum(["campay", "cinetpay", "cash_on_pickup"]).default("campay"),
 });
 
 export const createOrder = createServerFn({ method: "POST" })
@@ -172,6 +172,12 @@ export const createOrder = createServerFn({ method: "POST" })
         vendor_id: p.vendor_id,
       };
     });
+
+    const hasDigital = itemsRows.some((r) => r.product_type === "digital");
+    // Digital goods cannot be paid on delivery — they require a server-confirmed online payment.
+    if (hasDigital && data.payment_method === "cash_on_pickup") {
+      throw new Error("Les produits numériques doivent être réglés en ligne (Mobile Money ou carte).");
+    }
 
     const deliveryMode = hasPhysical ? data.delivery_mode : "none";
 
