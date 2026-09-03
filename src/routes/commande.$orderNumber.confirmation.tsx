@@ -145,8 +145,8 @@ function ConfirmationPage() {
 
         {isFailed && (
           <div className="mt-4 flex gap-2">
-            <Button onClick={() => retry.mutate()} disabled={retry.isPending} className="bg-accent hover:bg-accent/90 text-accent-foreground">
-              Réessayer le paiement
+            <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
+              <Link to="/commande">Réessayer le paiement</Link>
             </Button>
             <Button asChild variant="outline"><Link to="/panier">Retour au panier</Link></Button>
           </div>
@@ -155,6 +155,9 @@ function ConfirmationPage() {
         {isPending && !isCash && (
           <div className="mt-4 space-y-2">
             <p className="text-sm text-muted-foreground">Nous vérifions votre paiement automatiquement. Cette page se met à jour toute seule.</p>
+            <Button variant="outline" size="sm" onClick={() => reconcile.mutate()} disabled={reconcile.isPending}>
+              Vérifier maintenant
+            </Button>
           </div>
         )}
 
