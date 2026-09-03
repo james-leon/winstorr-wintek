@@ -359,29 +359,68 @@ export async function notifyOrderEvent(orderId: string, event: OrderEvent): Prom
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: order } = await supabaseAdmin
     .from("orders")
-    .select("id, order_number, customer_name, customer_email, customer_phone, total, currency, has_physical_items, delivery_mode, pickup_point_id, notes")
+    .select("id, order_number, customer_name, customer_email, customer_phone, customer_id, total, currency, has_physical_items, delivery_mode, pickup_point_id, notes")
     .eq("id", orderId)
     .maybeSingle();
   if (!order) return { email: null };
-
-  const pp = order.delivery_mode === "pickup" ? await loadPickupPoint(order.pickup_point_id) : null;
-  const msg = buildCustomerMessage(event, order as OrderCore, pp);
 
   if (!order.customer_email) {
     console.log(`[notifications] order ${order.order_number} has no email — skipping ${event}`);
     return { email: null };
   }
 
+  // Customer language (profile preference), default French.
+  let lang: Lang = "fr";
+  if (order.customer_id) {
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("preferred_language")
+      .eq("id", order.customer_id)
+      .maybeSingle();
+    if (profile?.preferred_language?.toLowerCase().startsWith("en")) lang = "en";
+  }
+
+  // Item recap (used by the confirmation email).
+  let items: OrderItem[] = [];
+  if (event === "payment_confirmed") {
+    const { data: rows } = await supabaseAdmin
+      .from("order_items")
+      .select("product_name, product_type, quantity, subtotal, product_id")
+      .eq("order_id", orderId);
+    const list = (rows ?? []) as Array<OrderItem & { product_id: string | null }>;
+    const digitalIds = list.filter((i) => i.product_type === "digital" && i.product_id).map((i) => i.product_id!);
+    let instructions: Record<string, string | null> = {};
+    if (digitalIds.length) {
+      const { data: prods } = await supabaseAdmin
+        .from("products")
+        .select("id, delivery_instructions")
+        .in("id", digitalIds);
+      instructions = Object.fromEntries((prods ?? []).map((p) => [p.id, p.delivery_instructions]));
+    }
+    items = list.map((i) => ({
+      product_name: i.product_name,
+      product_type: i.product_type,
+      quantity: i.quantity,
+      subtotal: i.subtotal,
+      delivery_instructions: i.product_id ? instructions[i.product_id] ?? null : null,
+    }));
+  }
+
+  const pp = order.delivery_mode === "pickup" ? await loadPickupPoint(order.pickup_point_id) : null;
+  const msg = buildCustomerMessage(event, order as OrderCore, pp, items, lang);
+
   const html = htmlShell({
     preheader: msg.preheader,
     heading: msg.heading,
     body: msg.body,
-    ctaLabel: "Voir ma commande",
+    ctaLabel: lang === "en" ? "View my order" : "Voir ma commande",
     ctaUrl: orderUrl(order.order_number),
+    lang,
   });
   const email = await sendEmailHtml(order.customer_email, msg.subject, html, stripHtml(msg.body));
   return { email };
 }
+
 
 // Notify each vendor with a shipment for this order (called right after payment).
 export async function notifyVendorsOfNewShipments(orderId: string) {
