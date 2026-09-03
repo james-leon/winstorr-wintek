@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ShieldCheck, MapPin, Truck, Store, CreditCard, Wallet, Clock } from "lucide-react";
+import { ShieldCheck, MapPin, Truck, Store, CreditCard, Wallet, Clock, Smartphone } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useDeliveryZones, useHomeDeliverySettings, resolveDeliveryFee } from "@/lib/delivery";
 import { useCart } from "@/lib/cart-context";
