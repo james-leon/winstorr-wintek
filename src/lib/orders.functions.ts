@@ -210,6 +210,22 @@ export const createOrder = createServerFn({ method: "POST" })
 
     const deliveryMode = hasPhysical ? data.delivery_mode : "none";
 
+    // Admin settings are the source of truth for which methods a cart may use.
+    {
+      const { assertPaymentMethodAllowed } = await import("./payment-methods.functions");
+      const cartTypes = Array.from(
+        new Set(itemsRows.map((r) => r.product_type)),
+      ) as ("physical" | "digital" | "service" | "training")[];
+      const providerKey =
+        data.payment_method === "cash_on_pickup"
+          ? deliveryMode === "home_delivery"
+            ? "cash_on_delivery"
+            : "pickup_payment"
+          : data.payment_method;
+      await assertPaymentMethodAllowed(providerKey, cartTypes);
+    }
+
+
     if (hasPhysical && deliveryMode === "home_delivery" && !data.shipping_address) {
       throw new Error("Adresse de livraison requise pour la livraison à domicile.");
     }
