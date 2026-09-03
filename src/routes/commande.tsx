@@ -554,7 +554,7 @@ function CheckoutPage() {
             </div>
           )}
 
-          <Button type="submit" disabled={mut.isPending || (!cashEnabled && !cinetpayEnabled)} className="mt-4 w-full bg-accent hover:bg-accent/90 text-accent-foreground">
+          <Button type="submit" disabled={mut.isPending || (!cashEnabled && !campayEnabled)} className="mt-4 w-full bg-accent hover:bg-accent/90 text-accent-foreground">
             {mut.isPending
               ? "Traitement..."
               : paymentMethod === "cash_on_pickup"
