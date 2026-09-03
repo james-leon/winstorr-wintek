@@ -42,12 +42,22 @@ function ConfirmationPage() {
 
   const supportPhone = useSupportWhatsApp();
 
-  const retryFn = useServerFn(initiatePayment);
-  const retry = useMutation({
-    mutationFn: () => retryFn({ data: { orderNumber } }),
-    onSuccess: (r) => { window.location.href = r.paymentUrl; },
+  // Server-side reconciliation (webhook fallback): the browser never decides payment status.
+  const reconcileFn = useServerFn(reconcileOrderPayment);
+  const reconcile = useMutation({
+    mutationFn: () => reconcileFn({ data: { orderNumber } }),
+    onSuccess: () => { void refetch(); },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const pendingStatus = data?.order?.payment_status === "pending";
+  useEffect(() => {
+    if (!pendingStatus) return;
+    reconcile.mutate();
+    const id = setInterval(() => reconcile.mutate(), 8000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingStatus, orderNumber]);
 
   if (!data) {
     return <div className="mx-auto max-w-2xl px-4 py-16 text-center text-muted-foreground">Chargement…</div>;
