@@ -44,16 +44,18 @@ type PickupPoint = {
 };
 
 type DeliveryMode = "home_delivery" | "pickup";
-type PaymentMethod = "cinetpay" | "cash_on_pickup";
+type PaymentMethod = "campay_momo" | "campay_card" | "cash_on_pickup";
 
 function CheckoutPage() {
   const { items, subtotal, coupon, discount, clear, effectiveUnit } = useCart();
   const { user } = useAuth();
   const nav = useNavigate();
   const createFn = useServerFn(createOrder);
-  const initFn = useServerFn(initiatePayment);
+  const startPayFn = useServerFn(startCampayPayment);
 
-  const hasPhysical = useMemo(() => items.some((i) => !i.slug.includes("digital")), [items]);
+  const hasPhysical = useMemo(() => items.some((i) => (i.productType ?? "physical") === "physical"), [items]);
+  const hasDigital = useMemo(() => items.some((i) => i.productType === "digital"), [items]);
+  const [momoPhone, setMomoPhone] = useState("");
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
