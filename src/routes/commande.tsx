@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useMatches, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -49,6 +49,16 @@ type DeliveryMode = "home_delivery" | "pickup";
 type PaymentMethod = "campay_momo" | "campay_card" | "cash_on_pickup";
 
 function CheckoutPage() {
+  // /commande/$orderNumber/confirmation is nested under /commande: when a child
+  // route matches, render it (the payment tracking screen) instead of the checkout.
+  const matches = useMatches();
+  if (matches.some((m) => m.routeId !== "/commande" && m.routeId.startsWith("/commande/"))) {
+    return <Outlet />;
+  }
+  return <CheckoutForm />;
+}
+
+function CheckoutForm() {
   const { items, subtotal, coupon, discount, clear, effectiveUnit } = useCart();
   const { user } = useAuth();
   const nav = useNavigate();
