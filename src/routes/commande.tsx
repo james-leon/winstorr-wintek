@@ -107,6 +107,7 @@ function CheckoutPage() {
     queryFn: () => methodsFn({ data: { productTypes: cartTypes } }),
   });
   const enabledKeys = useMemo(() => new Set((pmData?.methods ?? []).map((m) => m.provider_key)), [pmData]);
+  const minOnlineAmount = pmData?.minOnlineAmount ?? 1;
   const campayEnabled = enabledKeys.has("campay");
   const cashKey = deliveryMode === "home_delivery" ? "cash_on_delivery" : "pickup_payment";
   const cashEnabled = enabledKeys.has(cashKey) && !hasDigital;
@@ -260,8 +261,8 @@ function CheckoutPage() {
     if (hasPhysical && deliveryMode === "pickup" && !pickupPointId) {
       toast.error("Sélectionnez un point de retrait."); return;
     }
-    if (paymentMethod !== "cash_on_pickup" && total > 0 && total < 100) {
-      toast.error(`Montant minimum pour un paiement en ligne : 100 FCFA (total : ${formatFcfa(total)}).`);
+    if (paymentMethod !== "cash_on_pickup" && total > 0 && total < minOnlineAmount) {
+      toast.error(`Montant minimum pour un paiement en ligne : ${minOnlineAmount} FCFA (total : ${formatFcfa(total)}).`);
       return;
     }
     mut.mutate();
