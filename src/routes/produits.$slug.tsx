@@ -681,6 +681,7 @@ function PhysicalActions({
         name: p.name,
         price: Number(pricePoint),
         image: variant?.image_url ?? p.images[0] ?? null,
+        productType: "physical",
       },
       qty,
     );
