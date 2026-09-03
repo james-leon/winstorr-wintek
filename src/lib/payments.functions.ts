@@ -31,6 +31,10 @@ export const startCampayPayment = createServerFn({ method: "POST" })
 
     const amount = Math.round(Number(order.total));
     if (amount <= 0) throw new Error("Montant de commande invalide.");
+    if (amount < 100) {
+      throw new Error(`Montant minimum pour un paiement Mobile Money / carte : 100 FCFA (total : ${amount} FCFA).`);
+    }
+
     const description = `Winstorr — commande ${order.order_number}`;
 
     if (data.mode === "card") {

@@ -245,15 +245,22 @@ function CheckoutPage() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !phone.trim()) { toast.error("Nom et téléphone requis."); return; }
+    if (!name.trim() || name.trim().length < 2) { toast.error("Nom complet requis (2 caractères minimum)."); return; }
+    if (!phone.trim() || phone.trim().length < 6) { toast.error("Numéro de téléphone requis (6 chiffres minimum)."); return; }
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { toast.error("Adresse email invalide."); return; }
     if (hasPhysical && deliveryMode === "home_delivery" && (!quartier.trim() || !zone)) {
       toast.error(t("delivery.addressRequired")); return;
     }
     if (hasPhysical && deliveryMode === "pickup" && !pickupPointId) {
       toast.error("Sélectionnez un point de retrait."); return;
     }
+    if (paymentMethod !== "cash_on_pickup" && total > 0 && total < 100) {
+      toast.error(`Montant minimum pour un paiement en ligne : 100 FCFA (total : ${formatFcfa(total)}).`);
+      return;
+    }
     mut.mutate();
   };
+
 
   const selectedPickup = pickupPoints.find((p) => p.id === pickupPointId);
 
