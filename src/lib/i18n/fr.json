@@ -272,6 +272,10 @@
     "addressRequired": "Veuillez sélectionner votre quartier de livraison.",
     "unavailable": "La livraison à domicile est momentanément indisponible."
   },
+  "cart": {
+    "mixedTypesTitle": "Panier incompatible",
+    "mixedTypes": "Les produits numériques et physiques ne peuvent pas être commandés ensemble. Passez deux commandes séparées."
+  },
   "checkout": {
     "paymentTitle": "Mode de paiement",
     "payMomo": "Payer avec Mobile Money",

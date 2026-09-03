@@ -153,6 +153,7 @@ function CartPage() {
         name: i.name,
         price: i.price,
         image: i.image,
+        productType: i.productType,
       },
       1,
     );
@@ -169,6 +170,7 @@ function CartPage() {
         name: i.name,
         price: i.price,
         image: i.image,
+        productType: i.productType,
       },
       i.quantity - 1,
     );

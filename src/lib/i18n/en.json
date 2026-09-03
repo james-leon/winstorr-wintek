@@ -272,6 +272,10 @@
     "addressRequired": "Please select your delivery neighbourhood.",
     "unavailable": "Home delivery is temporarily unavailable."
   },
+  "cart": {
+    "mixedTypesTitle": "Incompatible cart",
+    "mixedTypes": "Digital and physical products cannot be ordered together. Please place two separate orders."
+  },
   "checkout": {
     "paymentTitle": "Payment method",
     "payMomo": "Pay with Mobile Money",
