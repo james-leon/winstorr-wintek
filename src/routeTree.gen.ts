@@ -50,6 +50,7 @@ import { Route as VendeurInvitationTokenRouteImport } from './routes/vendeur.inv
 import { Route as PartenaireInvitationTokenRouteImport } from './routes/partenaire.invitation.$token'
 import { Route as CommandeOrderNumberConfirmationRouteImport } from './routes/commande.$orderNumber.confirmation'
 import { Route as ApiPublicCinetpayWebhookRouteImport } from './routes/api/public/cinetpay-webhook'
+import { Route as ApiPublicCampayWebhookRouteImport } from './routes/api/public/campay-webhook'
 import { Route as AuthenticatedVendeurTableauDeBordRouteImport } from './routes/_authenticated/vendeur.tableau-de-bord'
 import { Route as AuthenticatedVendeurRevenusRouteImport } from './routes/_authenticated/vendeur.revenus'
 import { Route as AuthenticatedVendeurQuestionsRouteImport } from './routes/_authenticated/vendeur.questions'
@@ -295,6 +296,11 @@ const ApiPublicCinetpayWebhookRoute =
     path: '/api/public/cinetpay-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicCampayWebhookRoute = ApiPublicCampayWebhookRouteImport.update({
+  id: '/api/public/campay-webhook',
+  path: '/api/public/campay-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedVendeurTableauDeBordRoute =
   AuthenticatedVendeurTableauDeBordRouteImport.update({
     id: '/tableau-de-bord',
@@ -581,6 +587,7 @@ export interface FileRoutesByFullPath {
   '/vendeur/questions': typeof AuthenticatedVendeurQuestionsRoute
   '/vendeur/revenus': typeof AuthenticatedVendeurRevenusRoute
   '/vendeur/tableau-de-bord': typeof AuthenticatedVendeurTableauDeBordRoute
+  '/api/public/campay-webhook': typeof ApiPublicCampayWebhookRoute
   '/api/public/cinetpay-webhook': typeof ApiPublicCinetpayWebhookRoute
   '/commande/$orderNumber/confirmation': typeof CommandeOrderNumberConfirmationRoute
   '/partenaire/invitation/$token': typeof PartenaireInvitationTokenRoute
@@ -657,6 +664,7 @@ export interface FileRoutesByTo {
   '/vendeur/questions': typeof AuthenticatedVendeurQuestionsRoute
   '/vendeur/revenus': typeof AuthenticatedVendeurRevenusRoute
   '/vendeur/tableau-de-bord': typeof AuthenticatedVendeurTableauDeBordRoute
+  '/api/public/campay-webhook': typeof ApiPublicCampayWebhookRoute
   '/api/public/cinetpay-webhook': typeof ApiPublicCinetpayWebhookRoute
   '/commande/$orderNumber/confirmation': typeof CommandeOrderNumberConfirmationRoute
   '/partenaire/invitation/$token': typeof PartenaireInvitationTokenRoute
@@ -737,6 +745,7 @@ export interface FileRoutesById {
   '/_authenticated/vendeur/questions': typeof AuthenticatedVendeurQuestionsRoute
   '/_authenticated/vendeur/revenus': typeof AuthenticatedVendeurRevenusRoute
   '/_authenticated/vendeur/tableau-de-bord': typeof AuthenticatedVendeurTableauDeBordRoute
+  '/api/public/campay-webhook': typeof ApiPublicCampayWebhookRoute
   '/api/public/cinetpay-webhook': typeof ApiPublicCinetpayWebhookRoute
   '/commande/$orderNumber/confirmation': typeof CommandeOrderNumberConfirmationRoute
   '/partenaire/invitation/$token': typeof PartenaireInvitationTokenRoute
@@ -817,6 +826,7 @@ export interface FileRouteTypes {
     | '/vendeur/questions'
     | '/vendeur/revenus'
     | '/vendeur/tableau-de-bord'
+    | '/api/public/campay-webhook'
     | '/api/public/cinetpay-webhook'
     | '/commande/$orderNumber/confirmation'
     | '/partenaire/invitation/$token'
@@ -893,6 +903,7 @@ export interface FileRouteTypes {
     | '/vendeur/questions'
     | '/vendeur/revenus'
     | '/vendeur/tableau-de-bord'
+    | '/api/public/campay-webhook'
     | '/api/public/cinetpay-webhook'
     | '/commande/$orderNumber/confirmation'
     | '/partenaire/invitation/$token'
@@ -972,6 +983,7 @@ export interface FileRouteTypes {
     | '/_authenticated/vendeur/questions'
     | '/_authenticated/vendeur/revenus'
     | '/_authenticated/vendeur/tableau-de-bord'
+    | '/api/public/campay-webhook'
     | '/api/public/cinetpay-webhook'
     | '/commande/$orderNumber/confirmation'
     | '/partenaire/invitation/$token'
@@ -1013,6 +1025,7 @@ export interface RootRouteChildren {
   BoutiquesVendorSlugRoute: typeof BoutiquesVendorSlugRoute
   ConnexionMotDePasseRoute: typeof ConnexionMotDePasseRoute
   ProduitsSlugRoute: typeof ProduitsSlugRoute
+  ApiPublicCampayWebhookRoute: typeof ApiPublicCampayWebhookRoute
   ApiPublicCinetpayWebhookRoute: typeof ApiPublicCinetpayWebhookRoute
   PartenaireInvitationTokenRoute: typeof PartenaireInvitationTokenRoute
   VendeurInvitationTokenRoute: typeof VendeurInvitationTokenRoute
@@ -1305,6 +1318,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/cinetpay-webhook'
       fullPath: '/api/public/cinetpay-webhook'
       preLoaderRoute: typeof ApiPublicCinetpayWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/campay-webhook': {
+      id: '/api/public/campay-webhook'
+      path: '/api/public/campay-webhook'
+      fullPath: '/api/public/campay-webhook'
+      preLoaderRoute: typeof ApiPublicCampayWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/vendeur/tableau-de-bord': {
@@ -1761,6 +1781,7 @@ const rootRouteChildren: RootRouteChildren = {
   BoutiquesVendorSlugRoute: BoutiquesVendorSlugRoute,
   ConnexionMotDePasseRoute: ConnexionMotDePasseRoute,
   ProduitsSlugRoute: ProduitsSlugRoute,
+  ApiPublicCampayWebhookRoute: ApiPublicCampayWebhookRoute,
   ApiPublicCinetpayWebhookRoute: ApiPublicCinetpayWebhookRoute,
   PartenaireInvitationTokenRoute: PartenaireInvitationTokenRoute,
   VendeurInvitationTokenRoute: VendeurInvitationTokenRoute,

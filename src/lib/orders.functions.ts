@@ -31,7 +31,7 @@ const checkoutSchema = z.object({
   delivery_mode: z.enum(["home_delivery", "pickup", "none"]).default("home_delivery"),
   pickup_point_id: z.string().uuid().nullable().optional(),
   delivery_zone_id: z.string().uuid().nullable().optional(),
-  payment_method: z.enum(["cinetpay", "cash_on_pickup"]).default("cinetpay"),
+  payment_method: z.enum(["campay", "cinetpay", "cash_on_pickup"]).default("campay"),
 });
 
 export const createOrder = createServerFn({ method: "POST" })
