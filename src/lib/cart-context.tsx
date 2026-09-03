@@ -84,6 +84,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } catch { /* ignore */ }
   }, [coupon]);
 
+  const { t } = useTranslation();
+
   const setCoupon = (c: AppliedCoupon | null) => setCouponState(c);
 
   const { data: tiersMap } = useCartTiers(
