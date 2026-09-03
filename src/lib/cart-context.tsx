@@ -29,7 +29,8 @@ export const cartItemKey = (i: Pick<CartItem, "productId" | "variantId">) =>
 
 type CartCtx = {
   items: CartItem[];
-  add: (item: Omit<CartItem, "quantity">, qty?: number) => void;
+  /** Returns false when the item was refused (digital/physical cannot be mixed). */
+  add: (item: Omit<CartItem, "quantity">, qty?: number) => boolean;
   remove: (key: string) => void;
   clear: () => void;
   count: number;
