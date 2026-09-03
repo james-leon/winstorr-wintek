@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { toast } from "sonner";
 import { useCartTiers, resolveUnitPrice, tierKey, type PriceTier } from "@/lib/tiers";
+import { useTranslation } from "react-i18next";
 
 export type CartItem = {
   productId: string;
@@ -27,7 +29,8 @@ export const cartItemKey = (i: Pick<CartItem, "productId" | "variantId">) =>
 
 type CartCtx = {
   items: CartItem[];
-  add: (item: Omit<CartItem, "quantity">, qty?: number) => void;
+  /** Returns false when the item was refused (digital/physical cannot be mixed). */
+  add: (item: Omit<CartItem, "quantity">, qty?: number) => boolean;
   remove: (key: string) => void;
   clear: () => void;
   count: number;
@@ -81,6 +84,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } catch { /* ignore */ }
   }, [coupon]);
 
+  const { t } = useTranslation();
+
   const setCoupon = (c: AppliedCoupon | null) => setCouponState(c);
 
   const { data: tiersMap } = useCartTiers(
@@ -102,9 +107,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const value = useMemo<CartCtx>(
     () => ({
       items,
-      add: (item, qty = 1) =>
+      add: (item, qty = 1) => {
+        const k = cartItemKey(item);
+        const existing = items.find((p) => cartItemKey(p) === k);
+        // Digital and physical goods have incompatible payment rules — never mix them.
+        if (!existing && items.length > 0) {
+          const incoming = item.productType === "digital" ? "digital" : "physical";
+          const current = items.some((p) => p.productType === "digital") ? "digital" : "physical";
+          if (incoming !== current) {
+            toast.error(t("cart.mixedTypesTitle"), { description: t("cart.mixedTypes") });
+            return false;
+          }
+        }
         setItems((prev) => {
-          const k = cartItemKey(item);
           const found = prev.find((p) => cartItemKey(p) === k);
           if (found) {
             return prev.map((p) =>
@@ -112,7 +127,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
             );
           }
           return [...prev, { ...item, quantity: qty }];
-        }),
+        });
+        return true;
+      },
       remove: (k) => {
         setItems((prev) => prev.filter((p) => cartItemKey(p) !== k));
         setCouponState(null);

@@ -528,7 +528,11 @@ function CheckoutForm() {
               <p className="mt-3 text-xs text-muted-foreground">{t("checkout.digitalNotice")}</p>
             )}
 
-            {!cashEnabled && !campayEnabled && (
+            {hasDigital && hasPhysical && (
+              <p className="mt-2 text-xs text-destructive">{t("cart.mixedTypes")}</p>
+            )}
+
+            {!cashEnabled && !campayEnabled && !(hasDigital && hasPhysical) && (
               <p className="mt-2 text-xs text-destructive">{t("checkout.noPaymentMethod")}</p>
             )}
           </section>
