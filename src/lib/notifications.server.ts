@@ -208,7 +208,6 @@ function buildCustomerMessage(
   items: OrderItem[] = [],
   lang: Lang = "fr",
 ) {
-  const url = orderUrl(o.order_number);
   const totalStr = money(o.total, o.currency);
   const firstName = o.customer_name.split(" ")[0];
   const nextStep = pp
@@ -322,7 +321,7 @@ async function sendEmailHtml(to: string, subject: string, html: string, text: st
     console.log(`[notifications:email:mock] RESEND_API_KEY missing — would send to=${to} subject="${subject}"`);
     return { sent: false, mocked: true };
   }
-  const from = process.env.RESEND_FROM || "Winstorr <onboarding@resend.dev>";
+  const from = process.env.RESEND_FROM || "Winstorr <contact@winstorr.com>";
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
