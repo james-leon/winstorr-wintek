@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createOrder } from "@/lib/orders.functions";
 import { startCampayPayment } from "@/lib/payments.functions";
+import { getCheckoutPaymentMethods } from "@/lib/payment-methods.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { type CityValue } from "@/lib/address";
 import { cn } from "@/lib/utils";
@@ -95,22 +96,27 @@ function CheckoutPage() {
     }
   }, [homeDeliveryEnabled, deliveryMode, homeDelivery]);
 
-  // Feature flags
-  const { data: pmFlags } = useQuery({
-    queryKey: ["settings", "payment_methods"],
-    queryFn: async () => {
-      const { data } = await supabase.from("app_settings").select("value").eq("key", "payment_methods").maybeSingle();
-      return (data?.value ?? { campay: true, cash_on_pickup: true }) as { campay?: boolean; cash_on_pickup?: boolean };
-    },
+  // Available payment methods are computed SERVER-SIDE from the admin settings.
+  const methodsFn = useServerFn(getCheckoutPaymentMethods);
+  const cartTypes = useMemo(
+    () => Array.from(new Set(items.map((i) => (i.productType ?? "physical") as "physical" | "digital" | "service" | "training"))),
+    [items],
+  );
+  const { data: pmData } = useQuery({
+    queryKey: ["checkout-payment-methods", cartTypes.join(",")],
+    queryFn: () => methodsFn({ data: { productTypes: cartTypes } }),
   });
-  const campayEnabled = pmFlags?.campay ?? true;
-  // Digital goods can never be paid on delivery.
-  const cashEnabled = (pmFlags?.cash_on_pickup ?? true) && !hasDigital;
+  const enabledKeys = useMemo(() => new Set((pmData?.methods ?? []).map((m) => m.provider_key)), [pmData]);
+  const campayEnabled = enabledKeys.has("campay");
+  const cashKey = deliveryMode === "home_delivery" ? "cash_on_delivery" : "pickup_payment";
+  const cashEnabled = enabledKeys.has(cashKey) && !hasDigital;
 
   useEffect(() => {
+    if (!pmData) return;
     if (paymentMethod.startsWith("campay") && !campayEnabled) setPaymentMethod("cash_on_pickup");
     if (paymentMethod === "cash_on_pickup" && !cashEnabled && campayEnabled) setPaymentMethod("campay_momo");
-  }, [campayEnabled, cashEnabled, paymentMethod]);
+  }, [campayEnabled, cashEnabled, paymentMethod, pmData]);
+
 
   const { data: pickupPoints = [] } = useQuery({
     queryKey: ["pickup-points"],

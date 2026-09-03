@@ -55,6 +55,7 @@ const NAV_GROUPS: NavGroup[] = [
     { to: "/admin/reversements", label: "Reversements coursier", icon: HandCoins },
   ]},
   { label: "Paramètres", items: [
+    { to: "/admin/paiements", label: "Moyens de paiement", icon: CreditCard },
     { to: "/admin/parametres", label: "Paramètres généraux", icon: Settings },
   ]},
 ];
