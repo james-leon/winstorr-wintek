@@ -201,9 +201,16 @@ function digitalBlock(items: OrderItem[], lang: Lang) {
 
 // ------- Message builders -------
 
-function buildCustomerMessage(event: OrderEvent, o: OrderCore, pp: PickupPoint | null) {
+function buildCustomerMessage(
+  event: OrderEvent,
+  o: OrderCore,
+  pp: PickupPoint | null,
+  items: OrderItem[] = [],
+  lang: Lang = "fr",
+) {
   const url = orderUrl(o.order_number);
   const totalStr = money(o.total, o.currency);
+  const firstName = o.customer_name.split(" ")[0];
   const nextStep = pp
     ? `Votre commande sera préparée puis mise à disposition au point de retrait <strong>${pp.name}</strong>. Nous vous préviendrons dès qu'elle est prête.`
     : o.has_physical_items
@@ -211,16 +218,39 @@ function buildCustomerMessage(event: OrderEvent, o: OrderCore, pp: PickupPoint |
       : "Les instructions d'accès à votre produit ont été envoyées séparément.";
 
   switch (event) {
-    case "payment_confirmed":
+    case "payment_confirmed": {
+      const recap = itemsBlock(items, o.currency, lang) + digitalBlock(items, lang);
+      if (lang === "en") {
+        const next = pp
+          ? `We are preparing your order. You will be notified as soon as it is ready for pickup at <strong>${pp.name}</strong>.`
+          : o.has_physical_items
+            ? "We are preparing your order for home delivery (usually 24-72h). You will get an email as soon as it ships."
+            : "Your digital access is available right below and on your order page.";
+        return {
+          subject: `Your Winstorr order is confirmed ✅ — ${o.order_number}`,
+          preheader: `Thank you ${firstName} — we received your payment.`,
+          heading: "Your order is confirmed ✅",
+          body: `Hello <strong>${escapeHtml(o.customer_name)}</strong>,<br><br>
+            Thank you for trusting Winstorr. We have received your payment for order <strong>${o.order_number}</strong>.<br>
+            Amount paid: <strong>${totalStr}</strong>
+            ${recap}
+            <strong>What happens next?</strong><br>${next}${pickupBlock(pp, lang)}
+            <br><br>Any question? Reply to this email or reach us on WhatsApp at ${SUPPORT_PHONE_DISPLAY}. We are here for you.`,
+        };
+      }
       return {
-        subject: `Commande ${o.order_number} confirmée`,
-        preheader: `Merci ${o.customer_name.split(" ")[0]} — votre paiement est reçu.`,
-        heading: "Merci pour votre commande ! ✅",
-        body: `Bonjour <strong>${o.customer_name}</strong>,<br><br>
-          Nous avons bien reçu votre paiement pour la commande <strong>${o.order_number}</strong>.<br>
-          Montant : <strong>${totalStr}</strong><br><br>
-          ${nextStep}${pickupBlock(pp)}`,
+        subject: `Votre commande Winstorr est confirmée ✅ — ${o.order_number}`,
+        preheader: `Merci ${firstName} — votre paiement est bien reçu.`,
+        heading: "Votre commande est confirmée ✅",
+        body: `Bonjour <strong>${escapeHtml(o.customer_name)}</strong>,<br><br>
+          Merci de votre confiance. Nous avons bien reçu votre paiement pour la commande <strong>${o.order_number}</strong>.<br>
+          Montant payé : <strong>${totalStr}</strong>
+          ${recap}
+          <strong>Prochaines étapes</strong><br>${nextStep}${pickupBlock(pp, lang)}
+          <br><br>Une question ? Répondez à cet email ou écrivez-nous sur WhatsApp au ${SUPPORT_PHONE_DISPLAY}. Nous restons à votre écoute.`,
       };
+    }
+
     case "order_placed_cop":
       return {
         subject: `Commande ${o.order_number} enregistrée — paiement à la réception`,
