@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { toast } from "sonner";
 import { useCartTiers, resolveUnitPrice, tierKey, type PriceTier } from "@/lib/tiers";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export type CartItem = {
   productId: string;
