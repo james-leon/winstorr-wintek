@@ -10,7 +10,6 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
 import { CartProvider } from "@/lib/cart-context";
 import { AuthProvider } from "@/lib/auth-context";
 import { LanguageProvider } from "@/lib/i18n/language-context";
@@ -50,7 +49,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
       });
       return;
     }
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    console.error("Root error boundary:", error);
   }, [error, expired, router, reset]);
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-4">

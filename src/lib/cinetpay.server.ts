@@ -1,12 +1,12 @@
 // Server-only helpers for CinetPay integration.
 // TODO: Replace mock branch with real CinetPay REST calls once API credentials are provided.
 //
-// Required env vars (set via Lovable Cloud secrets when going live):
+// Required env vars (set in your hosting / Supabase secrets when going live):
 //   - CINETPAY_API_KEY
 //   - CINETPAY_SITE_ID
 //   - CINETPAY_SECRET_KEY (for HMAC verification of webhook payloads, optional depending on setup)
 //   - CINETPAY_BASE_URL (default https://api-checkout.cinetpay.com/v2)
-//   - APP_PUBLIC_URL (e.g. https://winstorr.lovable.app) — used to build return/notify URLs
+//   - APP_PUBLIC_URL (e.g. https://winstorr.com) — used to build return/notify URLs
 
 export type InitiatePaymentInput = {
   orderNumber: string;
