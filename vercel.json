@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "bun run build",
+  "outputDirectory": "dist/client",
+  "functions": {
+    "api/ssr.mjs": {
+      "includeFiles": "dist/server/**",
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/api/ssr" }
+  ]
+}
