@@ -18,6 +18,7 @@ import {
   Truck,
   Wallet,
   ArrowRight,
+  ChevronRight,
   Sparkles,
   Tag,
   GraduationCap,
@@ -230,6 +231,12 @@ const homeShelvesQuery = queryOptions({
 
     return {
       rootsWithProducts,
+      allRoots: rootCats.map((c) => ({
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        product_type: c.product_type,
+      })),
       nouveautes,
       topRated,
       verified,
@@ -338,6 +345,36 @@ function searchFor(cat: RootCategory): Record<string, unknown> {
   return cat.product_type
     ? { type: cat.product_type, category: cat.slug }
     : { category: cat.slug };
+}
+
+/* -------------------- hero "rayons" panel -------------------- */
+
+type Rayon = { name: string; type: ProductType | null; slug: string | null };
+
+const RAYON_TYPE_ICON: Record<ProductType, LucideIcon> = {
+  physical: Package,
+  digital: Cpu,
+  service: Wrench,
+  training: GraduationCap,
+};
+
+/** Fallback rayons (always meaningful, even on an empty catalogue). */
+const PRODUCT_TYPE_RAYONS: Rayon[] = [
+  { name: "Produits physiques", type: "physical", slug: null },
+  { name: "Produits numériques", type: "digital", slug: null },
+  { name: "Services techniques", type: "service", slug: null },
+  { name: "Formations Wintek", type: "training", slug: null },
+];
+
+function rayonIcon(r: Rayon): LucideIcon {
+  if (r.slug && CATEGORY_ICON[r.slug]) return CATEGORY_ICON[r.slug];
+  if (r.type) return RAYON_TYPE_ICON[r.type];
+  return Package;
+}
+
+function rayonSearch(r: Rayon): Record<string, unknown> {
+  if (r.slug) return r.type ? { type: r.type, category: r.slug } : { category: r.slug };
+  return r.type ? { type: r.type } : {};
 }
 
 /* -------------------- primitives -------------------- */
@@ -594,13 +631,10 @@ const SLIDES: Slide[] = [
 
 function HeroSearch({
   popular,
-  sideImage = null,
-  sideAlt = "",
+  rayons,
 }: {
   popular: { label: string; slug: string }[];
-  /** Optional hero side image (managed in Admin → Bannières → "Image Hero"). Recommended 700×800px. */
-  sideImage?: string | null;
-  sideAlt?: string;
+  rayons: Rayon[];
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -612,114 +646,129 @@ function HeroSearch({
     void navigate({ to: "/catalogue", search: (term ? { q: term } : {}) as never });
   };
 
+  const showRayons = rayons.length > 0;
+
   return (
     <section
       className="relative overflow-hidden"
       style={{
         background:
-          "radial-gradient(1000px 460px at 20% -10%, var(--color-navy-700) 0%, transparent 60%), linear-gradient(160deg, var(--color-navy-900) 0%, var(--color-navy-800) 100%)",
+          "radial-gradient(900px 500px at 85% -20%, var(--color-navy-700) 0%, transparent 55%), linear-gradient(150deg, var(--color-navy-900) 0%, var(--color-navy-800) 100%)",
       }}
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.18]"
+        className="pointer-events-none absolute inset-0 opacity-[0.14]"
         style={{
-          backgroundImage: "radial-gradient(rgba(255,255,255,.55) 1px, transparent 1px)",
-          backgroundSize: "22px 22px",
+          backgroundImage: "radial-gradient(rgba(255,255,255,.5) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
         }}
       />
       <div
         className={cn(
-          "relative mx-auto max-w-7xl px-4 py-10 md:py-16",
-          sideImage && "lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-10",
+          "relative mx-auto max-w-7xl px-4 py-10 md:py-14",
+          showRayons && "lg:grid lg:grid-cols-[minmax(0,1fr)_348px] lg:items-center lg:gap-10",
         )}
       >
         <div className="min-w-0">
-        <h1 className="font-heading max-w-3xl text-[26px] font-extrabold leading-tight text-white md:text-[42px]">
-          {t("home.heroTitle")}{" "}
-          <span style={{ color: "var(--color-accent-500)" }}>{t("home.heroAccent")}</span>{" "}
-          {t("home.heroTitleEnd")}
-        </h1>
-        <p className="mt-3 max-w-2xl text-sm text-white/75 md:text-base">{t("home.heroSub")}</p>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-[color-mix(in_oklch,var(--color-green-2)_30%,transparent)] bg-[color-mix(in_oklch,var(--color-green-2)_12%,transparent)] px-3 py-1 text-xs font-bold text-[#8ff0b0]">
+            <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2.5} /> Marketplace vérifiée · Douala
+          </span>
+          <h1 className="font-heading mt-4 max-w-xl text-[26px] font-extrabold leading-[1.1] tracking-tight text-white md:text-[42px]">
+            {t("home.heroTitle")}{" "}
+            <span style={{ color: "var(--color-accent-500)" }}>{t("home.heroAccent")}</span>{" "}
+            {t("home.heroTitleEnd")}
+          </h1>
+          <p className="mt-3 max-w-xl text-sm text-white/75 md:text-base">{t("home.heroSub")}</p>
 
-        <form
-          onSubmit={submit}
-          className="mt-6 flex max-w-2xl items-center gap-2 rounded-[var(--radius-r-xl)] bg-white p-1.5 shadow-[0_10px_30px_rgba(0,0,0,.25)]"
-        >
-          <Search className="ml-2 h-4 w-4 shrink-0 text-[var(--color-muted-ink)]" />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder={t("home.searchPlaceholder")}
-            aria-label={t("home.searchPlaceholder")}
-            className="min-w-0 flex-1 bg-transparent py-2 text-sm text-[var(--color-ink)] outline-none placeholder:text-[var(--color-muted-ink)]"
-          />
-          <button
-            type="submit"
-            className="shrink-0 rounded-[var(--radius-r-lg)] px-4 py-2 text-sm font-bold text-white"
-            style={{ background: "var(--color-accent-500)" }}
+          <form
+            onSubmit={submit}
+            className="mt-6 flex max-w-xl items-center gap-2 rounded-[var(--radius-r-xl)] bg-white p-1.5 shadow-[0_10px_30px_rgba(0,0,0,.25)]"
           >
-            <span className="hidden sm:inline">{t("common.search")}</span>
-            <Search className="h-4 w-4 sm:hidden" />
-          </button>
-        </form>
+            <Search className="ml-2 h-4 w-4 shrink-0 text-[var(--color-muted-ink)]" />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder={t("home.searchPlaceholder")}
+              aria-label={t("home.searchPlaceholder")}
+              className="min-w-0 flex-1 bg-transparent py-2 text-sm text-[var(--color-ink)] outline-none placeholder:text-[var(--color-muted-ink)]"
+            />
+            <button
+              type="submit"
+              className="shrink-0 rounded-[var(--radius-r-lg)] px-4 py-2 text-sm font-bold text-white"
+              style={{ background: "var(--color-accent-500)" }}
+            >
+              <span className="hidden sm:inline">{t("common.search")}</span>
+              <Search className="h-4 w-4 sm:hidden" />
+            </button>
+          </form>
 
-        {popular.length > 0 && (
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-white/70">
-            <span>{t("home.popular")}</span>
-            {popular.map((p) => (
-              <Link
-                key={p.slug + p.label}
-                to="/catalogue"
-                search={{ q: p.label } as never}
-                className="no-link-color rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/90 transition-colors hover:border-[var(--color-accent-500)]"
-              >
-                {p.label}
-              </Link>
-            ))}
-          </div>
-        )}
+          {popular.length > 0 && (
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-white/70">
+              <span>{t("home.popular")}</span>
+              {popular.map((p) => (
+                <Link
+                  key={p.slug + p.label}
+                  to="/catalogue"
+                  search={{ q: p.label } as never}
+                  className="no-link-color rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/90 transition-colors hover:border-[var(--color-accent-500)]"
+                >
+                  {p.label}
+                </Link>
+              ))}
+            </div>
+          )}
 
-        <div className="mt-6 flex flex-wrap gap-2">
-          <Link
-            to="/catalogue"
-            className="no-link-color inline-flex items-center gap-1.5 rounded-[var(--radius-r-lg)] px-5 py-2.5 text-sm font-bold text-white"
-            style={{ background: "var(--color-accent-500)" }}
-          >
-            {t("home.ctaBuy")} <ArrowRight className="h-4 w-4" />
-          </Link>
-          <Link
-            to="/devenir-vendeur"
-            className="no-link-color inline-flex items-center gap-1.5 rounded-[var(--radius-r-lg)] border border-white/30 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-white/10"
-          >
-            {t("home.ctaSell")}
-          </Link>
+          <div className="mt-6 flex flex-wrap gap-2">
+            <Link
+              to="/catalogue"
+              className="no-link-color inline-flex items-center gap-1.5 rounded-[var(--radius-r-lg)] px-5 py-2.5 text-sm font-bold text-white"
+              style={{ background: "var(--color-accent-500)" }}
+            >
+              {t("home.ctaBuy")} <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              to="/devenir-vendeur"
+              className="no-link-color inline-flex items-center gap-1.5 rounded-[var(--radius-r-lg)] border border-white/30 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-white/10"
+            >
+              {t("home.ctaSell")}
+            </Link>
           </div>
         </div>
 
-        {sideImage && (
-          <div aria-hidden={!sideAlt} className="hidden lg:block">
-            <div className="relative w-[340px] xl:w-[420px]">
-              <img
-                src={sideImage}
-                alt={sideAlt}
-                loading="lazy"
-                className="aspect-[7/8] w-full rounded-[var(--radius-r-xl)] object-cover shadow-[0_18px_50px_rgba(0,0,0,.35)]"
-                style={{
-                  WebkitMaskImage:
-                    "linear-gradient(to right, transparent 0%, black 22%, black 100%), linear-gradient(to bottom, black 82%, transparent 100%)",
-                  maskImage:
-                    "linear-gradient(to right, transparent 0%, black 22%, black 100%), linear-gradient(to bottom, black 82%, transparent 100%)",
-                  WebkitMaskComposite: "source-in",
-                  maskComposite: "intersect",
-                }}
-                onError={(e) => {
-                  (e.currentTarget.parentElement?.parentElement as HTMLElement | null)?.style.setProperty(
-                    "display",
-                    "none",
-                  );
-                }}
-              />
+        {showRayons && (
+          <div className="mt-8 lg:mt-0">
+            <div className="overflow-hidden rounded-[var(--radius-r-lg)] bg-white shadow-[var(--shadow-lift)]">
+              <div className="flex items-center justify-between border-b border-[var(--color-line)] px-4 py-3.5">
+                <span className="font-heading text-[15px] font-extrabold tracking-tight text-[var(--color-ink)]">
+                  Explorer par rayon
+                </span>
+                <Link
+                  to="/catalogue"
+                  className="no-link-color text-[11.5px] font-semibold text-[var(--color-muted-ink)] transition-colors hover:text-[var(--color-blue-brand)]"
+                >
+                  Voir tout
+                </Link>
+              </div>
+              {rayons.map((r) => {
+                const Icon = rayonIcon(r);
+                return (
+                  <Link
+                    key={(r.slug ?? r.type ?? "") + r.name}
+                    to="/catalogue"
+                    search={rayonSearch(r) as never}
+                    className="no-link-color flex items-center gap-3 border-b border-[#f1f3f7] px-4 py-2.5 transition-colors last:border-b-0 hover:bg-[var(--color-surface)]"
+                  >
+                    <span className="grid h-[34px] w-[34px] shrink-0 place-items-center rounded-[9px] bg-[var(--color-surface)] text-[var(--color-blue-brand)]">
+                      <Icon className="h-[18px] w-[18px]" strokeWidth={2} />
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-[13.5px] font-semibold text-[var(--color-ink)]">
+                      {r.name}
+                    </span>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-[#c2cbd6]" />
+                  </Link>
+                );
+              })}
             </div>
           </div>
         )}
@@ -819,19 +868,19 @@ function TrustStrip() {
     { Icon: Truck, title: t("home.trustDeliveryTitle"), desc: t("home.trustDeliverySub") },
   ];
   return (
-    <section style={{ background: "var(--color-navy-800)" }}>
+    <section className="border-y border-[var(--color-line)] bg-white">
       <div className="mx-auto grid max-w-7xl grid-cols-2 gap-4 px-4 py-4 md:grid-cols-4">
         {items.map(({ Icon, title, desc }) => (
           <div key={title} className="flex items-center gap-2.5">
             <div
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-[var(--radius-r-sm)]"
-              style={{ background: "rgba(255,255,255,.08)", color: "var(--color-green-2)" }}
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full"
+              style={{ background: "var(--color-green-soft)", color: "var(--color-green-brand)" }}
             >
-              <Icon className="h-4 w-4" strokeWidth={2.5} />
+              <Icon className="h-[18px] w-[18px]" strokeWidth={2.2} />
             </div>
             <div className="min-w-0">
-              <div className="text-[13px] font-bold leading-tight text-white">{title}</div>
-              <div className="mt-0.5 text-[11px] leading-snug text-white/60">{desc}</div>
+              <div className="text-[13px] font-bold leading-tight text-[var(--color-ink)]">{title}</div>
+              <div className="mt-0.5 text-[11px] leading-snug text-[var(--color-muted-ink)]">{desc}</div>
             </div>
           </div>
         ))}
@@ -1213,7 +1262,6 @@ function Home() {
 
   const banners = data.banners ?? [];
   const heroSlides = banners.filter((b) => b.type === "hero_slide");
-  const heroSide = banners.find((b) => b.type === "hero_side" && b.image_url) ?? null;
   const dbPromo = banners.filter((b) => b.type === "promo_tile");
   const dbCategoryTiles = banners.filter((b) => b.type === "category_tile");
 
@@ -1221,11 +1269,17 @@ function Home() {
     .slice(0, 4)
     .map((p) => ({ label: p.name.length > 28 ? p.name.slice(0, 28).trim() + "…" : p.name, slug: p.slug }));
 
+  // Rayons: real root categories when the catalogue has them, else the 4 product types.
+  const rayons: Rayon[] =
+    data.allRoots.length > 0
+      ? data.allRoots.slice(0, 6).map((c) => ({ name: c.name, slug: c.slug, type: c.product_type }))
+      : PRODUCT_TYPE_RAYONS;
+
   return (
     <div className="bg-background">
-      <HeroSearch popular={popular} sideImage={heroSide?.image_url ?? null} sideAlt={heroSide?.title ?? ""} />
+      <HeroSearch popular={popular} rayons={rayons} />
       <TrustStrip />
-      <Hero dbSlides={heroSlides} />
+      {heroSlides.length > 0 && <Hero dbSlides={heroSlides} />}
 
       {/* Category grid — real categories */}
       <CategoryGrid cats={cats} />
